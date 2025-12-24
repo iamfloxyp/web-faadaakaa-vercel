@@ -111,29 +111,12 @@
 
     <!-- CATEGORY DROPDOWN (MOVED HERE) -->
     <div id="categoryDropdown"
-      class="hidden absolute ml-[-370px] top-full mt-[-20px] w-[240px] bg-white 
+      class="hidden absolute ml-[-60px] top-full mt-[5px] w-[240px] bg-white 
              rounded-[16px] border border-[#EAECF0] 
              shadow-[0px_8px_40px_rgba(0,0,0,0.12)] z-[999] ">
 
       <div class="flex flex-col py-[6px]">
-        <a href="./phones.html" class="px-4 h-[36px] flex items-center text-[14px] hover:bg-[#F9FAFB]">
-          Phones & Tablets
-        </a>
-        <a href="./electronics.html" class="px-4 h-[36px] flex items-center text-[14px] hover:bg-[#F9FAFB]">
-          Home Electronics
-        </a>
-        <a href="./kitchen.html" class="px-4 h-[36px] flex items-center text-[14px] hover:bg-[#F9FAFB]">
-          Home, Kitchen & Laundry
-        </a>
-        <a href="./acs.html" class="px-4 h-[36px] flex items-center text-[14px] hover:bg-[#F9FAFB]">
-          ACs, Refrigerators & Coolers
-        </a>
-        <a href="./power.html" class="px-4 h-[36px] flex items-center text-[14px] hover:bg-[#F9FAFB]">
-          Power Solution & Inverters
-        </a>
-        <a href="./food.html" class="px-4 h-[36px] flex items-center text-[14px] hover:bg-[#F9FAFB]">
-          Food & Consumables
-        </a>
+       <!-- API will inject categories here -->
       </div>
 
     </div>
@@ -439,11 +422,11 @@
       <span class="inline-block w-[4px] h-[24px] rounded-sm mr-[12px]"
       style="background: linear-gradient(180deg, #F97316, #EF4444);">
 </span>
-      <h2 class="text-xl sm:text-2xl font-semibold text-[#101828]">Home Electronics</h2>
+      <h2 id="categoryTitle" class="text-xl sm:text-2xl font-semibold text-[#101828]"></h2>
     </div>
 
     <!-- Products Grid -->
-    <div id="electronicsListGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-[16px]">
+    <div id="productListGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-[16px]">
       <!-- jQuery will inject products -->
     </div>
 
@@ -565,7 +548,7 @@
 
 
 
-<script src="assets/js/script.js"></script>
+<script src="assets/js/index.js"></script>
 <script src="assets/js/products_list.js"></script>
 <script src="assets/js/pagination.js"></script>
 

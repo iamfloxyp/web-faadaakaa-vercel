@@ -3479,3 +3479,219 @@
   background-color: #B0C5E8;
   cursor: not-allowed;
 }
+
+/* delivery state */
+select {
+  position: relative;
+  z-index: 9999;
+}
+  #deliveryContent {
+   overflow: visible !important;
+   padding-bottom: 160px;
+  }
+
+
+/* user section mobile  */
+/* =========================
+   MOBILE USER SLOT WRAPPER
+   ========================= */
+
+#mobileUserSlot {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #EAECF0;
+}
+
+/* =========================
+   MOBILE USER TOP ROW
+   Wallet + Cart line
+   ========================= */
+
+#mobileUserSlot .mobile-top-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Cart icon + amount */
+#mobileUserSlot .mobile-cart {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#mobileUserSlot .mobile-cart-icon {
+  width: 40px;
+  height: 40px;
+  border: 1px solid #EAECF0;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #FFFFFF;
+  position: relative;
+}
+
+#mobileUserSlot .mobile-cart-icon i {
+  font-size: 16px;
+  color: #475467;
+}
+
+#mobileUserSlot .mobile-cart-amount {
+  font-size: 14px;
+  font-weight: 500;
+  color: #101828;
+}
+
+/* =========================
+   WALLET LINE
+   ========================= */
+
+#mobileUserSlot .mobile-wallet {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#mobileUserSlot .mobile-wallet span:first-child {
+  font-size: 12px;
+  color: #475467;
+}
+
+#mobileUserSlot .mobile-wallet span:last-child {
+  font-size: 14px;
+  font-weight: 600;
+  color: #004EEB;
+}
+
+/* =========================
+   USER IDENTITY ROW
+   Initials + Greeting + Arrow
+   ========================= */
+
+#mobileUserSlot .mobile-user-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#mobileUserSlot .mobile-user-initials {
+  width: 28px;
+  height: 28px;
+  background: #EAECF0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: #344054;
+}
+
+#mobileUserSlot .mobile-user-greeting {
+  font-size: 14px;
+  color: #344054;
+}
+
+#mobileUserSlot .mobile-user-arrow {
+  font-size: 10px;
+  color: #475467;
+}
+
+/* =========================
+   USER DROPDOWN MENU
+   (same IDs, just constrained)
+   ========================= */
+
+#mobileUserSlot #userMenu {
+  position: static;
+  width: 100%;
+  margin-top: 8px;
+  box-shadow: none;
+  border: 1px solid #EAECF0;
+  border-radius: 12px;
+}
+ .loader-spinner {
+  width: 42px;
+  height: 42px;
+  border: 4px solid #EAECF0;
+  border-top-color: #155EEF;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.toast-success {
+  background-color: #ecfdf3;
+  color: #027a48;
+  border: 1px solid #abefc6;
+}
+
+.toast-error {
+  background-color: #fef3f2;
+  color: #b42318;
+  border: 1px solid #fecdca;
+}
+/* account btn spinner */
+.btn-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: btn-spin 0.6s linear infinite;
+}
+
+@keyframes btn-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Anchor dropdown inside the same section */
+#howToPaySection {
+  position: relative;
+}
+
+/* Dropdown positioning, mobile safe */
+.payment-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  z-index: 9999;
+}
+
+/* Optional: if you want it not too tall */
+.payment-dropdown {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+/* OTP BOX */
+.otp-box {
+  width: 56px;
+  height: 56px;
+  border: 1.5px solid #D0D5DD;
+  border-radius: 10px;
+  text-align: center;
+  font-size: 22px;
+  font-weight: 600;
+  color: #101828;
+  outline: none;
+}
+
+.otp-box:focus {
+  border-color: #155EEF;
+  box-shadow: 0 0 0 1px rgba(21, 94, 239, 0.4);
+}

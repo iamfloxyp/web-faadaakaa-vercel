@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -17,6 +17,15 @@
 </head>
 
 <body>
+ <!-- INDEX PAGE LOADER -->
+<div id="indexLoader"
+     class="fixed inset-0 z-[9999] flex items-center justify-center bg-white">
+  <div class="flex flex-col items-center gap-[12px]">
+    <div class="w-[36px] h-[36px] border-4 border-[#E4E7EC]
+                border-t-[#1570EF] rounded-full animate-spin"></div>
+    <p class="text-[14px] text-[#667085]"></p>
+  </div>
+</div>
 
   <!--  TOP HEADER SECTION -->
   <header id="topHeader" class="w-full border-b border-[#D9E4F2]">
@@ -113,7 +122,7 @@
     
   </div>
 
-            </div>
+            </div> 
           </div>
 
           <!-- Divider -->
@@ -137,115 +146,187 @@
         <!-- CART + PRICE -->
         <div id="rightHeader" class="hidden lg:flex items-center gap-[16px] h-[40px]">
 
+          
           <!-- CART WRAPPER -->
-          <div id="cartWrapper" class="relative block md:block">
+           <div id="cartWrapper" class="relative block md:block">
 
-            <!-- CART ICON -->
-            <div id="cartContainer" class="flex items-center gap-[8px] cursor-pointer">
-              <div class="relative flex items-center justify-center w-[40px] h-[40px] 
-                        border border-[#EAECF0] rounded-[8px] bg-[#FFFFFF]">
-                <i class="fa-solid fa-cart-shopping text-[#475467] text-[16px]"></i>
+  <!-- CART ICON -->
+  <div id="cartContainer" class="flex items-center gap-[8px] cursor-pointer">
+    <div
+      class="relative flex items-center justify-center w-[40px] h-[40px]
+             border border-[#EAECF0] rounded-[8px] bg-[#FFFFFF]">
 
-                <!-- Badge -->
-                <span id="cartBadge" class="absolute top-[4px] right-[4px] bg-[#475467] 
-                       text-white text-[10px] font-[600] leading-[14px] 
-                       px-[4px] rounded-full">2</span>
+      <i class="fa-solid fa-cart-shopping text-[#475467] text-[16px]"></i>
 
-              </div>
-              <div id="cartTooltip" class="hidden absolute left-1/2 -translate-x-1/2 top-[45px]
-                    bg-[#344054] text-white text-[12px] font-medium
-                    whitespace-nowrap px-[8px] py-[4px] rounded-[6px] shadow-md z-50">
-              </div>
-            </div>
+      <!-- BADGE -->
+      <span
+        id="cartBadge"
+        class="absolute top-[4px] right-[4px] bg-[#475467]
+               text-white text-[10px] font-[600] leading-[14px]
+               px-[4px] rounded-full">
+        0
+      </span>
+    </div>
 
-            <!-- FULL SHOPPING CART DROPDOWN (UNCHANGED) -->
-            <div id="cartDropdown" class="hidden absolute left-[-75px] mt-2 w-[376px] h-[415px] 
-                   bg-white border border-[#EAECF0] rounded-[16px] 
-                   shadow-[0px_8px_40px_rgba(0,0,0,0.12)] z-50 flex flex-col">
-              <!-- Heading Section -->
-              <div class="flex items-center justify-start gap-[6px] 
-                        w-full h-[54px] border-b border-[#EAECF0]
-                        px-[24px] py-[16px]">
-                <span class="text-[#101828] text-[14px] font-[500]">Shopping Cart</span>
-                <span class="text-[#667085] text-[14px] font-[500]">(02)</span>
-              </div>
+    <!-- TOOLTIP -->
+    <div
+      id="cartTooltip"
+      class="hidden absolute left-1/2 -translate-x-1/2 top-[45px]
+             bg-[#344054] text-white text-[12px] font-medium
+             whitespace-nowrap px-[8px] py-[4px]
+             rounded-[6px] shadow-md z-50">
+    </div>
+  </div>
 
-              <!-- PRODUCT LIST WRAPPER -->
-              <div class="flex flex-col w-full px-[24px] py-[20px] gap-[16px] border-b border-[#EAECF0]">
+  <!-- CART DROPDOWN -->
+  <div
+    id="cartDropdown"
+    class="hidden absolute left-[-75px] mt-2 w-[376px] h-[415px]
+           bg-white border border-[#EAECF0] rounded-[16px]
+           shadow-[0px_8px_40px_rgba(0,0,0,0.12)]
+           z-50 flex flex-col">
 
-                <!-- PRODUCT ITEM 1 -->
-                <a href="productdetails.html">
-                  <div class="flex items-center w-[328px] min-h-[80px] gap-[16px]">
+    <!-- HEADER -->
+    <div
+      class="flex items-center justify-start gap-[6px]
+             w-full h-[54px] border-b border-[#EAECF0]
+             px-[24px] py-[16px]">
 
-                    <img src="./assets/images/iphone16promax.png"
-                      class="w-[80px] h-[80px] object-cover rounded-[8px]" />
+      <span class="text-[#101828] text-[14px] font-[500]">
+        Shopping Cart
+      </span>
 
-                    <div class="flex flex-col w-[200px] gap-[8px]">
-                      <span class="text-[#101828] text-[14px] leading-[22px]">
-                        Canon EOS 1500D DSLR <br />
-                        Camera Body+ 18–55 mm
-                      </span>
+      <span
+        id="cartItemCountText"
+        class="text-[#667085] text-[14px] font-[500]">
+        (0)
+      </span>
+    </div>
 
-                      <div class="flex items-center gap-[4px]">
-                        <span class="text-[#475467] text-[14px]">1 x</span>
-                        <span class="text-[#004EEB] text-[14px]">₦1,462,500.00</span>
-                      </div>
-                    </div>
+    <!-- ITEMS WRAPPER (JS INJECTS HERE ONLY) -->
+    <div
+      id="cartItemsWrapper"
+      class="flex flex-col w-full px-[24px] py-[20px]
+             gap-[16px] border-b border-[#EAECF0]
+             overflow-y-auto max-h-[240px]">
+    </div>
 
-                    <i class="fa-solid fa-xmark text-[#98A2B3] text-[16px] cursor-pointer"></i>
-                  </div>
-                </a>
+    <!-- SUBTOTAL -->
+    <div
+      class="flex items-center justify-between w-full h-[53px]
+             border-b border-[#EAECF0]
+             px-[24px] py-[20px]">
 
-                <!-- PRODUCT ITEM 2 -->
-                <a href="productdetails.html">
-                  <div class="flex items-center w-[328px] min-h-[80px] gap-[16px]">
+      <span class="text-[#475467] text-[14px]">
+        Sub-Total:
+      </span>
 
-                    <img src="./assets/images/iphone16promax.png"
-                      class="w-[80px] h-[80px] object-cover rounded-[8px]" />
+      <span
+        id="cartSubtotal"
+        class="text-[#101828] text-[14px] font-[500]">
+        ₦0.00
+      </span>
+    </div>
 
-                    <div class="flex flex-col w-[200px] gap-[8px]">
-                      <span class="text-[#101828] text-[14px] leading-[22px]">
-                        Canon EOS 1500D DSLR <br />
-                        Camera Body+ 18–55 mm
-                      </span>
+    <!-- VIEW CART BUTTON -->
+    <div
+      class="flex flex-col w-full border-t border-[#EAECF0]
+             px-[24px] py-[20px] gap-[12px]">
 
-                      <div class="flex items-center gap-[4px]">
-                        <span class="text-[#475467] text-[14px]">1 x</span>
-                        <span class="text-[#004EEB] text-[14px]">₦1,462,500.00</span>
-                      </div>
-                    </div>
+      <a href="/cart.html" class="block w-full">
+        <button
+          class="w-full h-[48px] bg-[#004EEB]
+                 text-white rounded-[8px]
+                 text-[14px] font-[500]">
+          View Cart
+        </button>
+      </a>
+    </div>
 
-                    <i class="fa-solid fa-xmark text-[#98A2B3] text-[16px] cursor-pointer"></i>
-                  </div>
+    <div class="h-[16px] w-full"></div>
+  </div>
+           </div>
 
-              </div>
-              </a>
+          <span id="headerCartTotal" class="text-[#101828] text-[14px] font-[500]">₦0.00</span>
 
-              <!-- SUBTOTAL -->
-              <div class="flex items-center justify-between w-full h-[53px] border-b border-[#EAECF0]
-                        px-[24px] py-[20px]">
-                <span class="text-[#475467] text-[14px]">Sub-Total:</span>
-                <span class="text-[#101828] text-[14px] font-[500]">₦1,925,000.00</span>
-              </div>
+           <!--  NEW USER SECTION (REPLACES LOGIN + SIGNUP) -->
+        <div id="userSection" class="hidden lg:flex items-center gap-[16px] relative">
 
-              <!-- VIEW CART BUTTON -->
-              <div class="flex flex-col w-full border-t border-[#EAECF0] px-[24px] py-[20px] gap-[12px]">
-                <a href="./cart.html" class="block w-full">
-                  <button class="w-full h-[48px] bg-[#004EEB] text-white rounded-[8px] text-[14px] font-[500]">
-                    View Cart
-                  </button>
-                </a>
-              </div>
+    <!-- Wallet Balance -->
+    <div class="flex items-center gap-[6px]">
+      <span class="text-[#475467] text-[12px]">Wallet:</span>
+      <span id="walletBalance" class="text-[#004EEB] text-[14px] font-[600]">₦0.00</span>
+    </div>
 
-              <div class="h-[16px] w-full"></div>
-            </div>
+    <!-- User Initials "NS" -->
+    <div id="userInitials"
+         class="w-[24px] h-[24px] flex items-center justify-center
+                bg-[#EAECF0] text-[#344054] text-[10px] font-[600]
+                rounded-full uppercase cursor-pointer">
+      NS
+    </div>
 
-          </div>
+    <!-- Greeting "Hi Niyi" -->
+    <span id="userGreeting"
+          class="text-[#344054] text-[14px] font-[400]">
+      Hi Niyi
+    </span>
 
-          <span class="text-[#101828] text-[14px] font-[500]">₦0.00</span>
-        </div>
+    <!-- Dropdown Icon -->
+    <i id="userDropdownIcon"
+       class="fa-solid fa-chevron-down text-[#475467] text-[10px] cursor-pointer"></i>
+ 
+       <!-- user dropdown -->
+        <div id="userMenu"
+     class="hidden absolute right-[-20px] top-[30px] w-[200px]
+            bg-white border border-[#EAECF0] rounded-[12px]
+            shadow-[0px_8px_40px_rgba(0,0,0,0.12)] text-[14px] text-[#101828] z-50">
 
-        <div id="authButtons" class="hidden lg:flex items-center gap-[12px]">
+    <ul class="py-[8px]">
+
+      <!--  My Account -->
+      <li>
+        <button id="menuAccount"
+                class="w-full text-left flex items-center gap-[8px] px-[16px] py-[8px] hover:bg-[#F9FAFB]">
+          <i class="fa-regular fa-user text-[#667085]"></i>
+          <span>My Account</span>
+        </button>
+      </li>
+
+      <!--  My Wallet -->
+      <li>
+        <button id="menuWallet"
+                class="w-full text-left flex items-center gap-[8px] px-[16px] py-[8px] hover:bg-[#F9FAFB]">
+          <i class="fa-solid fa-naira-sign text-[#667085]"></i>
+          <span>My Wallet</span>
+        </button>
+      </li>
+
+      <!--  My Orders -->
+      <li>
+        <button id="menuOrders"
+                class="w-full text-left flex items-center gap-[8px] px-[16px] py-[8px] hover:bg-[#F9FAFB]">
+          <i class="fa-solid fa-box text-[#667085]"></i>
+          <span>My Orders</span>
+        </button>
+      </li>
+
+    </ul>
+
+    <div class="border-t border-[#EAECF0] mt-[4px] pt-[4px]">
+
+         <!--  Logout -->
+      <button 
+              class=" logoutBtn w-full text-left flex items-center gap-[8px] px-[16px] py-[8px] text-[#D92D20] hover:bg-[#FEE4E2]" type="button">
+        <i class="fa-solid fa-arrow-right-from-bracket" ></i>
+        <span>Logout</span>
+      </button>
+    </div>
+
+</div>
+
+       </div>
+        <div id="authButtons" class="flex items-center gap-[12px]">
 
           <!-- LOGIN BUTTON -->
           <a href="login.html">
@@ -265,6 +346,8 @@
 
         </div>
 
+        </div>
+      
       </div>
 
     </div>
@@ -286,85 +369,226 @@
 
   </div>
 
-  <!-- MOBILE DROPDOWN MENU -->
-  <div id="mobileMenu"
-    class="lg:hidden hidden flex-col w-full bg-[#FFFFFF] border-t border-[#EAECF0] shadow-md absolute top-[72px] left-0 z-40">
-    <div class="flex flex-col px-[24px] py-[16px]">
-      <h4 class="text-[#101828] text-[14px] font-[600] mb-[8px]">Account</h4>
-      <!-- SAME DROPDOWN (WE COPY IT) -->
-      <!-- MOBILE CART BUTTON -->
-      <div id="mobileCartBtn" class="flex items-center gap-[12px] py-[12px] cursor-pointer">
-        <i class="fa-solid fa-cart-shopping text-[#475467] text-[16px]"></i>
-        <span class="text-[#101828] text-[14px] font-[500]">Cart (2)</span>
-      </div>
+  
+  <!-- MOBILE MENU -->
+<div id="mobileMenu"
+  class="lg:hidden hidden flex-col w-full bg-[#FFFFFF] border-t border-[#EAECF0]
+         shadow-md absolute top-[72px] left-0 z-40">
 
-      <!-- MOBILE CART DROPDOWN -->
-      <div id="mobileCartDropdown" class="hidden w-full bg-white border border-[#EAECF0] rounded-[16px] 
-            shadow-[0px_8px_40px_rgba(0,0,0,0.12)] flex flex-col px-[24px] py-[16px] mt-[8px]">
+  <div class="flex flex-col px-[24px] py-[16px]">
 
-        <span class="text-[#101828] text-[14px] font-[500] mb-[12px]">Shopping Cart</span>
+    <h4 class="text-[#101828] text-[14px] font-[600] mb-[8px]">Account</h4>
 
-        <!-- PRODUCT 1 -->
-        <a href="productdetails.html" class="flex items-center gap-[16px] mb-[16px]">
-          <img src="./assets/images/iphone16promax.png" class="w-[60px] h-[60px] rounded-[8px]">
-          <div class="flex flex-col">
-            <span class="text-[#101828] text-[14px] leading-[20px]">
-              Canon EOS 1500D DSLR
-            </span>
-            <span class="text-[#004EEB] text-[14px] font-[500]">₦1,462,500.00</span>
-          </div>
-        </a>
+    <!-- MOBILE CART WRAPPER -->
+    <div id="mobileCartWrapper" class="w-full flex flex-col gap-[8px]">
 
-        <!-- PRODUCT 2 -->
-        <a href="productdetails.html" class="flex items-center gap-[16px] mb-[16px]">
-          <img src="./assets/images/iphone16promax.png" class="w-[60px] h-[60px] rounded-[8px]">
-          <div class="flex flex-col">
-            <span class="text-[#101828] text-[14px] leading-[20px]">
-              Canon EOS 1500D DSLR
-            </span>
-            <span class="text-[#004EEB] text-[14px] font-[500]">₦1,462,500.00</span>
-          </div>
-        </a>
+      <!-- MOBILE CART WRAPPER -->
+<div id="mobileCartWrapper" class="w-full flex flex-col gap-[8px] relative">
 
-        <div class="flex items-center justify-between mt-[8px] border-t border-[#EAECF0] pt-[16px]">
-          <span class="text-[#475467] text-[14px]">Sub-Total:</span>
-          <span class="text-[#101828] text-[14px] font-[500]">₦1,925,000.00</span>
-        </div>
+  <!-- MOBILE CART BUTTON -->
+  <div id="mobileCartBtn"
+    class="flex items-center gap-[14px] py-[12px] cursor-pointer relative z-[20]">
 
-        <a href="./cart.html" class="w-full mt-[16px]">
-          <button class="w-full h-[48px] bg-[#004EEB] text-white rounded-[8px] text-[14px] font-[500]">
-            View Cart
-          </button>
-        </a>
-
-      </div>
-      <a href="login.html" class="text-[#155EEF] text-[14px] mb-[6px]">Login</a>
-      <a href="signUp.html" class="text-[#155EEF] text-[14px] mb-[12px]">Signup</a>
-
-      <h4 class="text-[#101828] text-[14px] font-[600] mb-[8px]">Categories</h4>
-      <ul id="mobileCategoryList"
-    class="flex flex-col gap-[6px] text-[#344054] text-[14px]">
-  <!-- categories will be injected here -->
-</ul>
+    <div class="flex items-center gap-[6px]">
+      <i class="fa-solid fa-cart-shopping text-[#475467] text-[16px]"></i>
+      <span id="mobileCartCount"
+        class="text-[#101828] text-[14px] font-[500]">
+        Cart (0)
+      </span>
     </div>
 
-    <!-- Mobile Search -->
-    <div class="px-[24px] pb-[16px]">
-      <div class="flex items-center w-full h-[40px] bg-[#FFFFFF] border border-[#D0D5DD] rounded-[8px] overflow-hidden">
-        <div class="flex items-center justify-between w-[120px] h-full px-[14px] bg-[#F2F4F7]">
-          <span class="text-[#344054] text-[14px] font-[500]">Category</span>
-          <i class="fa-solid fa-chevron-down text-[#475467] text-[12px]"></i>
-        </div>
-        <div class="h-full w-[1px] bg-[#D0D5DD]"></div>
-        <div class="flex items-center w-full h-full px-[14px]">
-          <i class="fa-solid fa-magnifying-glass text-[#475467] text-[14px] mr-[8px]"></i>
-          <input type="text" placeholder="Search"
-            class="mobileSearchInput w-full border-none outline-none bg-transparent text-[14px] text-[#667085] placeholder-[#667085]" />
-        </div>
+    <span id="mobileCartTotal"
+      class="text-[#101828] text-[14px] font-[500]">
+      ₦0.00
+    </span>
+
+    
+    <div id="mobileCartDropdown"
+      class="hidden absolute top-full left-0 mt-[4px]
+             w-full bg-white border border-[#EAECF0]
+             rounded-[16px]
+             shadow-[0px_8px_40px_rgba(0,0,0,0.12)]
+             flex flex-col px-[24px] py-[16px]
+             z-[999]">
+
+      <span class="text-[#101828] text-[14px] font-[500] mb-[12px]">
+        Shopping Cart
+      </span>
+
+      <div id="mobileCartItemsWrapper"
+        class="flex flex-col gap-[16px] max-h-[260px] overflow-y-auto">
       </div>
+
+      <div class="flex items-center justify-between mt-[16px]
+                  border-t border-[#EAECF0] pt-[16px]">
+        <span class="text-[#475467] text-[14px]">Sub-Total:</span>
+        <span id="mobileCartSubtotal"
+          class="text-[#101828] text-[14px] font-[500]">
+          ₦0.00
+        </span>
+      </div>
+
+      <a href="./cart.html" class="w-full mt-[16px]">
+        <button
+          class="w-full h-[48px] bg-[#004EEB] text-white
+                 rounded-[8px] text-[14px] font-[500]">
+          View Cart
+        </button>
+      </a>
+
     </div>
   </div>
-  </header>
+</div>
+    </div>
+
+    <!-- AUTH BUTTONS -->
+    <div id="mobileAuthButtons"
+      class="flex items-center gap-[12px] mt-[10px]">
+
+      <a href="login.html">
+        <button
+          class="text-[#344054] text-[14px] font-[500]
+                 px-[14px] py-[10px] rounded-[8px]
+                 hover:text-[#155EEF]">
+          Log in
+        </button>
+      </a>
+
+      <a href="signUp.html">
+        <button
+          class="bg-[#155EEF] text-white text-[14px] font-[500]
+                 px-[14px] py-[10px] rounded-[8px]
+                 hover:bg-[#0047BA]">
+          Sign up
+        </button>
+      </a>
+
+    </div>
+
+    <!-- USER SECTION -->
+    <div id="mobileUserSection"
+      class="hidden lg:hidden flex items-center gap-[16px]
+             relative z-[10] mt-[10px]">
+
+      <!-- WALLET -->
+      <div class="flex items-center gap-[6px]">
+        <span class="text-[#475467] text-[12px]">Wallet:</span>
+        <span id="mobileWalletBalance"
+          class="text-[#004EEB] text-[14px] font-[600]">
+          ₦0.00
+        </span>
+      </div>
+
+      <!-- INITIALS -->
+      <div id="MobileUserInitials"
+        class="w-[24px] h-[24px] flex items-center justify-center
+               bg-[#EAECF0] text-[#344054] text-[10px]
+               font-[600] rounded-full uppercase cursor-pointer">
+        NS
+      </div>
+
+      <!-- GREETING -->
+      <span id="MobileUserGreeting"
+        class="text-[#344054] text-[14px] font-[400] cursor-pointer">
+        Hi Niyi
+      </span>
+
+      <!-- DROPDOWN ICON -->
+      <i id="mobileUserDropdownIcon"
+        class="fa-solid fa-chevron-down text-[#475467]
+               text-[10px] cursor-pointer"></i>
+
+      <!-- USER DROPDOWN MENU -->
+      <div id="mobileUserMenu"
+        class="hidden absolute right-0 top-[28px] w-[200px]
+               bg-white border border-[#EAECF0]
+               rounded-[12px]
+               shadow-[0px_8px_40px_rgba(0,0,0,0.12)]
+               text-[14px] text-[#101828] z-50">
+
+        <ul class="py-[8px]">
+
+          <li>
+            <button id="mobileMenuAccount"
+              class="w-full text-left flex items-center gap-[8px]
+                     px-[16px] py-[8px] hover:bg-[#F9FAFB]">
+              <i class="fa-regular fa-user text-[#667085]"></i>
+              <span>My Account</span>
+            </button>
+          </li>
+
+          <li>
+            <button id="mobileMenuWallet"
+              class="w-full text-left flex items-center gap-[8px]
+                     px-[16px] py-[8px] hover:bg-[#F9FAFB]">
+              <i class="fa-solid fa-naira-sign text-[#667085]"></i>
+              <span>My Wallet</span>
+            </button>
+          </li>
+
+          <li>
+            <button id="mobileMenuOrders"
+              class="w-full text-left flex items-center gap-[8px]
+                     px-[16px] py-[8px] hover:bg-[#F9FAFB]">
+              <i class="fa-solid fa-box text-[#667085]"></i>
+              <span>My Orders</span>
+            </button>
+          </li>
+
+        </ul>
+
+        <div class="border-t border-[#EAECF0] mt-[4px] pt-[4px]">
+          <button
+            class="logoutBtn w-full text-left flex items-center gap-[8px]
+                   px-[16px] py-[8px] text-[#D92D20]
+                   hover:bg-[#FEE4E2]" type="button">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            <span>Logout</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- CATEGORIES -->
+    <h4 class="text-[#101828] text-[14px] font-[600] mt-[14px] mb-[8px]">
+      Categories
+    </h4>
+
+    <ul id="mobileCategoryList"
+      class="flex flex-col gap-[6px] text-[#344054] text-[14px]">
+    </ul>
+
+  </div>
+
+  <!-- SEARCH -->
+  <div class="px-[24px] pb-[16px]">
+    <div class="flex items-center w-full h-[40px]
+                bg-[#FFFFFF] border border-[#D0D5DD]
+                rounded-[8px] overflow-hidden">
+
+      <div class="flex items-center justify-between w-[120px] h-full
+                  px-[14px] bg-[#F2F4F7]">
+        <span class="text-[#344054] text-[14px] font-[500]">Category</span>
+        <i class="fa-solid fa-chevron-down text-[#475467] text-[12px]"></i>
+      </div>
+
+      <div class="h-full w-[1px] bg-[#D0D5DD]"></div>
+
+      <div class="flex items-center w-full h-full px-[14px]">
+        <i class="fa-solid fa-magnifying-glass
+                  text-[#475467] text-[14px] mr-[8px]"></i>
+        <input type="text" placeholder="Search"
+          class="mobileSearchInput w-full border-none outline-none
+                 bg-transparent text-[14px]
+                 text-[#667085] placeholder-[#667085]" />
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
 
 
   <!-- HERO SECTION -->
@@ -727,8 +951,60 @@
       </div>
     </section>
   </footer>
+  
   <script src="/assets/js/index.js"></script>
   <script src="/assets/js/account.js"></script>
+  <script src="./assets/js/global-auth.js"></script>
+<script>
+    // ✅ INDEX-ONLY: Force desktop user menu navigation to work (capture phase)
+(function () {
+  function go(hash) {
+    window.location.assign("account.html" + hash);
+  }
+
+  document.addEventListener(
+    "click",
+    function (e) {
+      const btn = e.target.closest("#menuAccount, #menuWallet, #menuOrders");
+      if (!btn) return;
+
+      // stop other scripts on index.html from hijacking the click
+      e.preventDefault();
+      e.stopPropagation();
+      if (typeof e.stopImmediatePropagation === "function") {
+        e.stopImmediatePropagation();
+      }
+
+      // optional: close menu immediately
+      const menu = document.getElementById("userMenu");
+      if (menu) menu.classList.add("hidden");
+
+      if (btn.id === "menuAccount") go("#account");
+      if (btn.id === "menuWallet") go("#wallet");
+      if (btn.id === "menuOrders") go("#orders");
+    },
+    true // ⭐ capture phase
+  );
+})();
+
+
+  (function () {
+    function logout() {
+      sessionStorage.removeItem("AUTH_TOKEN");
+      window.location.href = "index.html";
+    }
+
+    document.querySelectorAll(".logoutBtn").forEach(btn => {
+      btn.addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        logout();
+      });
+    });
+  })();
+
+  </script>
+  
 </body>
 
 </html>

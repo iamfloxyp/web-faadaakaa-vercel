@@ -15,7 +15,32 @@
 
 <body>
 
+<!-- ===============================
+     ACCOUNT PAGE LOADER
+=============================== -->
+<div
+  id="accountPageLoader"
+  class="fixed inset-0 z-[9999] bg-white flex items-center justify-center hidden">
 
+  <svg
+    class="animate-spin w-8 h-8 text-[#004EEB]"
+    viewBox="0 0 24 24">
+    <circle
+      cx="12"
+      cy="12"
+      r="10"
+      stroke="currentColor"
+      stroke-width="4"
+      fill="none"
+      opacity="0.25"></circle>
+    <path
+      d="M12 2a10 10 0 0 1 10 10"
+      stroke="currentColor"
+      stroke-width="4"
+      fill="none"></path>
+  </svg>
+
+</div>
 
 <!--  TOP HEADER SECTION -->
 <header id="topHeader" class="w-full border-b border-[#D9E4F2]">
@@ -68,212 +93,181 @@
   </div>
 </header>
 
-<header id="mainHeader" class="w-full bg-[#FFFFFF] border-b border-[#EAECF0] relative">
+<!--  MAIN HEADER -->
+  <header id="mainHeader" class="w-full bg-[#FFFFFF] border-b border-[#EAECF0] relative">
 
-  <div class="max-w-[1440px] mx-auto flex items-center justify-between px-[16px] lg:px-[112px] h-[72px]">
+    <div class="max-w-[1440px] mx-auto flex items-center justify-between px-[16px] lg:px-[112px] h-[72px]">
 
-    <!-- LEFT GROUP (LOGO + SEARCH) -->
-    <div class="flex items-center gap-[32px]">
-        
+      <!-- LEFT GROUP (LOGO + SEARCH) -->
+      <div class="flex items-center gap-[32px]">
 
-      <!-- LOGO -->
-      <a href="index.html" id="logoContainer" class="flex items-center">
-  <img
-    id="siteLogo"
-    src="./assets/images/logo.png"
-    alt="Faadaakaa Logo"
-    class="w-[140px] h-[32px] sm:w-[160px] sm:h-[36px] lg:w-[190px] lg:h-[44px] object-contain"
-  />
-</a>
 
-           <div id="searchContainer"
-  class="relative hidden lg:flex items-center w-[445px] h-[40px] 
+        <!-- LOGO -->
+        <a href="index.html" id="logoContainer" class="flex items-center">
+          <img id="siteLogo" src="./assets/images/logo.png" alt="Faadaakaa Logo"
+            class="w-[140px] h-[32px] sm:w-[160px] sm:h-[36px] lg:w-[190px] lg:h-[44px] object-contain" />
+        </a>
+
+
+        <div id="searchContainer" class="relative hidden lg:flex items-center w-[445px] h-[40px] 
          bg-[#FFFFFF] border border-[#D0D5DD] rounded-[8px]">
 
-  <!-- Category Section -->
-  <div id="categorySection"
-    class="relative flex items-center justify-between w-[150px] h-full 
+          <!-- Category Section -->
+          <div id="categorySection" class="relative flex items-center justify-between w-[150px] h-full 
            px-[14px] bg-[#F2F4F7] cursor-pointer">
 
-    <span class="text-[#344054] text-[14px] font-[500] leading-[22px] tracking-[-0.03em]">
-      Category
-    </span>
+            <span class="text-[#344054] text-[14px] font-[500] leading-[22px] tracking-[-0.03em]">
+              Category
+            </span>
 
-    <i class="fa-solid fa-chevron-down text-[#475467] text-[12px]"></i>
+            <i class="fa-solid fa-chevron-down text-[#475467] text-[12px]"></i>
 
-    <!-- CATEGORY DROPDOWN (MOVED HERE) -->
-    <div id="categoryDropdown"
-      class="hidden absolute ml-[-370px] top-full mt-[-20px] w-[240px] bg-white 
-             rounded-[16px] border border-[#EAECF0] 
-             shadow-[0px_8px_40px_rgba(0,0,0,0.12)] z-[999] ">
+            <!-- CATEGORY DROPDOWN -->
+           <div
+  id="categoryDropdown"
+  class="hidden absolute ml-[-60px] top-full mt-[5px] w-[240px] bg-white 
+         rounded-[16px] border border-[#EAECF0] 
+         shadow-[0px_8px_40px_rgba(0,0,0,0.12)] z-[999]">
 
-      <div class="flex flex-col py-[6px]">
-        <a href="./phones.html" class="px-4 h-[36px] flex items-center text-[14px] hover:bg-[#F9FAFB]">
-          Phones & Tablets
-        </a>
-        <a href="./electronics.html" class="px-4 h-[36px] flex items-center text-[14px] hover:bg-[#F9FAFB]">
-          Home Electronics
-        </a>
-        <a href="./kitchen.html" class="px-4 h-[36px] flex items-center text-[14px] hover:bg-[#F9FAFB]">
-          Home, Kitchen & Laundry
-        </a>
-        <a href="./acs.html" class="px-4 h-[36px] flex items-center text-[14px] hover:bg-[#F9FAFB]">
-          ACs, Refrigerators & Coolers
-        </a>
-        <a href="./power.html" class="px-4 h-[36px] flex items-center text-[14px] hover:bg-[#F9FAFB]">
-          Power Solution & Inverters
-        </a>
-        <a href="./food.html" class="px-4 h-[36px] flex items-center text-[14px] hover:bg-[#F9FAFB]">
-          Food & Consumables
-        </a>
-      </div>
-
-    </div>
+  <div id="categoryDropdown" class="flex flex-col py-[6px]">
+    <!-- Categories will be injected here by jQuery -->
+    
   </div>
-
-  <!-- Divider -->
-  <div class="h-full w-[1px] bg-[#D0D5DD]"></div>
-
-  <!-- Search Input -->
-  <div id="searchSection" class="flex items-center w-full h-full px-[14px] bg-[#FFFFFF]">
-    <i class="fa-solid fa-magnifying-glass text-[#475467] text-[14px] mr-[8px]"></i>
-    <input id="searchInput"
-      type="text"
-      placeholder="Search"
-      class="w-full border-none outline-none bg-transparent text-[14px] text-[#667085] placeholder-[#667085]" />
-  </div>
-
-     </div>
-
-    </div>
-
-
-
-   <!-- RIGHT GROUP (CART + PRICE + USER INFO) -->
-<div class="flex items-center gap-[24px]">
-
- <!-- CART + PRICE -->
-      <div id="rightHeader" class="hidden lg:flex items-center gap-[16px] h-[40px]">
-
-        <!-- CART WRAPPER -->
-        <div id="cartWrapper" class="relative block md:block">
-
-          <!-- CART ICON -->
-          <div id="cartContainer" class="flex items-center gap-[8px] cursor-pointer">
-            <div class="relative flex items-center justify-center w-[40px] h-[40px] 
-                        border border-[#EAECF0] rounded-[8px] bg-[#FFFFFF]">
-              <i class="fa-solid fa-cart-shopping text-[#475467] text-[16px]"></i>
-
-              <!-- Badge -->
-              <span id="cartBadge"
-                class="absolute top-[4px] right-[4px] bg-[#475467] 
-                       text-white text-[10px] font-[600] leading-[14px] 
-                       px-[4px] rounded-full"
-              >2</span>
 
             </div>
-                <div 
-                   id="cartTooltip"
-                   class="hidden absolute left-1/2 -translate-x-1/2 top-[45px]
-                    bg-[#344054] text-white text-[12px] font-medium
-                    whitespace-nowrap px-[8px] py-[4px] rounded-[6px] shadow-md z-50">
-                </div>
           </div>
 
-          <!-- FULL SHOPPING CART DROPDOWN (UNCHANGED) -->
-          <div
-            id="cartDropdown"
-            class="hidden absolute left-[-75px] mt-2 w-[376px] h-[415px] 
-                   bg-white border border-[#EAECF0] rounded-[16px] 
-                   shadow-[0px_8px_40px_rgba(0,0,0,0.12)] z-50 flex flex-col"
-          >
-            <!-- Heading Section -->
-            <div class="flex items-center justify-start gap-[6px] 
-                        w-full h-[54px] border-b border-[#EAECF0]
-                        px-[24px] py-[16px]">
-              <span class="text-[#101828] text-[14px] font-[500]">Shopping Cart</span>
-              <span class="text-[#667085] text-[14px] font-[500]">(02)</span>
-            </div>
+          <!-- Divider -->
+          <div class="h-full w-[1px] bg-[#D0D5DD]"></div>
 
-            <!-- PRODUCT LIST WRAPPER -->
-            <div class="flex flex-col w-full px-[24px] py-[20px] gap-[16px] border-b border-[#EAECF0]">
-
-              <!-- PRODUCT ITEM 1 -->
-               <a href="productdetails.html">
-              <div class="flex items-center w-[328px] min-h-[80px] gap-[16px]">
-
-                <img src="./assets/images/iphone16promax.png" class="w-[80px] h-[80px] object-cover rounded-[8px]" />
-
-                <div class="flex flex-col w-[200px] gap-[8px]">
-                  <span class="text-[#101828] text-[14px] leading-[22px]">
-                    Canon EOS 1500D DSLR <br />
-                    Camera Body+ 18–55 mm
-                  </span>
-
-                  <div class="flex items-center gap-[4px]">
-                    <span class="text-[#475467] text-[14px]">1 x</span>
-                    <span class="text-[#004EEB] text-[14px]">₦1,462,500.00</span>
-                  </div>
-                </div>
-
-                <i class="fa-solid fa-xmark text-[#98A2B3] text-[16px] cursor-pointer"></i>
-              </div>
-              </a>
-
-              <!-- PRODUCT ITEM 2 -->
-               <a href="productdetails.html">
-              <div class="flex items-center w-[328px] min-h-[80px] gap-[16px]">
-
-                <img src="./assets/images/iphone16promax.png" class="w-[80px] h-[80px] object-cover rounded-[8px]" />
-
-                <div class="flex flex-col w-[200px] gap-[8px]">
-                  <span class="text-[#101828] text-[14px] leading-[22px]">
-                    Canon EOS 1500D DSLR <br />
-                    Camera Body+ 18–55 mm
-                  </span>
-
-                  <div class="flex items-center gap-[4px]">
-                    <span class="text-[#475467] text-[14px]">1 x</span>
-                    <span class="text-[#004EEB] text-[14px]">₦1,462,500.00</span>
-                  </div>
-                </div>
-
-                <i class="fa-solid fa-xmark text-[#98A2B3] text-[16px] cursor-pointer"></i>
-              </div>
-
-            </div>
-            </a>
-
-            <!-- SUBTOTAL -->
-            <div class="flex items-center justify-between w-full h-[53px] border-b border-[#EAECF0]
-                        px-[24px] py-[20px]">
-              <span class="text-[#475467] text-[14px]">Sub-Total:</span>
-              <span class="text-[#101828] text-[14px] font-[500]">₦1,925,000.00</span>
-            </div>
-
-            <!-- VIEW CART BUTTON -->
-            <div class="flex flex-col w-full border-t border-[#EAECF0] px-[24px] py-[20px] gap-[12px]">
-              <a href="./cart.html" class="block w-full">
-                <button class="w-full h-[48px] bg-[#004EEB] text-white rounded-[8px] text-[14px] font-[500]">
-                  View Cart
-                </button>
-              </a>
-            </div>
-
-            <div class="h-[16px] w-full"></div>
+          <!-- Search Input -->
+          <div id="searchSection" class="flex items-center w-full h-full px-[14px] bg-[#FFFFFF]">
+            <i class="fa-solid fa-magnifying-glass text-[#475467] text-[14px] mr-[8px]"></i>
+            <input id="searchInput" type="text" placeholder="Search"
+              class="w-full border-none outline-none bg-transparent text-[14px] text-[#667085] placeholder-[#667085]" />
           </div>
 
         </div>
-
-        <span class="text-[#101828] text-[14px] font-[500]">₦0.00</span>
       </div>
-  <!-- ⭐ NEW USER SECTION (REPLACES LOGIN + SIGNUP) -->
-  <div id="userSection" class="hidden lg:flex items-center gap-[16px] relative">
+
+
+
+      <!-- RIGHT GROUP (CART + PRICE + LOGIN + SIGNUP) -->
+      <div class="flex items-center gap-[24px]">
+
+        <!-- CART + PRICE -->
+        <div id="rightHeader" class="hidden lg:flex items-center gap-[16px] h-[40px]">
+
+          
+          <!-- CART WRAPPER -->
+           <div id="cartWrapper" class="relative block md:block">
+
+  <!-- CART ICON -->
+  <div id="cartContainer" class="flex items-center gap-[8px] cursor-pointer">
+    <div
+      class="relative flex items-center justify-center w-[40px] h-[40px]
+             border border-[#EAECF0] rounded-[8px] bg-[#FFFFFF]">
+
+      <i class="fa-solid fa-cart-shopping text-[#475467] text-[16px]"></i>
+
+      <!-- BADGE -->
+      <span
+        id="cartBadge"
+        class="absolute top-[4px] right-[4px] bg-[#475467]
+               text-white text-[10px] font-[600] leading-[14px]
+               px-[4px] rounded-full">
+        0
+      </span>
+    </div>
+
+    <!-- TOOLTIP -->
+    <div
+      id="cartTooltip"
+      class="hidden absolute left-1/2 -translate-x-1/2 top-[45px]
+             bg-[#344054] text-white text-[12px] font-medium
+             whitespace-nowrap px-[8px] py-[4px]
+             rounded-[6px] shadow-md z-50">
+    </div>
+  </div>
+
+  <!-- CART DROPDOWN -->
+  <div
+    id="cartDropdown"
+    class="hidden absolute left-[-75px] mt-2 w-[376px] h-[415px]
+           bg-white border border-[#EAECF0] rounded-[16px]
+           shadow-[0px_8px_40px_rgba(0,0,0,0.12)]
+           z-50 flex flex-col">
+
+    <!-- HEADER -->
+    <div
+      class="flex items-center justify-start gap-[6px]
+             w-full h-[54px] border-b border-[#EAECF0]
+             px-[24px] py-[16px]">
+
+      <span class="text-[#101828] text-[14px] font-[500]">
+        Shopping Cart
+      </span>
+
+      <span
+        id="cartItemCountText"
+        class="text-[#667085] text-[14px] font-[500]">
+        (0)
+      </span>
+    </div>
+
+    <!-- ITEMS WRAPPER (JS INJECTS HERE ONLY) -->
+    <div
+      id="cartItemsWrapper"
+      class="flex flex-col w-full px-[24px] py-[20px]
+             gap-[16px] border-b border-[#EAECF0]
+             overflow-y-auto max-h-[240px]">
+    </div>
+
+    <!-- SUBTOTAL -->
+    <div
+      class="flex items-center justify-between w-full h-[53px]
+             border-b border-[#EAECF0]
+             px-[24px] py-[20px]">
+
+      <span class="text-[#475467] text-[14px]">
+        Sub-Total:
+      </span>
+
+      <span
+        id="cartSubtotal"
+        class="text-[#101828] text-[14px] font-[500]">
+        ₦0.00
+      </span>
+    </div>
+
+    <!-- VIEW CART BUTTON -->
+    <div
+      class="flex flex-col w-full border-t border-[#EAECF0]
+             px-[24px] py-[20px] gap-[12px]">
+
+      <a href="/cart.html" class="block w-full">
+        <button
+          class="w-full h-[48px] bg-[#004EEB]
+                 text-white rounded-[8px]
+                 text-[14px] font-[500]">
+          View Cart
+        </button>
+      </a>
+    </div>
+
+    <div class="h-[16px] w-full"></div>
+  </div>
+           </div>
+
+          <span id="headerCartTotal" class="text-[#101828] text-[14px] font-[500]">₦0.00</span>
+
+           <!--  NEW USER SECTION (REPLACES LOGIN + SIGNUP) -->
+        <div id="userSection" class="hidden lg:flex items-center gap-[16px] relative">
 
     <!-- Wallet Balance -->
     <div class="flex items-center gap-[6px]">
       <span class="text-[#475467] text-[12px]">Wallet:</span>
-      <span id="walletBalance" class="text-[#004EEB] text-[14px] font-[600]">₦0.00</span>
+      <span id="walletBalance" class="text-[#004EEB] text-[14px] font-[600]"  data-wallet-balance>₦0.00</span>
     </div>
 
     <!-- User Initials "NS" -->
@@ -333,131 +327,274 @@
 
     <div class="border-t border-[#EAECF0] mt-[4px] pt-[4px]">
 
-      <!--  Logout -->
-      <button id="headerLogout"
-              class="w-full text-left flex items-center gap-[8px] px-[16px] py-[8px] text-[#D92D20] hover:bg-[#FEE4E2]">
-        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+         <!--  Logout -->
+      <button 
+              class=" logoutBtn w-full text-left flex items-center gap-[8px] px-[16px] py-[8px] text-[#D92D20] hover:bg-[#FEE4E2]" type="button">
+        <i class="fa-solid fa-arrow-right-from-bracket" ></i>
         <span>Logout</span>
       </button>
     </div>
 
 </div>
 
-  </div>
+       </div>
+        <div id="authButtons" class="flex items-center gap-[12px]">
 
-</div>
-  </div>
-  <!-- MOBILE HAMBURGER (RIGHT SIDE, ALIGNED WITH LOGO) -->
-<div class="lg:hidden flex items-center justify-end flex-1 pr-4">
-  <button
-    id="hamburgerBtn"
-    class="flex flex-col justify-between w-[26px] h-[20px] cursor-pointer z-50
-           translate-y-[-40px]"
-  >
-    <span class="block w-full h-[2px] bg-[#155EEF]"></span>
-    <span class="block w-full h-[2px] bg-[#155EEF]"></span>
-    <span class="block w-full h-[2px] bg-[#155EEF]"></span>
-  </button>
-</div>
+          <!-- LOGIN BUTTON -->
+          <a href="login.html">
+            <button class="text-[#344054] text-[14px] font-[500] px-[14px] py-[10px] rounded-[8px] 
+             hover:text-[#155EEF]">
+              Log in
+            </button>
+          </a>
 
-</header>
-<!-- HAMBURGER BUTTON (mobile only) -->
+          <!-- SIGNUP BUTTON -->
+          <a href="signUp.html">
+            <button class="bg-[#155EEF] text-white text-[14px] font-[500] px-[14px] py-[10px] 
+             rounded-[8px] hover:bg-[#0047BA]">
+              Sign up
+            </button>
+          </a>
 
-  <!-- MOBILE DROPDOWN MENU -->
-<div
-  id="mobileMenu"
-  class=" absolute top-[72px] lg:hidden hidden flex-col w-full bg-[#FFFFFF] border-t border-[#EAECF0] shadow-md absolute top-[72px] left-0 z-40"
->
-  <div class="flex flex-col px-[24px] py-[16px]">
-
-
-    <!-- WALLET BALANCE -->
-    <div class="flex items-center justify-between w-full mb-[12px]">
-      <span class="text-[#475467] text-[14px] font-[500]">Wallet Balance</span>
-      <span id="mobileWalletBalance" class="text-[#101828] text-[14px] font-[600]">₦100,000.00</span>
-    </div>
-
-    <!-- USER BADGE + DROPDOWN -->
-    <div class="flex items-center gap-[12px] w-full mb-[20px]">
-      <div class="flex items-center gap-[8px]">
-        <!-- Circle badge -->
-        <div
-          id="mobileUserBadge"
-          class="w-[32px] h-[32px] bg-[#F2F4F7] rounded-full flex items-center justify-center text-[#344054] text-[14px] font-[600]"
-        >
-          NS
         </div>
 
-        <!-- User Name or Greeting -->
-        <span id="mobileUserName" class="text-[#101828] text-[14px] font-[500]">
-          Hello, Niyi
+        </div>
+      
+      </div>
+
+    </div>
+    <!-- MOBILE HAMBURGER (RIGHT SIDE, ALIGNED WITH LOGO) -->
+    <div class="lg:hidden flex items-center justify-end flex-1 pr-4">
+      <button id="hamburgerBtn" class="flex flex-col justify-between w-[26px] h-[20px] cursor-pointer z-50
+           translate-y-[-40px]">
+        <span class="block w-full h-[2px] bg-[#155EEF]"></span>
+        <span class="block w-full h-[2px] bg-[#155EEF]"></span>
+        <span class="block w-full h-[2px] bg-[#155EEF]"></span>
+      </button>
+    </div>
+
+  </header>
+  <!-- HAMBURGER BUTTON (mobile only) -->
+  <!-- MOBILE CART (visible only on mobile) -->
+  <div class="lg:hidden flex items-center gap-[16px] pr-4">
+
+
+  </div>
+
+  
+  <!-- MOBILE MENU -->
+<div id="mobileMenu"
+  class="lg:hidden hidden flex-col w-full bg-[#FFFFFF] border-t border-[#EAECF0]
+         shadow-md absolute top-[72px] left-0 z-40">
+
+  <div class="flex flex-col px-[24px] py-[16px]">
+
+    <h4 class="text-[#101828] text-[14px] font-[600] mb-[8px]">Account</h4>
+
+    <!-- MOBILE CART WRAPPER -->
+    <div id="mobileCartWrapper" class="w-full flex flex-col gap-[8px]">
+
+      <!-- MOBILE CART BUTTON -->
+      <div id="mobileCartBtn"
+  class="flex items-center gap-[14px] py-[12px] cursor-pointer relative z-[1]">
+
+  <div class="flex items-center gap-[6px]">
+    <i class="fa-solid fa-cart-shopping text-[#475467] text-[16px]"></i>
+    <span id="mobileCartCount"
+      class="text-[#101828] text-[14px] font-[500]">
+      Cart (0)
+    </span>
+  </div>
+
+  <span id="mobileCartTotal"
+    class="text-[#101828] text-[14px] font-[500]">
+    ₦0.00
+  </span>
+
+</div>
+
+      <!-- MOBILE CART DROPDOWN -->
+      <div id="mobileCartDropdown"
+        class="hidden w-full bg-white border border-[#EAECF0]
+               rounded-[16px]
+               shadow-[0px_8px_40px_rgba(0,0,0,0.12)]
+               flex flex-col px-[24px] py-[16px]">
+
+        <span class="text-[#101828] text-[14px] font-[500] mb-[12px]">
+          Shopping Cart
+        </span>
+
+        <div id="mobileCartItemsWrapper"
+          class="flex flex-col gap-[16px] max-h-[260px] overflow-y-auto">
+        </div>
+
+        <div class="flex items-center justify-between mt-[16px]
+                    border-t border-[#EAECF0] pt-[16px]">
+          <span class="text-[#475467] text-[14px]">Sub-Total:</span>
+          <span id="mobileCartSubtotal"
+            class="text-[#101828] text-[14px] font-[500]">
+            ₦0.00
+          </span>
+        </div>
+
+        <a href="./cart.html" class="w-full mt-[16px]">
+          <button
+            class="w-full h-[48px] bg-[#004EEB] text-white
+                   rounded-[8px] text-[14px] font-[500]">
+            View Cart
+          </button>
+        </a>
+
+      </div>
+    </div>
+
+    <!-- AUTH BUTTONS -->
+    <div id="mobileAuthButtons"
+      class="flex items-center gap-[12px] mt-[10px]">
+
+      <a href="login.html">
+        <button
+          class="text-[#344054] text-[14px] font-[500]
+                 px-[14px] py-[10px] rounded-[8px]
+                 hover:text-[#155EEF]">
+          Log in
+        </button>
+      </a>
+
+      <a href="signUp.html">
+        <button
+          class="bg-[#155EEF] text-white text-[14px] font-[500]
+                 px-[14px] py-[10px] rounded-[8px]
+                 hover:bg-[#0047BA]">
+          Sign up
+        </button>
+      </a>
+
+    </div>
+
+    <!-- USER SECTION -->
+    <div id="mobileUserSection"
+      class="hidden lg:hidden flex items-center gap-[16px]
+             relative z-[10] mt-[10px]">
+
+      <!-- WALLET -->
+      <div class="flex items-center gap-[6px]">
+        <span class="text-[#475467] text-[12px]">Wallet:</span>
+        <span id="mobileWalletBalance"
+          class="text-[#004EEB] text-[14px] font-[600]">
+          ₦0.00
         </span>
       </div>
 
-      <!-- Dropdown arrow -->
-      <i
-        id="mobileUserDropdown"
-        class="fa-solid fa-chevron-down text-[#475467] text-[14px] cursor-pointer"
-      ></i>
+      <!-- INITIALS -->
+      <div id="MobileUserInitials"
+        class="w-[24px] h-[24px] flex items-center justify-center
+               bg-[#EAECF0] text-[#344054] text-[10px]
+               font-[600] rounded-full uppercase cursor-pointer">
+        NS
+      </div>
+
+      <!-- GREETING -->
+      <span id="MobileUserGreeting"
+        class="text-[#344054] text-[14px] font-[400] cursor-pointer">
+        Hi Niyi
+      </span>
+
+      <!-- DROPDOWN ICON -->
+      <i id="mobileUserDropdownIcon"
+        class="fa-solid fa-chevron-down text-[#475467]
+               text-[10px] cursor-pointer"></i>
+
+      <!-- USER DROPDOWN MENU -->
+      <div id="mobileUserMenu"
+        class="hidden absolute right-0 top-[28px] w-[200px]
+               bg-white border border-[#EAECF0]
+               rounded-[12px]
+               shadow-[0px_8px_40px_rgba(0,0,0,0.12)]
+               text-[14px] text-[#101828] z-50">
+
+        <ul class="py-[8px]">
+
+          <li>
+            <button id="mobileMenuAccount"
+              class="w-full text-left flex items-center gap-[8px]
+                     px-[16px] py-[8px] hover:bg-[#F9FAFB]">
+              <i class="fa-regular fa-user text-[#667085]"></i>
+              <span>My Account</span>
+            </button>
+          </li>
+
+          <li>
+            <button id="mobileMenuWallet"
+              class="w-full text-left flex items-center gap-[8px]
+                     px-[16px] py-[8px] hover:bg-[#F9FAFB]">
+              <i class="fa-solid fa-naira-sign text-[#667085]"></i>
+              <span>My Wallet</span>
+            </button>
+          </li>
+
+          <li>
+            <button id="mobileMenuOrders"
+              class="w-full text-left flex items-center gap-[8px]
+                     px-[16px] py-[8px] hover:bg-[#F9FAFB]">
+              <i class="fa-solid fa-box text-[#667085]"></i>
+              <span>My Orders</span>
+            </button>
+          </li>
+
+        </ul>
+
+        <div class="border-t border-[#EAECF0] mt-[4px] pt-[4px]">
+          <button
+            class="logoutBtn w-full text-left flex items-center gap-[8px]
+                   px-[16px] py-[8px] text-[#D92D20]
+                   hover:bg-[#FEE4E2]" type="button">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            <span>Logout</span>
+          </button>
+        </div>
+
+      </div>
     </div>
 
-    <!-- Categories Section -->
-    <h4 class="text-[#101828] text-[14px] font-[600] mb-[8px]">Categories</h4>
-    <ul class="flex flex-col gap-[6px] text-[#344054] text-[14px]">
+    <!-- CATEGORIES -->
+    <h4 class="text-[#101828] text-[14px] font-[600] mt-[14px] mb-[8px]">
+      Categories
+    </h4>
 
-  <li>
-    <a href="./phones.html" class="hover:text-[#155EEF]">Phones & Tablets</a>
-  </li>
+    <ul id="mobileCategoryList"
+      class="flex flex-col gap-[6px] text-[#344054] text-[14px]">
+    </ul>
 
-  <li>
-    <a href="./electronics.html" class="hover:text-[#155EEF]">Home Electronics</a>
-  </li>
-
-  <li>
-    <a href="./kitchen.html" class="hover:text-[#155EEF]">Home, Kitchen & Laundry</a>
-  </li>
-
-  <li>
-    <a href="./acs.html" class="hover:text-[#155EEF]">ACs, Refrigerators & Coolers</a>
-  </li>
-
-  <li>
-    <a href="./power.html" class="hover:text-[#155EEF]">Power Solutions & Inverters</a>
-  </li>
-
-  <li>
-    <a href="./food.html" class="hover:text-[#155EEF]">Food & Consumables</a>
-  </li>
-
-</ul>
   </div>
 
-  <!-- Mobile Search -->
+  <!-- SEARCH -->
   <div class="px-[24px] pb-[16px]">
-    <div
-      class="flex items-center w-full h-[40px] bg-[#FFFFFF] border border-[#D0D5DD] rounded-[8px] overflow-hidden"
-    >
-      <div
-        class="flex items-center justify-between w-[120px] h-full px-[14px] bg-[#F2F4F7]"
-      >
+    <div class="flex items-center w-full h-[40px]
+                bg-[#FFFFFF] border border-[#D0D5DD]
+                rounded-[8px] overflow-hidden">
+
+      <div class="flex items-center justify-between w-[120px] h-full
+                  px-[14px] bg-[#F2F4F7]">
         <span class="text-[#344054] text-[14px] font-[500]">Category</span>
         <i class="fa-solid fa-chevron-down text-[#475467] text-[12px]"></i>
       </div>
+
       <div class="h-full w-[1px] bg-[#D0D5DD]"></div>
+
       <div class="flex items-center w-full h-full px-[14px]">
-        <i
-          class="fa-solid fa-magnifying-glass text-[#475467] text-[14px] mr-[8px]"
-        ></i>
-        <input
-          type="text"
-          placeholder="Search"
-          class="mobileSearchInput w-full border-none outline-none bg-transparent text-[14px] text-[#667085] placeholder-[#667085]"
-        />
+        <i class="fa-solid fa-magnifying-glass
+                  text-[#475467] text-[14px] mr-[8px]"></i>
+        <input type="text" placeholder="Search"
+          class="mobileSearchInput w-full border-none outline-none
+                 bg-transparent text-[14px]
+                 text-[#667085] placeholder-[#667085]" />
       </div>
+
     </div>
   </div>
+
 </div>
-</header>
 
 
 <!-- MAIN BODY -->
@@ -543,7 +680,7 @@
 
         <!-- RIGHT SIDE MAIN WRAPPER -->
         <div id="rightSideContainer"
-             class="w-full lg:w-[907px] lg:max-w-[907px] lg:min-w-[907px]">
+             class="w-full flex-1">
 
           <div id="accountContent" class="w-full">
 
@@ -571,7 +708,7 @@
     <div class="p-[24px] flex flex-col gap-[24px]">
 
       <!-- =====================================================
-           PROFILE DETAILS (NO FORMS – EXACTLY LIKE SCREENSHOT)
+           PROFILE DETAILS 
       ===================================================== -->
    <!-- ========== PROFILE DETAILS SECTION ========== -->
 <div class="account-inner-section" data-account-section="profile">
@@ -594,33 +731,41 @@
       </div>
     </div>
 
-    <!-- TOP SUMMARY -->
-    <div class="flex flex-col gap-[10px] text-[14px] text-[#1B1D27]">
+  <!-- TOP SUMMARY -->
+<div class="flex flex-col gap-[10px] text-[14px] text-[#1B1D27]">
 
-      <!-- FULL NAME -->
-      <p id="profileFullName"
-         class="text-[18px] font-semibold text-[#1B1D27] tracking-wide uppercase">
-         FULL NAME
-      </p>
+  
+  <!-- FULL NAME -->
+<p class="text-[18px] font-semibold text-[#1B1D27] tracking-wide uppercase flex items-center gap-[6px]">
+  <span id="profileFullName">FULL NAME</span>
 
-      <!-- EMAIL -->
-      <div class="flex items-center gap-[8px]">
-        <i class="fa-solid fa-envelope text-[#667085] text-[14px]"></i>
-        <span id="profileEmailText">No email added yet</span>
-      </div>
+  <i id="nameVerifiedBadge"
+     class="fa-solid fa-sun text-green-600 text-[14px] hidden"></i>
+</p>
 
-      <!-- PHONE -->
-      <div class="flex items-center gap-[8px]">
-        <i class="fa-solid fa-phone text-[#667085] text-[14px]"></i>
-        <span id="profilePhoneText">No phone number yet</span>
-      </div>
+  <!-- EMAIL -->
+  <div class="flex items-center gap-[8px]">
+    <i class="fa-solid fa-envelope text-[#667085] text-[14px]"></i>
+    <span id="profileEmailText">No email added yet</span>
+    <i id="emailVerifiedBadge"
+       class="fa-solid fa-circle-check text-green-600 text-[13px] hidden"></i>
+  </div>
 
-       <!-- MERGED ADDRESS + STATE -->
+  <!-- PHONE -->
+  <div class="flex items-center gap-[8px]">
+    <i class="fa-solid fa-phone text-[#667085] text-[14px]"></i>
+    <span id="profilePhoneText">No phone number yet</span>
+    <i id="phoneVerifiedBadge"
+       class="fa-solid fa-circle-check text-green-600 text-[13px] hidden"></i>
+  </div>
+
+  <!-- ADDRESS -->
   <div class="flex items-start gap-[8px]">
     <i class="fa-solid fa-location-dot text-[#667085] text-[14px] mt-[2px]"></i>
     <span id="profileAddressStateText">No address added yet</span>
   </div>
-    </div>
+
+</div>
   </div>
 
   <!-- DIVIDER -->
@@ -641,56 +786,23 @@
     </div>
 
     <!-- STATE -->
-    <div class="flex flex-col gap-[6px]">
-      <label class="text-[13px] font-medium text-[#414651]">State</label>
-      <select id="profileStateInput"
-              class="w-full h-[40px] border border-[#D0D5DD] rounded-[6px] px-[12px] text-[14px] bg-white">
-        <option value="">Select state</option>
-        <option value="Abia">Abia</option>
-        <option value="Adamawa">Adamawa</option>
-        <option value="Akwa Ibom">Akwa Ibom</option>
-        <option value="Anambra">Anambra</option>
-        <option value="Bauchi">Bauchi</option>
-        <option value="Bayelsa">Bayelsa</option>
-        <option value="Benue">Benue</option>
-        <option value="Borno">Borno</option>
-        <option value="Cross River">Cross River</option>
-        <option value="Delta">Delta</option>
-        <option value="Ebonyi">Ebonyi</option>
-        <option value="Edo">Edo</option>
-        <option value="Ekiti">Ekiti</option>
-        <option value="Enugu">Enugu</option>
-        <option value="Gombe">Gombe</option>
-        <option value="Imo">Imo</option>
-        <option value="Jigawa">Jigawa</option>
-        <option value="Kaduna">Kaduna</option>
-        <option value="Kano">Kano</option>
-        <option value="Katsina">Katsina</option>
-        <option value="Kebbi">Kebbi</option>
-        <option value="Kogi">Kogi</option>
-        <option value="Kwara">Kwara</option>
-        <option value="Lagos">Lagos</option>
-        <option value="Nasarawa">Nasarawa</option>
-        <option value="Niger">Niger</option>
-        <option value="Ogun">Ogun</option>
-        <option value="Ondo">Ondo</option>
-        <option value="Osun">Osun</option>
-        <option value="Oyo">Oyo</option>
-        <option value="Plateau">Plateau</option>
-        <option value="Rivers">Rivers</option>
-        <option value="Sokoto">Sokoto</option>
-        <option value="Taraba">Taraba</option>
-        <option value="Yobe">Yobe</option>
-        <option value="Zamfara">Zamfara</option>
-        <option value="FCT - Abuja">FCT - Abuja</option>
-      </select>
-    </div>
-
+<div class="flex flex-col gap-[6px]">
+  <label class="text-[13px] font-medium text-[#414651]">State</label>
+  <select
+    id="profileStateInput"
+    class="w-full h-[40px] border border-[#D0D5DD] rounded-[6px] px-[12px] text-[14px] bg-white">
+    <option value="">Select state</option>
+  </select>
+</div>
     <div class="flex justify-end mt-[8px]">
-      <button type="submit"
-              class="w-[140px] h-[40px] bg-[#1570EF] text-white rounded-[8px] text-[14px] font-medium">
-        Update Profile
-      </button>
+     <button type="submit"
+        id="updateProfileBtn"
+        class="w-[140px] h-[40px] bg-[#1570EF] text-white rounded-[8px] text-[14px] font-medium
+               flex items-center justify-center gap-[8px] disabled:opacity-70">
+  <span>Update Profile</span>
+  <span class="btn-spinner hidden"></span>
+</button>
+
     </div>
 
   </form>
@@ -732,9 +844,14 @@
 
     <div class="flex justify-end">
       <button type="submit"
-              class="w-[160px] h-[42px] bg-[#1570EF] text-white rounded-md text-[14px] font-semibold">
-        Update Password
-      </button>
+        id="updatePasswordBtn"
+        class="w-[160px] h-[42px] bg-[#1570EF] text-white rounded-md text-[14px] font-semibold
+               flex items-center justify-center gap-[8px] disabled:opacity-70">
+  <span>Update Password</span>
+
+  <!-- Spinner -->
+  <span class="btn-spinner hidden"></span>
+</button>
     </div>
 
   </form>
@@ -752,61 +869,185 @@
      class="fa-solid fa-xmark ml-[8px] cursor-pointer"></i>
 </div>
 
-      <!-- =====================================================
+     <!-- =====================================================
            UPDATE EMAIL SECTION (FORM)
-      ===================================================== -->
-      <div class="account-inner-section hidden" data-account-section="email">
-        <div class="w-full max-w-[480px] flex flex-col gap-[12px]">
+===================================================== -->
+<div class="account-inner-section hidden" data-account-section="email">
 
-          <p class="text-[13px] text-[#667085]">
-            Current email:
-            <span id="currentEmailDisplay" class="font-medium text-[#101828]">Not set</span>
-          </p>
+  <!-- STEP 1: REQUEST OTP -->
+  <div id="emailStepOne" class="w-full max-w-[480px] flex flex-col gap-[12px]">
 
-          <div class="flex flex-col gap-[6px]">
-            <label class="text-[13px] font-medium text-[#414651]">New Email *</label>
-            <input id="newEmailInput" type="email"
-                   class="w-full h-[44px] border border-[#D0D5DD] rounded-[8px] px-[12px] text-[14px]"
-                   placeholder="Valid email address" />
-          </div>
+    <p class="text-[13px] text-[#667085]">
+      Current email:
+      <span id="currentEmailDisplay" class="font-medium text-[#101828]">Not set</span>
+    </p>
 
-          <div class="flex justify-end">
-            <button id="requestEmailOtpBtn"
-                    class="w-[140px] h-[40px] bg-[#1570EF] text-white rounded-[8px] text-[14px] font-medium">
-              Request OTP
-            </button>
-          </div>
+    <div class="flex flex-col gap-[6px]">
+      <label class="text-[13px] font-medium text-[#414651]">New Email *</label>
+      <input
+        id="newEmailInput"
+        type="email"
+        class="w-full h-[44px] border border-[#D0D5DD] rounded-[8px] px-[12px] text-[14px]"
+        placeholder="Valid email address"
+      />
+    </div>
 
-        </div>
-      </div>
+    <div class="flex justify-end">
+      <button
+        id="requestEmailOtpBtn"
+        class="relative w-[140px] h-[40px] bg-[#1570EF] text-white rounded-[8px]
+               text-[14px] font-medium flex items-center justify-center
+               disabled:opacity-70"
+      >
+        <span class="btn-text">Request OTP</span>
+        <span class="btn-spinner hidden absolute right-[14px]"></span>
+      </button>
+    </div>
+
+  </div>
+
+  <!-- STEP 2: OTP + PASSWORD -->
+  <div
+    id="emailOtpWrap"
+    class="hidden w-full max-w-[480px] flex flex-col gap-[12px] mt-[10px]"
+  >
+
+    <div class="flex flex-col gap-[6px]">
+      <label class="text-[13px] font-medium text-[#414651]">New Email *</label>
+      <input
+        id="pendingEmailInput"
+        type="email"
+        disabled
+        class="w-full h-[44px] border border-[#D0D5DD] rounded-[8px] px-[12px]
+               text-[14px] bg-[#F9FAFB]"
+      />
+    </div>
+
+    <div class="flex flex-col gap-[6px]">
+      <label class="text-[13px] font-medium text-[#414651]">OTP *</label>
+      <input
+        id="emailOtpInput"
+        type="text"
+        maxlength="6"
+        class="w-full h-[44px] border border-[#D0D5DD] rounded-[8px] px-[12px]
+               text-[14px]"
+        placeholder="Enter OTP"
+      />
+    </div>
+
+    <div class="flex flex-col gap-[6px] relative">
+      <label class="text-[13px] font-medium text-[#414651]">Password *</label>
+      <input
+        id="emailPasswordInput"
+        type="password"
+        class="w-full h-[44px] rounded-md border border-[#D0D5DD]
+               px-[14px] pr-[40px] text-[14px]"
+      />
+      <i
+        id="emailPasswordIcon"
+        class="fa-solid fa-eye absolute right-[12px] top-[38px]
+               text-[#667085] cursor-pointer"
+      ></i>
+    </div>
+
+    <div class="flex items-center justify-between">
+      <button
+        id="resendEmailOtpBtn"
+        type="button"
+        class="text-[13px] text-[#1570EF] font-medium disabled:opacity-50"
+        disabled
+      >
+        Resend OTP in <span id="emailResendTimer">60</span>s
+      </button>
+
+      <button
+        id="confirmEmailUpdateBtn"
+        class="relative w-[140px] h-[40px] bg-[#1570EF] text-white
+               rounded-[8px] text-[14px] font-medium
+               flex items-center justify-center disabled:opacity-70"
+      >
+        <span class="btn-text">Update Email</span>
+        <span class="btn-spinner hidden absolute right-[14px]"></span>
+      </button>
+    </div>
+
+  </div>
+
+</div>
 
       <!-- =====================================================
-           UPDATE PHONE SECTION (FORM)
-      ===================================================== -->
-      <div class="account-inner-section hidden" data-account-section="phone">
-        <div class="w-full max-w-[480px] flex flex-col gap-[12px]">
+     UPDATE PHONE SECTION (FORM)
+===================================================== -->
+<div class="account-inner-section hidden" data-account-section="phone">
+  <div class="w-full max-w-[480px] flex flex-col gap-[12px]" id="phoneStep1">
 
-          <p class="text-[13px] text-[#667085]">
-            Current phone:
-            <span id="currentPhoneDisplay" class="font-medium text-[#101828]">Not set</span>
-          </p>
+    <p class="text-[13px] text-[#667085]">
+      Current phone:
+      <span id="currentPhoneDisplay" class="font-medium text-[#101828]">Not set</span>
+    </p>
 
-          <div class="flex flex-col gap-[6px]">
-            <label class="text-[13px] font-medium text-[#414651]">Update Phone (11-digit) *</label>
-            <input id="newPhoneInput" type="tel" maxlength="11"
-                   class="w-full h-[44px] border border-[#D0D5DD] rounded-[8px] px-[12px] text-[14px]"
-                   placeholder="Valid 11-digit phone number" />
-          </div>
+    <div class="flex flex-col gap-[6px]">
+      <label class="text-[13px] font-medium text-[#414651]">Update Phone (11-digit) *</label>
+      <input id="newPhoneInput" type="tel" maxlength="11"
+             class="w-full h-[44px] border border-[#D0D5DD] rounded-[8px] px-[12px] text-[14px]"
+             placeholder="Valid 11-digit phone number" />
+    </div>
 
-          <div class="flex justify-end">
-            <button id="requestPhoneOtpBtn"
-                    class="w-[140px] h-[40px] bg-[#1570EF] text-white rounded-[8px] text-[14px] font-medium">
-              Request OTP
-            </button>
-          </div>
+    <div class="flex justify-end">
+      <button id="requestPhoneOtpBtn"
+  class="relative w-[140px] h-[40px] bg-[#1570EF] text-white rounded-[8px]
+         text-[14px] font-medium flex items-center justify-center
+         disabled:opacity-70">
 
-        </div>
-      </div>
+  <span class="btn-text">Request OTP</span>
+  <span class="btn-spinner hidden absolute right-[14px]"></span>
+
+</button>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div id="phoneOtpWrap" class="hidden w-full max-w-[480px] flex flex-col gap-[12px] mt-[10px]">
+
+    <div class="flex flex-col gap-[6px]">
+      <label class="text-[13px] font-medium text-[#414651]">New Phone *</label>
+      <input id="pendingPhoneInput" type="tel" disabled
+             class="w-full h-[44px] bg-[#F9FAFB] border border-[#D0D5DD] rounded-[8px] px-[12px] text-[14px]" />
+    </div>
+
+    <div class="flex flex-col gap-[6px]">
+      <label class="text-[13px] font-medium text-[#414651]">OTP *</label>
+      <input id="phoneOtpInput" type="text" maxlength="6"
+             class="w-full h-[44px] border border-[#D0D5DD] rounded-[8px] px-[12px] text-[14px]"
+             placeholder="Enter OTP" />
+    </div>
+
+    <div class="flex flex-col gap-[6px] relative">
+      <label class="text-[13px] font-medium text-[#414651]">Password *</label>
+      <input id="phonePasswordInput" type="password"
+             class="w-full h-[44px] rounded-md border border-[#D0D5DD] px-[14px] pr-[40px] text-[14px]">
+      <i id="phonePasswordIcon"
+         class="fa-solid fa-eye absolute right-[12px] top-[38px] text-[#667085] cursor-pointer"></i>
+    </div>
+
+    <div class="flex items-center justify-between">
+      <button id="resendPhoneOtpBtn" disabled
+              class="text-[13px] text-[#1570EF] font-medium disabled:opacity-50">
+        Resend OTP in <span id="phoneResendTimer">60</span>s
+      </button>
+
+     <button id="confirmPhoneUpdateBtn"
+  class="relative w-[140px] h-[40px] bg-[#1570EF] text-white rounded-[8px]
+         text-[14px] font-medium flex items-center justify-center
+         disabled:opacity-70">
+
+  <span class="btn-text">Update Phone</span>
+  <span class="btn-spinner hidden absolute right-[14px]"></span>
+
+</button>
+    </div>
+  </div>
+</div>
 
     </div>
   </div>
@@ -831,6 +1072,7 @@
 
       <!-- PAYMENT CARDS SECTION -->
       <div class="flex flex-col gap-[8px]">
+        
 
         <!-- Title OUTSIDE BOX -->
         <h3 class="text-[14px] font-semibold text-[#1B1D27] pl-[2px]">
@@ -839,6 +1081,7 @@
 
         <!-- BOX -->
         <div class="border border-[#EAECF0] rounded-[12px] p-[16px] flex flex-col gap-[16px] min-h-[180px]">
+          <i class="fa-regular fa-credit-card text-[#000] text-[14px]"></i>
 
           <!-- CARD LIST -->
           <div id="walletCardsBody"
@@ -876,11 +1119,11 @@
 
         <!-- BOX -->
         <div class="border border-[#EAECF0] rounded-[12px] p-[16px] flex flex-col gap-[16px] min-h-[180px]">
-
+          <i class="fa-regular fa-credit-card text-[#000] text-[14px]"></i>
           <div class="flex-1 flex flex-col justify-center">
             <p class="text-[13px] text-[#667085] mb-[4px]">Wallet Balance:</p>
             <p id="walletBalanceBox"
-               class="text-[18px] font-semibold text-[#101828]">
+               class="text-[18px] font-semibold text-[#101828]" data-wallet-balance>
               ₦0.00
             </p>
           </div>
@@ -899,6 +1142,45 @@
         </div>
       </div>
 
+      <!-- INITIAL PAYMENT % SECTION -->
+<div class="flex flex-col gap-[8px]">
+
+  <!-- Title OUTSIDE BOX -->
+  <h3 class="text-[14px] font-semibold text-[#1B1D27] pl-[2px]">
+    Initial Payment %
+  </h3>
+
+  <!-- BOX -->
+  <div class="border border-[#EAECF0] rounded-[12px] p-[16px] flex flex-col gap-[16px] min-h-[180px]">
+    <i class="fa-solid fa-percentage text-[#000] text-[14px]"></i>
+    <div class="flex-1 flex flex-col justify-center">
+      <p class="text-[13px] text-[#667085] mb-[4px]">
+        Initial Payment %:
+      </p>
+      <p id="initialPaymentValue"
+         class="text-[18px] font-semibold text-[#101828]">
+        40.00%
+      </p>
+
+      <p class="text-[12px] text-[#667085] mt-[6px]">
+        *This is the minimum % that must be paid before you can buy on credit*
+      </p>
+    </div>
+
+    <!-- DIVIDER -->
+    <div class="border-t border-[#EAECF0] mt-[14px]"></div>
+
+    <!-- BUTTON -->
+    <div class="flex justify-end pt-[2px]">
+      <button id="updateInitialPaymentBtn"
+              class="text-[13px] text-[#1570EF] font-medium underline underline-offset-2">
+        Update Initial %
+      </button>
+    </div>
+
+  </div>
+</div>
+
     </div>
 
     <!-- BANNER WITH BLUE INFO ICON -->
@@ -913,113 +1195,136 @@
 
 
   <!-- FULL FUNDING PAGE -->
-  <div id="walletFundingPage"
-       class="hidden w-full rounded-[12px] bg-white p-[24px] flex flex-col gap-[24px]">
+<div id="walletFundingPage"
+     class="hidden w-full rounded-[12px] bg-white p-[24px] flex flex-col gap-[24px]">
 
-    <!-- HEADER -->
-    <div class="flex items-center justify-between border-b border-[#EAECF0] pb-[10px]">
-      <h2 class="text-[18px] font-semibold text-[#1B1D27]">Wallet Funding</h2>
+  <!-- HEADER -->
+  <div class="flex items-center justify-between border-b border-[#EAECF0] pb-[10px]">
+    <h2 class="text-[18px] font-semibold text-[#1B1D27]">Wallet Funding</h2>
 
-      <button id="walletFundingBackBtn"
-              class="text-[14px] text-[#1570EF] font-medium hover:underline">
-        ← Back
-      </button>
-    </div>
-
-    <!-- FUNDING METHOD -->
-    <div class="flex flex-col gap-[6px] max-w-[400px]">
-      <p class="text-[14px] font-semibold text-[#414651]">
-        Select Funding Method
-      </p>
-      <p class="text-[13px] text-[#667085] -mt-[2px]">
-        Completing this action will fund your wallet in the paid amount.
-      </p>
-
-      <label class="flex items-center gap-[8px] cursor-pointer mt-[6px]">
-        <input type="radio" name="fundMethod" value="bank" checked>
-        <span class="text-[13px] text-[#344054]">Bank Transfer</span>
-      </label>
-
-      <label class="flex items-center gap-[8px] cursor-pointer">
-        <input type="radio" name="fundMethod" value="card">
-        <span class="text-[13px] text-[#344054]">Verve Debit</span>
-      </label>
-    </div>
-
-    <!-- AMOUNT INPUT -->
-    <div class="flex flex-col gap-[6px] max-w-[400px]">
-      <label class="text-[14px] font-semibold text-[#414651]">
-        Amount to Fund* (₦100 minimum)
-      </label>
-
-      <input id="fundAmountInputPage"
-             type="number" min="100"
-             class="w-full h-[44px] border border-[#D0D5DD] rounded-[8px] px-[12px]
-                    text-[14px] outline-none focus:ring-2 focus:ring-[#1570EF]"
-             placeholder="Amount" />
-
-      <p id="fundAmountErrorPage"
-         class="text-[12px] text-[#D92D20] hidden">
-        Enter a valid amount (₦100 minimum).
-      </p>
-    </div>
-
-    <!-- CARD OPTION -->
-    <div id="fundingCardsWrapper"
-         class="hidden flex flex-col gap-[8px] max-w-[400px]">
-
-      <p class="text-[14px] font-semibold text-[#414651]">
-        Select Payment Card
-      </p>
-
-      <div id="fundingCardsListPage"
-           class="flex flex-col gap-[8px]">
-        <!-- JS inserts saved cards -->
-      </div>
-    </div>
-
-    <!-- ACTION BUTTON -->
-    <div class="max-w-[400px] pt-[4px]">
-      <button id="fundWalletPagePayBtn"
-              class="w-full h-[44px] bg-[#1570EF] text-white rounded-[8px]
-                     text-[14px] font-medium">
-        Confirm & Fund Wallet
-      </button>
-    </div>
-
+    <button id="walletFundingBackBtn"
+            class="text-[14px] text-[#1570EF] font-medium hover:underline">
+      ← Back
+    </button>
   </div>
+
+  
+  <!-- FUNDING METHOD -->
+<div class="flex flex-col gap-[6px] max-w-[400px]">
+
+  <p class="text-[14px] font-semibold text-[#414651]">
+    Select Funding Method
+  </p>
+
+  <p class="text-[13px] text-[#667085] -mt-[2px]">
+    Completing this action will fund your wallet in the paid amount.
+  </p>
+
+  <!-- BANK TRANSFER -->
+  <label class="flex items-center gap-[8px] cursor-pointer mt-[6px]">
+    <input type="radio" name="fundMethod" value="bank" checked>
+    <span class="text-[13px] text-[#344054]">Bank Transfer</span>
+  </label>
+
+  <!-- CARDS WILL BE INSERTED HERE -->
+  <div id="fundingCardsListPage" class="flex flex-col gap-[8px] mt-[6px]">
+    <!-- JS inserts cards here -->
+  </div>
+
+  <!-- ADD CARD -->
+  <div class="flex justify-end pt-[2px]">
+    <button id="addCardBtn"
+      class="text-[13px] text-[#1570EF] font-medium underline underline-offset-2">
+      Add New Card
+    </button>
+  </div>
+
+</div>
+
+  <!-- AMOUNT INPUT -->
+  <div class="flex flex-col gap-[6px] max-w-[400px]">
+    <label class="text-[14px] font-semibold text-[#414651]">
+      Amount to Fund* (₦100 minimum)
+    </label>
+
+    <input id="fundAmountInputPage"
+           type="number"
+           min="100"
+           class="w-full h-[44px] border border-[#D0D5DD] rounded-[8px] px-[12px]
+                  text-[14px] outline-none focus:ring-2 focus:ring-[#1570EF]"
+           placeholder="Amount" />
+
+    <p id="fundAmountErrorPage"
+       class="text-[12px] text-[#D92D20] hidden">
+      Enter a valid amount (₦100 minimum).
+    </p>
+  </div>
+
+  <!-- ACTION BUTTON -->
+  <div class="max-w-[400px] pt-[4px]">
+    <button id="fundWalletPagePayBtn"
+            class="w-full h-[44px] bg-[#1570EF] text-white rounded-[8px]
+                   text-[14px] font-medium">
+      Confirm & Fund Wallet
+    </button>
+  </div>
+
+  <div id="walletUpdatingOverlay"
+     class="hidden fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+  <div class="bg-white rounded-[12px] px-[20px] py-[16px] text-center">
+    <div class="mb-[10px] animate-spin rounded-full h-[32px] w-[32px] border-4 border-gray-300 border-t-gray-700 mx-auto"></div>
+    <p class="text-[14px] text-[#101828] font-medium">
+      Updating your wallet…
+    </p>
+    <p class="text-[12px] text-[#667085] mt-[4px]">
+      Please wait a moment
+    </p>
+  </div>
+</div>
+
+</div>
+
+  
 
 </div>
           <!-- ========== ADD CARD CONFIRM MODAL ========== -->
           <div id="cardChargeModal"
-               class="fixed inset-0 bg-black/40 flex items-center justify-center z-[9998] hidden">
-            <div class="w-[90%] max-w-[400px] bg-white rounded-[12px] p-[24px] flex flex-col gap-[16px] text-center">
-              <div class="mx-auto w-[48px] h-[48px] rounded-full border border-[#F04438] flex items-center justify-center">
-                <span class="text-[#F04438] text-[24px]">!</span>
-              </div>
+     class="fixed inset-0 bg-black/40 flex items-center justify-center z-[9998] hidden">
+  <div class="w-[90%] max-w-[420px] bg-white rounded-[6px] px-[28px] py-[22px] text-center">
 
-              <div>
-                <p class="text-[14px] font-semibold text-[#1B1D27] mb-[4px]">
-                  This will cost you ₦5.00
-                </p>
-                <p class="text-[13px] text-[#667085]">
-                  Adding a payment card to your profile will allow FaaDaaKaa to save your
-                  card details and costs a non-refundable charge of ₦5.00.
-                </p>
-              </div>
+    <div class="mx-auto w-[56px] h-[56px] rounded-full border-2 border-[#F04438] flex items-center justify-center mb-[14px]">
+      <span class="text-[#F04438] text-[26px] font-bold leading-none">!</span>
+    </div>
 
-              <div class="flex justify-center gap-[12px] pt-[4px]">
-                <button id="cardChargeYesBtn"
-                        class="min-w-[80px] h-[40px] bg-[#1570EF] text-white rounded-[8px] text-[14px] font-medium">
-                  Yes
-                </button>
-                <button id="cardChargeCancelBtn"
-                        class="min-w-[80px] h-[40px] border border-[#D0D5DD] text-[#414651] rounded-[8px] text-[14px] font-medium">
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
+    <p class="text-[14px] font-semibold text-[#101828] mb-[10px]">
+      This will cost you ₦5.00
+    </p>
+
+    <p class="text-[13px] text-[#667085] leading-[18px] mb-[14px]">
+      Adding a payment card to your profile 
+      <span class="font-semibold text-[#101828]"> will allow FaaDaaKaa
+      to save your card details and cost you a non-refundable charge of
+      ₦5.00</span>.
+    </p>
+
+    <p class="text-[12px] text-[#98A2B3] mb-[18px]">
+      Click 'Yes' continue or click 'Cancel' to abort
+    </p>
+
+    <div class="flex justify-center gap-[12px]">
+      <button id="cardChargeYesBtn"
+              class="min-w-[90px] h-[40px] bg-[#1570EF] text-white rounded-[4px] text-[14px] font-medium">
+        Yes
+      </button>
+
+      <button id="cardChargeCancelBtn"
+              class="min-w-[90px] h-[40px] bg-[#D92D20] text-white rounded-[4px] text-[14px] font-medium">
+        Cancel
+      </button>
+    </div>
+
+  </div>
+</div>
 
           <!-- ========== GENERIC WALLET SUCCESS MODAL ========== -->
           <div id="walletSuccessModal"
@@ -1252,14 +1557,14 @@
 
         <p class="text-[14px] flex items-center gap-2">
           <i class="fa-solid fa-id-card text-[#000000]"></i>
-          <span id="dashBvnMasked" class="font-medium text-green-600">
+          <span id="loanDashBvnMasked" class="font-medium text-green-600">
             BVN | xxxxxxxx1234
           </span>
         </p>
 
         <p class="text-[14px] flex items-center gap-2 mt-[10px]">
           <i class="fa-solid fa-user text-[#000000]"></i>
-          <span id="dashFullName" class="font-medium uppercase text-black-600">
+          <span id="loanDashFullName" class="font-medium uppercase text-black-600">
             Full NAME
           </span>
         </p>
@@ -1425,7 +1730,7 @@
 
           <!-- ========== TAB: DELIVERY ADDRESSES (HIDDEN INITIALLY) ========== -->
          <div id="deliveryContent"
-     class="hidden w-full border border-[#EAECF0] rounded-[12px] bg-white p-[24px]">
+     class="relative z-index-[1000]  w-full border border-[#EAECF0] rounded-[12px] bg-white p-[24px]">
 
   <!-- TITLE -->
   <div class="flex items-center justify-between border-b border-[#EAECF0] pb-[10px] mb-[16px]">
@@ -1437,16 +1742,7 @@
     
     <!-- EACH ADDRESS CARD WILL BE INSERTED HERE BY JS -->
     <!-- Example (JS will generate this):  
-    <div class="w-full border border-[#D0D5DD] rounded-[8px] p-[16px] bg-[#F9FAFB] flex justify-between items-start">
-      <div class="flex flex-col text-[14px] text-[#344054] leading-[20px]">
-        <span class="font-medium text-[#1B1D27]">Ossai Onyeka | 2347066149905</span>
-        <span>Road 12, Omolayo, Akobo, Ibadan</span>
-        <span>Oyo</span>
-      </div>
-      <button class="text-[#F04438] text-[14px] font-medium hover:underline delete-address-btn">
-        Delete
-      </button>
-    </div>
+   
     -->
   </div>
 
@@ -1455,102 +1751,54 @@
 
   <form id="deliveryForm" class="flex flex-col gap-[12px] max-w-[600px]">
 
-    <!-- FULL NAME -->
-    <div class="flex flex-col gap-[6px]">
-      <label class="text-[13px] font-medium text-[#414651]">Full Name</label>
-      <input id="deliveryFullName"
-             type="text"
-             class="w-full h-[40px] border border-[#D0D5DD] rounded-[6px] px-[12px]
-                    text-[14px] outline-none focus:ring-2 focus:ring-[#1570EF]"
-             placeholder="Receiver’s full name" />
-    </div>
-
-    <!-- PHONE -->
-    <div class="flex flex-col gap-[6px]">
-      <label class="text-[13px] font-medium text-[#414651]">Phone</label>
-      <input id="deliveryPhone"
-             type="text"
-             class="w-full h-[40px] border border-[#D0D5DD] rounded-[6px] px-[12px]
-                    text-[14px] outline-none focus:ring-2 focus:ring-[#1570EF]"
-             placeholder="Receiver’s 11-digit phone number" />
-    </div>
-
-    <!-- ADDRESS -->
-    <div class="flex flex-col gap-[6px]">
-      <label class="text-[13px] font-medium text-[#414651]">Address*</label>
-      <input id="deliveryAddress"
-             type="text"
-             class="w-full h-[40px] border border-[#D0D5DD] rounded-[6px] px-[12px]
-                    text-[14px] outline-none focus:ring-2 focus:ring-[#1570EF]"
-             placeholder="Receiver’s address (including landmark if available)" />
-    </div>
-
-    <!-- STATE DROPDOWN -->
-    <div class="flex flex-col gap-[6px]">
-      <label class="text-[13px] font-medium text-[#414651]">State*</label>
-      <select id="deliveryState"
-              class="w-full h-[40px] border border-[#D0D5DD] rounded-[6px] px-[12px]
-                     text-[14px] outline-none focus:ring-2 focus:ring-[#1570EF]">
-        <option value="">Select State</option>
-        <option>Abia</option><option>Adamawa</option><option>Akwa-Ibom</option>
-        <option>Anambra</option><option>Bauchi</option><option>Bayelsa</option>
-        <option>Benue</option><option>Borno</option><option>Cross-River</option>
-        <option>Delta</option><option>Edo</option><option>Ekiti</option>
-        <option>Enugu</option><option>Gombe</option><option>Imo</option>
-        <option>Jigawa</option><option>Kaduna</option><option>Kano</option>
-        <option>Katsina</option><option>Kebbi</option><option>Kogi</option>
-        <option>Kwara</option><option>Lagos</option><option>Nasarawa</option>
-        <option>Niger</option><option>Ogun</option><option>Ondo</option>
-        <option>Osun</option><option>Oyo</option><option>Plateau</option>
-        <option>Rivers</option><option>Sokoto</option><option>Taraba</option>
-        <option>Yobe</option><option>Zamfara</option>
-      </select>
-    </div>
-
-    <!-- ADD BUTTON -->
-    <div class="flex justify-start mt-[8px]">
-      <button type="submit"
-              class="w-[150px] h-[40px] bg-[#1570EF] text-white rounded-[8px]
-                     text-[14px] font-medium">
-        Add Address
-      </button>
-    </div>
-
-  </form>
-  <!-- EDIT ADDRESS MODAL -->
-<div id="editModal"
-     class="hidden fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-
-  <div class="bg-white w-full max-w-[420px] p-[20px] rounded-[10px] shadow-md">
-    <h3 class="text-[16px] font-semibold mb-[10px]">Edit Address</h3>
-
-    <div class="flex flex-col gap-[10px]">
-      <input id="editFullName" type="text" class="border px-3 h-[40px] rounded" />
-      <input id="editPhone" type="text" class="border px-3 h-[40px] rounded" />
-      <input id="editAddress" type="text" class="border px-3 h-[40px] rounded" />
-      <select id="editState" class="border px-3 h-[40px] rounded">
-        <option value="">Select State</option>
-        <option>Abia</option><option>Adamawa</option><option>Akwa-Ibom</option>
-        <option>Anambra</option><option>Bauchi</option><option>Bayelsa</option>
-        <option>Benue</option><option>Borno</option><option>Cross-River</option>
-        <option>Delta</option><option>Edo</option><option>Ekiti</option>
-        <option>Enugu</option><option>Gombe</option><option>Imo</option>
-        <option>Jigawa</option><option>Kaduna</option><option>Kano</option>
-        <option>Katsina</option><option>Kebbi</option><option>Kogi</option>
-        <option>Kwara</option><option>Lagos</option><option>Nasarawa</option>
-        <option>Niger</option><option>Ogun</option><option>Ondo</option>
-        <option>Osun</option><option>Oyo</option><option>Plateau</option>
-        <option>Rivers</option><option>Sokoto</option><option>Taraba</option>
-        <option>Yobe</option><option>Zamfara</option>
-      </select>
-    </div>
-
-    <div class="flex justify-end gap-[10px] mt-[15px]">
-      <button id="closeEditModal" class="px-4 py-2 bg-gray-300 rounded">Cancel</button>
-      <button id="saveEditModal" class="px-4 py-2 bg-[#1570EF] text-white rounded">Save</button>
-    </div>
+  <!-- FULL NAME -->
+  <div class="flex flex-col gap-[6px]">
+    <label class="text-[13px] font-medium text-[#414651]">Full Name</label>
+    <input id="deliveryFullName" type="text"
+      class="w-full h-[40px] border border-[#D0D5DD] rounded-[6px] px-[12px]
+             text-[14px] outline-none focus:ring-2 focus:ring-[#1570EF]"
+      placeholder="Receiver’s full name" />
   </div>
+
+  <!-- PHONE -->
+  <div class="flex flex-col gap-[6px]">
+    <label class="text-[13px] font-medium text-[#414651]">Phone</label>
+    <input id="deliveryPhone" type="text"
+      class="w-full h-[40px] border border-[#D0D5DD] rounded-[6px] px-[12px]
+             text-[14px] outline-none focus:ring-2 focus:ring-[#1570EF]"
+      placeholder="Receiver’s 11-digit phone number" />
+  </div>
+
+  <!-- ADDRESS -->
+  <div class="flex flex-col gap-[6px]">
+    <label class="text-[13px] font-medium text-[#414651]">Address*</label>
+    <input id="deliveryAddress" type="text"
+      class="w-full h-[40px] border border-[#D0D5DD] rounded-[6px] px-[12px]
+             text-[14px] outline-none focus:ring-2 focus:ring-[#1570EF]"
+      placeholder="Receiver’s address" />
+  </div>
+
+  
+  <!-- STATE -->
+<div class="flex flex-col gap-[6px]">
+  <label class="text-[13px] font-medium text-[#414651]">State*</label>
+  <select
+    id="deliveryStateInput"
+    class="w-full h-[40px] border border-[#D0D5DD]
+           rounded-[6px] px-[12px] text-[14px] bg-white">
+    <option value="">Select state</option>
+  </select>
 </div>
+
+  <!-- ADD BUTTON -->
+  <button type="submit"
+    class="w-[150px] h-[40px] bg-[#1570EF] text-white rounded-[8px]
+           text-[14px] font-medium mt-[8px]">
+    Add Address
+  </button>
+
+</form>
+  </div>
 </div>
 
           <!-- ========== TAB: MY ORDERS ========== -->
@@ -1816,9 +2064,9 @@
   </button>
 </div>
 
-        </div> <!-- /rightSideContainer -->
-      </div> <!-- /accountInner -->
-    </div> <!-- /accountMain -->
+        </div> 
+      </div> 
+    </div> 
   </div>
 </div>
 
@@ -1872,6 +2120,11 @@
       </button>
     </div>
   </div>
+</div>
+<div id="toast"
+  class="fixed top-[20px] right-[20px] z-[9999] hidden
+         px-[16px] py-[12px] rounded-[8px]
+         text-[14px] font-medium shadow-lg">
 </div>
 <footer class="w-full bg-[#011845] text-white font-inter">
 
@@ -1973,7 +2226,24 @@
 
 
 <script src="https://js.paystack.co/v1/inline.js"></script>
-<script src="assets/js/script.js"></script>
+<script src="/assets/js/index.js"></script>
 <script src="./assets/js/account.js"></script>
+<script src="./assets/js/global-auth.js"></script>
+<script>
+  (function () {
+    function logout() {
+      sessionStorage.removeItem("AUTH_TOKEN");
+      window.location.href = "index.html";
+    }
+
+    document.querySelectorAll(".logoutBtn").forEach(btn => {
+      btn.addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        logout();
+      });
+    });
+  })();
+</script>
 
 

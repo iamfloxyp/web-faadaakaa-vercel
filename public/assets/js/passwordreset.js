@@ -1,57 +1,95 @@
-$("#resetSubmitBtn").on("click", function () {
+$(document).ready(function () {
 
-  let phone = $("#resetPhoneInput").val().trim();
+  // =========================================
+  // PAGE LOADER
+  // =========================================
+  $("#pageLoader").fadeOut(300);
 
-  $("#resetPhoneError").addClass("hidden").text("");
+  // =========================================
+  // RESET PASSWORD
+  // =========================================
+  $("#resetSubmitBtn").on("click", function () {
 
-  // Validate
-  if (phone.length !== 11) {
-    $("#resetPhoneError")
-      .removeClass("hidden")
-      .text("Phone number must be exactly 11 digits.");
-    return;
-  }
+    const phone = $("#resetPhoneInput").val().trim();
 
-  // Show loading spinner (button text stays visible)
-  $("#resetBtnLoader").removeClass("hidden");
+    hideResetError();
 
-  setTimeout(() => {
-    
-    let user = JSON.parse(localStorage.getItem("faadaakaaUser")) || {};
-
-    if (user.phone && user.phone !== phone) {
-      $("#resetPhoneError")
-        .removeClass("hidden")
-        .text("This phone number is not registered on Faadaakaa.");
-      
-      $("#resetBtnLoader").addClass("hidden");
+    // VALIDATION
+    if (!/^\d{11}$/.test(phone)) {
+      showResetError("Phone number must be exactly 11 digits.");
       return;
     }
 
-    // Generate temp password
-    let newPassword = "FDK-" + Math.floor(100000 + Math.random() * 900000);
-    console.log("Generated New Password:", newPassword);
+    // BUTTON LOADER START
+    $("#resetSubmitBtn").prop("disabled", true);
+    $("#resetBtnText").text("Sending");
+    $("#resetBtnLoader").removeClass("hidden");
 
-    // Update popup text
-    $("#resetSuccessMessage").html(`
-  Success! Your new password has been sent to your registered phone number 
-  <span class="font-semibold">${phone}</span> via SMS and WhatsApp.<br>
-  Please update the password on successful login.
-`);
+    // =========================================
+    // REAL API CALL
+    // =========================================
+    $.ajax({
+      url: "https://api.faadaakaa.com/api/resetpassv2",
+      method: "POST",
+      data: { phone },
 
-    $("#resetSuccessModal").removeClass("hidden");
+      success: function (res) {
+        if (!res.status) {
+          showResetError(res.message || "Password reset failed.");
+          return;
+        }
 
-    // Redirect after 3 secs
-    setTimeout(() => {
-      window.location.href = "login.html";
-    }, 3000);
+        // SHOW SUCCESS MODAL USING BACKEND MESSAGE
+        $("#resetSuccessMessage").text(res.message);
+        $("#resetSuccessModal").removeClass("hidden");
+      },
 
-    $("#resetBtnLoader").addClass("hidden");
+      error: function (err) {
+        showResetError(
+          err.responseJSON?.message ||
+          "Unable to reset password. Please try again."
+        );
+      },
 
-  }, 2000);
+      complete: function () {
+        stopResetLoader();
+      }
+    });
+  });
+
+  // =========================================
+  // OK BUTTON
+  // =========================================
+  $("#resetOkBtn").on("click", function () {
+    window.location.href = "login.html";
+  });
+
+  // =========================================
+  // CLOSE ERROR
+  // =========================================
+  $("#closeResetError").on("click", function () {
+    hideResetError();
+  });
+
 });
 
-// OK button
-$("#resetOkBtn").on("click", function () {
-  window.location.href = "login.html";
-});
+// =========================================
+// STOP BUTTON LOADER
+// =========================================
+function stopResetLoader() {
+  $("#resetSubmitBtn").prop("disabled", false);
+  $("#resetBtnText").text("Submit");
+  $("#resetBtnLoader").addClass("hidden");
+}
+
+// =========================================
+// ERROR HANDLERS
+// =========================================
+function showResetError(message) {
+  $("#resetErrorText").text(message);
+  $("#resetErrorPopup").removeClass("hidden");
+}
+
+function hideResetError() {
+  $("#resetErrorPopup").addClass("hidden");
+}

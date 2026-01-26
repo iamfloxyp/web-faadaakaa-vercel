@@ -1,9 +1,217 @@
 $(document).ready(function () {
-
+showIndexLoader();
   // LOAD CATEGORIES FROM API
     loadCategoriesFromAPI();
     // slider category
     initCategorySlider();
+
+    loadCartFromProfile();
+
+
+// =======================
+// AUTH HELPERS
+// =======================
+function getAuthToken() {
+  return sessionStorage.getItem("AUTH_TOKEN");
+}
+
+function isLoggedIn() {
+  return !!getAuthToken();
+}
+
+// =======================
+// HEADER STATE CONTROL
+// =======================
+function destroyUserHeaderUI() {
+  // Remove desktop user UI
+  $("#userSection").remove();
+  $("#userMenu").remove();
+
+  // Remove mobile user UI
+  $("#mobileUserSection").remove();
+  $("#mobileUserMenu").remove();
+
+  // Remove any leftover dropdown icons
+  $("#userDropdownIcon").remove();
+  $("#mobileUserDropdownIcon").remove();
+}
+
+function resetHeaderToLoggedOut() {
+  // 💥 HARD REMOVE user UI
+  destroyUserHeaderUI();
+
+  // Clear any stored text just in case
+  $("#walletBalance").text("");
+  $("#userGreeting").text("");
+  $("#userInitials").text("");
+  $("#mobileWalletBalance").text("");
+  $("#MobileUserGreeting").text("");
+  $("#MobileUserInitials").text("");
+
+  // Show ONLY auth buttons
+  $("#authButtons").removeClass("hidden");
+  $("#mobileAuthButtons").removeClass("hidden");
+}
+
+function updateHeaderByAuthState() {
+  if (!isLoggedIn()) {
+    resetHeaderToLoggedOut();
+    return;
+  }
+
+  // Logged in state
+  $("#authButtons").addClass("hidden");
+  $("#mobileAuthButtons").addClass("hidden");
+
+  if (window.innerWidth >= 1024) {
+    $("#userSection").removeClass("hidden");
+  }
+
+  $("#mobileUserSection").removeClass("hidden");
+}
+
+// =======================
+// FETCH USER FOR HEADER + MOBILE
+// =======================
+async function fetchHeaderUser() {
+  const token = getAuthToken();
+  if (!token) {
+    resetHeaderToLoggedOut();
+    return;
+  }
+
+  const fd = new FormData();
+  fd.append("token", token);
+
+  try {
+    const res = await fetch("https://api.faadaakaa.com/api/loadprofile", {
+      method: "POST",
+      body: fd
+    });
+
+    const json = await res.json();
+    if (!json.status || !json.data) {
+      resetHeaderToLoggedOut();
+      return;
+    }
+
+    const user = json.data;
+
+    // Wallet
+    const wallet = parseFloat(user?.wallet?.data?.wallet_balance) || 0;
+    const walletText = `₦${wallet.toLocaleString()}`;
+    $("#walletBalance").text(walletText);
+    $("#mobileWalletBalance").text(walletText);
+
+    // Greeting
+    const greeting = `Hi ${user.first_name || ""}`;
+    $("#userGreeting").text(greeting);
+    $("#MobileUserGreeting").text(greeting);
+
+    // Initials
+    const initials =
+      (user.first_name?.[0] || "") + (user.last_name?.[0] || "");
+    $("#userInitials").text(initials.toUpperCase());
+    $("#MobileUserInitials").text(initials.toUpperCase());
+
+    // 🔥 REPLACE AUTH BUTTONS WITH USER SECTION
+    $("#authButtons").addClass("hidden");
+    $("#mobileAuthButtons").addClass("hidden");
+    $("#userSection").removeClass("hidden");
+    $("#mobileUserSection").removeClass("hidden");
+
+  } catch (err) {
+    resetHeaderToLoggedOut();
+  }
+}
+
+
+// =======================
+// DESKTOP USER DROPDOWN
+// =======================
+$(document).on(
+  "click",
+  "#userInitials, #userGreeting, #userDropdownIcon",
+  function (e) {
+    e.stopPropagation();
+    $("#userMenu").toggleClass("hidden");
+  }
+);
+
+
+// =======================
+// MOBILE USER DROPDOWN
+// =======================
+$(document).on(
+  "click",
+  "#MobileUserInitials, #MobileUserGreeting, #mobileUserDropdownIcon",
+  function (e) {
+    e.stopPropagation();
+    $("#mobileUserMenu").toggleClass("hidden");
+  }
+);
+
+
+// =======================
+// CLOSE ALL DROPDOWNS ON OUTSIDE CLICK
+// =======================
+$(document).on("click", function () {
+  $("#userMenu").addClass("hidden");
+  $("#MobileUserMenu").addClass("hidden");
+});
+
+
+
+// Desktop navigation 
+$(document).on("click", "#menuAccount", function (e) {
+  e.stopPropagation();
+  setTimeout(() => {
+    window.location.href = "/account.html#account";
+  }, 0);
+});
+
+$(document).on("click", "#menuWallet", function (e) {
+  e.stopPropagation();
+  setTimeout(() => {
+    window.location.href = "/account.html#wallet";
+  }, 0);
+});
+
+$(document).on("click", "#menuOrders", function (e) {
+  e.stopPropagation();
+  setTimeout(() => {
+    window.location.href = "/account.html#orders";
+  }, 0);
+});
+
+// Mobile
+$(document).on("click", "#mobileMenuAccount", function (e) {
+  e.stopPropagation();
+  window.location.href = "/account.html#account";
+});
+
+$(document).on("click", "#mobileMenuWallet", function (e) {
+  e.stopPropagation();
+  window.location.href = "/account.html#wallet";
+});
+
+$(document).on("click", "#mobileMenuOrders", function (e) {
+  e.stopPropagation();
+  window.location.href = "/account.html#orders";
+});
+
+// =======================
+// INIT
+// =======================
+$(document).ready(function () {
+  updateHeaderByAuthState();
+
+  if (isLoggedIn()) {
+    fetchHeaderUser();
+  }else{
+    resetHeaderToLoggedOut();
+  }
+});
     
   $("#categorySection").on("click", function (e) {
     e.stopPropagation();
@@ -13,21 +221,7 @@ $(document).ready(function () {
   
    const isMobile = window.innerWidth < 640;
 
-// if (isMobile) {
-//   // Mobile only: manual positioning if you want
-//   $("#categoryDropdown").css({
-//     position: "absolute",
-//     top: "50px",
-//     right: "100px"
-//   });
-// } else {
-//   // Desktop: RESET to CSS-controlled positioning
-//   $("#categoryDropdown").css({
-//     top: "",
-//     left: "",
-//     position: ""
-//   });
-// }
+
   });
 
   // Close when clicking outside
@@ -72,40 +266,210 @@ $("#cartContainer").hover(
 
 
 /*******************************************
- * DESKTOP CART TOGGLE
+ * DESKTOP CART TOGGLE (delegated)
  *******************************************/
-$("#cartContainer").on("click", function (e) {
-    e.stopPropagation();
-    $("#cartDropdown").toggleClass("hidden");
-    $("#mobileCartDropdown").addClass("hidden");
+$(document).on("click", "#cartContainer", function (e) {
+  e.stopPropagation();
+  $("#cartDropdown").toggleClass("hidden");
+  $("#mobileCartDropdown").addClass("hidden");
 });
-
 
 /*******************************************
  * MOBILE CART TOGGLE
  *******************************************/
 $("#mobileCartBtn").on("click", function (e) {
-    e.stopPropagation();
-    $("#mobileCartDropdown").toggleClass("hidden");
-    $("#cartDropdown").addClass("hidden");
+  e.preventDefault();
+  e.stopPropagation();
+
+  const count = Number($("#mobileCartCount").text().match(/\d+/)?.[0] || 0);
+
+  if (count === 0) {
+    toast("Your cart is empty", "info");
+    return;
+  }
+
+  // 🔑 IMPORTANT: open the mobile menu first
+  $("#mobileMenu").removeClass("hidden");
+
+  // then toggle the cart dropdown
+  $("#mobileCartDropdown").toggleClass("hidden");
+
+  // close desktop cart if open
+  $("#cartDropdown").addClass("hidden");
 });
-
-
-/*******************************************
- * CLICK OUTSIDE — CLOSE ALL CART DROPDOWNS
- *******************************************/
-$(document).on("click", function () {
-    $("#cartDropdown").addClass("hidden");
-    $("#mobileCartDropdown").addClass("hidden");
-});
-
 
 /*******************************************
  * PREVENT CLOSING WHEN CLICKING INSIDE DROPDOWN
  *******************************************/
 $("#cartDropdown, #mobileCartDropdown").on("click", function (e) {
-    e.stopPropagation();
+  e.stopPropagation();
 });
+
+/*******************************************
+ * CLICK OUTSIDE, CLOSE ALL DROPDOWNS
+ *******************************************/
+$("#mobileCartBtn").on("click", function (e) {
+  e.preventDefault();
+  e.stopPropagation();
+
+  const count = Number($("#mobileCartCount").text().match(/\d+/)?.[0] || 0);
+
+  if (count === 0) {
+    toast("Your cart is empty", "info");
+    return;
+  }
+
+  $("#mobileCartDropdown").toggleClass("hidden");
+});
+
+// prevent close when clicking inside dropdown
+$("#mobileCartDropdown").on("click", function (e) {
+  e.stopPropagation();
+});
+
+// click outside closes it
+$(document).on("click", function () {
+  $("#mobileCartDropdown").addClass("hidden");
+});
+
+
+// LOAD CART ITEMS
+function loadCartFromProfile() {
+  const token = sessionStorage.getItem("AUTH_TOKEN");
+  if (!token) return;
+
+  const formData = new FormData();
+  formData.append("token", token);
+
+  fetch("https://api.faadaakaa.com/api/loadprofile", {
+    method: "POST",
+    body: formData
+  })
+    .then(res => res.json())
+    .then(result => {
+  // Always render, even if empty
+  const cartItems = result?.data?.cart?.data || [];
+  renderCartUI(cartItems);
+ 
+})
+    .catch(err => console.error("Load cart error:", err));
+}
+ 
+$("#cartItemsWrapper").on("click", ".cart-go", function () {
+  window.location.href = $(this).data("url") || "cart.html";
+});
+
+// REMOVE ITEM FROM CART
+$("#cartItemsWrapper").on("click", ".remove-cart-item", function (e) {
+  e.preventDefault();
+  e.stopPropagation();
+
+  console.log("clicked remove"); // you should see this now
+
+  const cartItemId = $(this).data("id");
+  const token = sessionStorage.getItem("AUTH_TOKEN");
+
+  if (!cartItemId) return toast("Cart item id missing", "error");
+  if (!token) return toast("You are not logged in", "error");
+
+  const formData = new FormData();
+  formData.append("id", cartItemId);
+  formData.append("token", token);
+  formData.append("access_token", token);
+
+  fetch("https://api.faadaakaa.com/api/deletecartitem", {
+    method: "POST",
+    body: formData
+  })
+    .then(res => res.json())
+   .then(result => {
+  if (!result.status) {
+    toast(result.message || "Failed to remove item", "error");
+    return;
+  }
+
+  toast("Item removed from cart", "success");
+
+  // Remove item visually
+  $(this).closest(".cart-item").remove();
+
+  // Refresh cart header and totals
+  if (typeof window.refreshCartUI === "function") {
+    window.refreshCartUI();
+  }
+
+  // Refresh product page UI immediately
+  if (typeof window.checkIfCurrentProductInCart === "function") {
+    window.checkIfCurrentProductInCart();
+  }
+})
+    .catch(err => {
+      console.error(err);
+      toast("Network error removing item", "error");
+    });
+});
+
+
+// EMPTY CART STATE
+function renderEmptyCartState() {
+  const emptyHtml = `
+    <div class="text-center py-[24px] text-[#667085] text-[14px]">
+      Your cart is empty
+    </div>
+  `;
+
+  $("#cartItemsWrapper").html(emptyHtml);
+  $("#mobileCartItemsWrapper").html(emptyHtml);
+
+  $("#cartSubtotal").text("₦0.00");
+  $("#headerCartTotal").text("₦0.00");
+  $("#mobileCartSubtotal").text("₦0.00");
+  $("#mobileCartTotal").text("₦0.00");
+
+  // Disable View Cart
+  $("#cartTooltipViewBtn").addClass("hidden");
+  $("#mobileCartDropdown a[href='./cart.html']").addClass("hidden");
+}
+ 
+
+//////// DISABLE CART UI REFRESH IF NOT NEEDED
+$("#cartBtn").on("click", function () {
+  const count = Number($("#cartBadge").text());
+  if (count === 0) {
+    toast("Your cart is empty", "info");
+    return;
+  }
+  $("#cartTooltip").toggleClass("hidden");
+});
+
+$("#mobileCartBtn").on("click", function () {
+  const count = Number($("#mobileCartCount").text().match(/\d+/)?.[0] || 0);
+
+  if (count === 0) {
+    toast("Your cart is empty", "info");
+    return;
+  }
+
+  $("#mobileCartDropdown").toggleClass("hidden");
+});
+// 🔔 GLOBAL CART REFRESH TRIGGER
+window.refreshCartUI = function () {
+  loadCartFromProfile();
+};
+
+// ===============RENDER CART HEADER EMPTY AFTER ALL CART ITEMS REMOVED=============
+function resetCartHeaderState() {
+  // Cart badges
+  document.querySelectorAll("#cartCount, .cart-badge").forEach(badge => {
+    badge.textContent = "0";
+    badge.classList.add("hidden");
+  });
+
+  // Cart total amounts
+  document.querySelectorAll("#cartTotalAmount, .cart-total").forEach(amountEl => {
+    amountEl.textContent = "₦0.00";
+  });
+}
 
 //   ============================hero slides
 // ============================
@@ -151,7 +515,7 @@ function renderHeroSlides(categories) {
            onclick="window.location='/category/${cat.slug}/1'">
 
         <img src="${imageURL}"
-             class="w-full h-full object-cover rounded-[12px]"
+             class="w-full h-full object-contain rounded-[12px]"
              alt="${cat.name}">
       </div>
     `;
@@ -260,36 +624,23 @@ function updateActiveDot() {
       }
   
     });
-// ---------- HORIZONTAL SCROLLING FOR CATEGORIES ----------
-let currentX = 0;
+// ---------- RENDER PRODUCT PRICE/MONTH COMPONENT ----------
+function renderProductPrice(price) {
+  const numericPrice = Number(price || 0);
+  const monthly = Math.round(numericPrice / 12);
 
-// Dynamically calculate real item width including margin
-const itemWidth = $(".catItem").outerWidth(true);
+  return `
+    <div class="flex flex-col mt-3">
+      <span class="text-[14px] font-bold text-[#101828]">
+        ₦${numericPrice.toLocaleString()}
+      </span>
 
-// Count number of visible items based on container width
-const containerWidth = $("#categorySlider").width();
-const visibleItems = Math.floor(containerWidth / itemWidth);
-
-// Total items
-const totalItems = $("#categoryTrack .catItem").length;
-
-// Maximum slide distance
-const maxX = -(itemWidth * (totalItems - visibleItems));
-
-$("#catNext").click(function () {
-    if (currentX > maxX) {
-        currentX -= itemWidth;
-        $("#categoryTrack").css("transform", `translateX(${currentX}px)`);
-    }
-});
-
-$("#catPrev").click(function () {
-    if (currentX < 0) {
-        currentX += itemWidth;
-        $("#categoryTrack").css("transform", `translateX(${currentX}px)`);
-    }
-});
-
+      <span class="text-[13px] font-medium text-[#004EEB]">
+        ₦${monthly.toLocaleString()} / month
+      </span>
+    </div>
+  `;
+}
   // ---------- REUSABLE CATEGORY FUNCTION ----------
 
 const PRODUCT_API_BASE = "https://api.faadaakaa.com/api/loadspotlightproductbycat";
@@ -302,7 +653,9 @@ function loadLandingCategoriesWithProducts() {
   fetch(CATEGORY_API)
     .then(res => res.json())
     .then(result => {
-      if (!result.status || !Array.isArray(result.data)) return;
+      if (!result.status || !Array.isArray(result.data)) 
+        
+        return;
 
       const categories = result.data.filter(cat => cat.is_active === 1);
       const $container = $("#landingCategories");
@@ -311,10 +664,9 @@ function loadLandingCategoriesWithProducts() {
       categories.forEach(cat => {
         const sectionId = `grid-${cat.slug}`;
 
-        // ---------- CATEGORY SECTION ----------
         const sectionHTML = `
-          <section class="bg-[#F7F7F7] py-10 px-4 sm:px-6 md:px-8">
-            <div class="max-w-[1216px] mx-auto flex flex-col gap-[24px]">
+          <section class="bg-[#F7F7F7] py-8 px-4 sm:px-6 md:px-8">
+            <div class="max-w-[1216px] mx-auto flex flex-col gap-[20px]">
 
               <div class="flex justify-between items-center">
                 <div class="flex items-center">
@@ -331,9 +683,10 @@ function loadLandingCategoriesWithProducts() {
                 </a>
               </div>
 
+              <!-- GAP REDUCED HERE -->
               <div id="${sectionId}"
-                   class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6
-                          gap-[14px] place-items-center">
+                   class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6
+                          gap-[8px] sm:gap-[10px] lg:gap-[12px]">
               </div>
 
             </div>
@@ -341,8 +694,6 @@ function loadLandingCategoriesWithProducts() {
         `;
 
         $container.append(sectionHTML);
-
-        // ---------- LOAD PRODUCTS FOR CATEGORY ----------
         loadProductsForCategory(cat.slug, sectionId);
       });
     })
@@ -360,21 +711,7 @@ function loadProductsForCategory(slug, gridId) {
 
       const products = shuffleArray(result.data).slice(0, 6);
       const $grid = $("#" + gridId);
-
-      // ✅ FORCE GRID + GAP HERE (this is where the gap comes from)
-      $grid
-        .empty()
-        .removeClass()
-        .addClass(`
-          grid
-          grid-cols-2
-          sm:grid-cols-3
-          lg:grid-cols-6
-          gap-[16px]
-          sm:gap-[20px]
-          md:gap-[24px]
-          place-items-start
-        `);
+      $grid.empty();
 
       products.forEach(item => {
         let imagePath = null;
@@ -385,24 +722,20 @@ function loadProductsForCategory(slug, gridId) {
             item.images[0].path;
         }
 
+        const price = Number(item.selling_price || item.price || 0);
+        const monthly = Math.round(price / 12);
+
         const image = imagePath
           ? IMAGE_BASE + imagePath
           : "https://via.placeholder.com/300";
 
-        // Optional debug
-        console.log("PRODUCT:", item.name);
-        console.log("IMAGE PATH:", imagePath);
-        console.log("FINAL IMAGE URL:", image);
-
         const card = `
           <a href="/product/${item.slug}"
              class="bg-white border border-[#EAECF0] rounded-[14px]
-                    flex flex-col
-                    w-full
-                    h-[340px]
-                    hover:shadow-lg transition-all">
+                    flex flex-col h-[340px]
+                    hover:shadow-md transition">
 
-            <!-- IMAGE SECTION -->
+            <!-- IMAGE -->
             <div class="flex items-center justify-center
                         bg-[#fff] h-[170px]
                         rounded-t-[14px]">
@@ -414,19 +747,17 @@ function loadProductsForCategory(slug, gridId) {
             <!-- DIVIDER -->
             <div class="w-full h-[1px] bg-[#EAECF0]"></div>
 
-            <!-- CONTENT SECTION -->
-            <div class="flex flex-col justify-between
-                        p-[14px] flex-1 text-center">
+            <!-- CONTENT -->
+            <div class="flex flex-col justify-between p-[12px] flex-1">
 
-              <h3 class="text-[13px] font-semibold
-                         text-[#101828] leading-[18px]
-                         line-clamp-2">
+              <h3 class="text-[13px] font-semibold text-[#101828]
+                         leading-[18px]">
                 ${item.name}
               </h3>
 
-              <p class="text-[14px] font-bold text-[#004EEB] mt-3">
-                ₦${Number(item.selling_price || item.price || 0).toLocaleString()}
-              </p>
+            <!-- PRICE -->
+            ${renderProductPrice(price)}
+
             </div>
           </a>
         `;
@@ -449,27 +780,31 @@ function shuffleArray(arr) {
 // ==========================
 $(document).ready(function () {
   loadLandingCategoriesWithProducts();
+  hideIndexLoader();
 });
 
  
 
 
 // ---------- GLOBAL SEARCH FUNCTION ----------
-$("#searchInput").on("keyup", function () {
-    let query = $(this).val().toLowerCase().trim();
+$("#searchInput").on("keydown", function (e) {
+  if (e.key === "Enter") {
+    const query = $(this).val().trim();
+    if (!query) return;
 
-    if (query === "") return; // empty → do nothing
-
-    // Check each category list
-    for (let cat of categories) {
-        // If any keyword contains the query → redirect
-        if (cat.keyword.some(k => k.toLowerCase().includes(query))) {
-            window.location.href = cat.page;
-            return;
-        }
-    }
+    window.location.href = `/search.html?q=${encodeURIComponent(query)}`;
+  }
 });
 
+// ---------- MOBILE SEARCH ----------
+$(document).on("keydown", ".mobileSearchInput", function (e) {
+  if (e.key === "Enter") {
+    const query = $(this).val().trim();
+    if (!query) return;
+
+    window.location.href = `/search.html?q=${encodeURIComponent(query)}`;
+  }
+});
 // =================== LOAD SPOTLIGHT CATEGORIES ==========================
 // const CATEGORY_API = "https://api.faadaakaa.com/api/loadcategory";
 
@@ -484,7 +819,7 @@ function loadSpotlightCategories() {
       );
 
       renderSpotlightCategories(spotlightCategories);
-      initCategorySlider(); // initialize arrows AFTER render
+      initCategorySlider(); 
     })
     .catch(err => console.error("Spotlight error:", err));
 }
@@ -500,7 +835,7 @@ function renderSpotlightCategories(categories) {
 
     const card = `
       <div class="catItem flex flex-col items-center justify-center
-        min-w-[160px] sm:min-w-[180px] lg:min-w-[180px]
+        w-[160px] sm:min-w-[180px] lg:min-w-[180px]
         h-[140px] sm:h-[150px] lg:h-[160px]
         rounded-[12px] p-[16px] cursor-pointer
         hover:bg-[#E8F1FF] transition"
@@ -526,7 +861,7 @@ function initCategorySlider() {
 
   const itemWidth = $(".catItem").outerWidth(true);
   const containerWidth = $("#categorySlider").width();
-  const visibleItems = Math.floor(containerWidth / itemWidth);
+  const visibleItems = Math.min(containerWidth / itemWidth);
   const totalItems = $(".catItem").length;
   const maxX = -(itemWidth * (totalItems - visibleItems));
 
@@ -594,9 +929,38 @@ function loadCategoriesFromAPI() {
 
 
 });
+window.toast = window.toast || function (msg, type) {
+  console.log(`[${type || "info"}] ${msg}`);
+};
+// =======================
+// GLOBAL LOGOUT
+// =======================
+function forceLogout() {
+  sessionStorage.removeItem("AUTH_TOKEN");
+  window.location.href = "index.html";
+}
+let indexLoaderStartTime = 0;
 
+// ====SHOWLOADER==================
+function showIndexLoader() {
+  indexLoaderStartTime = Date.now();
+  $("#indexLoader").removeClass("hidden");
+}
 
+function hideIndexLoader() {
+  const MIN_DURATION = 700; // milliseconds
+  const elapsed = Date.now() - indexLoaderStartTime;
 
+  const remaining = MIN_DURATION - elapsed;
+
+  if (remaining > 0) {
+    setTimeout(() => {
+      $("#indexLoader").addClass("hidden");
+    }, remaining);
+  } else {
+    $("#indexLoader").addClass("hidden");
+  }
+}
 // ---------- PAYMENT DROPDOWN FOR PRODUCT PAGE----------
 const $clickArea = $("#paymentClickArea");
 const $dropdown  = $("#paymentDropdown");
@@ -606,7 +970,7 @@ const $input     = $("#paymentInput");
 $clickArea.on("click", function (e) {
   e.stopPropagation();
 
-  const isMobile = window.innerWidth < 1024; // below lg
+  const isMobile = window.innerWidth < 1024; //
 
   if (!isMobile) {
     // DESKTOP / LARGE SCREENS → position with JS
@@ -652,95 +1016,6 @@ $(document).on("click", function (event) {
 // HOME HEADER: SHOW USER DATA WHEN LOGGED IN
 // ============================================
 
-function loadHomeHeaderUserUI() {
-    const savedUser = JSON.parse(localStorage.getItem("faadaakaaActiveUser"));
-
-    const authButtons = document.getElementById("authButtons"); 
-    const rightHeader = document.getElementById("rightHeader"); 
-
-    if (!authButtons || !rightHeader) return;
-
-    if (!savedUser) {
-        // Not logged in → show Login + Signup
-        authButtons.classList.remove("hidden");
-        return;
-    }
-
-    // Logged in → hide login/signup
-    authButtons.classList.add("hidden");
-
-    // Extract user info
-    const first = savedUser.firstName || "";
-    const last = savedUser.lastName || "";
-    const wallet = Number(savedUser.walletBalance || 0);
-
-    // initials
-    const initials = 
-        (first.charAt(0) + last.charAt(0)).toUpperCase();
-
-    // Build UI exactly like your account header
-    const userUI = `
-        <div id="headerUserSection" class="hidden lg:flex items-center gap-[16px] relative">
-
-            <!-- Wallet -->
-            <div class="flex items-center gap-[6px]">
-                <span class="text-[#475467] text-[12px]">Wallet:</span>
-                <span class="text-[#004EEB] text-[14px] font-[600]">
-                    ₦${wallet.toLocaleString()}
-                </span>
-            </div>
-
-            <!-- User Initials -->
-            <div id="headerInitials"
-                 class="w-[24px] h-[24px] bg-[#EAECF0] rounded-full 
-                        flex items-center justify-center text-[#344054]
-                        text-[10px] font-[600] uppercase cursor-pointer">
-                ${initials}
-            </div>
-
-            <!-- Hi Name -->
-            <div id="headerUserDropdownBtn"
-                 class="flex items-center gap-[4px] cursor-pointer">
-                <span class="text-[#344054] text-[14px]">
-                    Hi ${first}
-                </span>
-                <i class="fa-solid fa-chevron-down text-[#475467] text-[10px]"></i>
-            </div>
-
-            <!-- Dropdown -->
-            <div id="headerUserDropdown"
-                 class="hidden absolute right-0 top-[36px] w-[180px] 
-                        bg-white border border-[#EAECF0] rounded-[10px] 
-                        shadow-lg z-[999]">
-                
-                <a href="account.html" 
-                   class="block px-4 py-2 text-[14px] hover:bg-[#F5F7FA]">
-                    My Account
-                </a>
-
-                <a href="account.html#wallet" 
-                   class="block px-4 py-2 text-[14px] hover:bg-[#F5F7FA]">
-                    Wallet: ₦${wallet.toLocaleString()}
-                </a>
-
-                <button id="headerLogout"
-                        class="w-full text-left px-4 py-2 text-[#D92D20] hover:bg-[#FEE4E2]">
-                    Logout
-                </button>
-
-            </div>
-
-        </div>
-    `;
-
-    // Insert user UI next to the cart wrapper
-    rightHeader.insertAdjacentHTML("afterend", userUI);
-
-    // Reveal it
-    document.getElementById("headerUserSection").classList.remove("hidden");
-}
-
-loadHomeHeaderUserUI();
 
 
 // ============================================
@@ -759,26 +1034,4 @@ document.addEventListener("click", function (e) {
         drop.classList.add("hidden");
     }
 });
-
-// ============================================
-// LOGOUT
-// ============================================
-
-document.addEventListener("click", function (e) {
-    if (e.target.id === "headerLogout") {
-        localStorage.removeItem("faadaakaaActiveUser");
-        window.location.href = "index.html";
-    }
-});
-
-// Completely Remove Login and Signup When User Is Logged In
-(function removeAuthButtonsIfLoggedIn() {
-    const savedUser = JSON.parse(localStorage.getItem("faadaakaaActiveUser"));
-    const authButtons = document.getElementById("authButtons");
-
-    // If the user is logged in, remove login/signup entirely
-    if (savedUser && authButtons) {
-        authButtons.remove();   // remove from the DOM permanently
-    }
-})();
 

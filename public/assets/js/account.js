@@ -1,319 +1,97 @@
 // =====================================================
-// FaaDaaKaa ACCOUNT PAGE MASTER SCRIPT
-// (Profile, Wallet, Loans/Credit, Delivery, OTP, BVN, Bank, Avatar)
+// FAADAAKAA ACCOUNT PAGE MASTER SCRIPT (API SOURCE ONLY)
+// No localStorage
 // =====================================================
-
-// -----------------------------------------------------
-// GLOBAL STATE FOR EMAIL & PHONE OTP
-// -----------------------------------------------------
-let pendingEmail = null;
-let pendingPhone = null;
-let currentEmailOtp = null;
-let currentPhoneOtp = null;
-
-// Control default tab when coming from Cart
-let stopDefaultLoad = false;
-
-// -----------------------------------------------------
-// SIMPLE OTP GENERATOR (6 DIGITS)
-// -----------------------------------------------------
-function generateOtp() {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+const PAYSTACK_API_KEY = "pk_live_39b9ddfbc20e0e3e426df75fa620e6196752bd10";
+// --------------------
+// AUTH
+// --------------------
+function getToken() {
+  return sessionStorage.getItem("AUTH_TOKEN");
 }
 
-// -----------------------------------------------------
-// SIMPLE HASH (DEMO ONLY)
-// -----------------------------------------------------
-function simpleHash(str) {
-  if (!str) return "";
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = (hash << 5) - hash + str.charCodeAt(i);
-    hash |= 0;
-  }
-  return "h" + Math.abs(hash).toString(16);
-}
-
-// -----------------------------------------------------
-// FORMAT NAIRA
-// -----------------------------------------------------
-function formatNaira(amount) {
-  if (isNaN(amount)) amount = 0;
-  return "₦" + Number(amount).toLocaleString("en-NG", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-}
-
-// -----------------------------------------------------
-// USER HELPERS
-// -----------------------------------------------------
-function getCurrentUser() {
-  return JSON.parse(localStorage.getItem("faadaakaaUser"));
-}
-
-function saveCurrentUser(user) {
-  localStorage.setItem("faadaakaaUser", JSON.stringify(user));
-}
-
-// -----------------------------------------------------
-// SUCCESS TOAST
-// -----------------------------------------------------
-function showSuccessToast(message) {
-  $("#toastSuccessMsg").text(message);
-  $("#toastSuccess").removeClass("hidden").hide().fadeIn(200);
-  setTimeout(() => $("#toastSuccess").fadeOut(300), 3500);
+function forceLogout() {
+  sessionStorage.removeItem("AUTH_TOKEN");
 }
 function showGreenToast(message) {
-  const toast = document.createElement("div");
-  toast.className =
-    "fixed top-4 right-4 bg-[#12B76A] text-white px-4 py-3 rounded-lg shadow-lg text-sm font-medium z-[9999]";
-  toast.innerText = message;
+  const $toast = $("#toast");
 
-  document.body.appendChild(toast);
+  $toast
+    .removeClass("hidden toast-error")
+    .addClass("toast-success")
+    .text(message);
 
   setTimeout(() => {
-    toast.classList.add("opacity-0", "transition-all", "duration-500");
-    setTimeout(() => toast.remove(), 500);
-  }, 2000);
-}
-$("#toastSuccessClose").on("click", function () {
-  $("#toastSuccess").fadeOut(200);
-});
-
-// -----------------------------------------------------
-// ERROR POPUP
-// -----------------------------------------------------
-function showError(message) {
-  const popup = $(`
-    <div class="fixed top-4 right-4 bg-[#D92D20] text-white px-4 py-2 rounded-md shadow-md z-[9999]">
-      ${message}
-    </div>
-  `);
-
-  $("body").append(popup);
-  setTimeout(() => popup.fadeOut(500, () => popup.remove()), 2000);
+    $toast.addClass("hidden");
+  }, 3000);
 }
 
-// -----------------------------------------------------
-// UPDATE HEADER USER INFO
-// -----------------------------------------------------
-function updateHeaderUser(user) {
-  const firstName = user?.firstName || "User";
-  const lastName = user?.lastName || "";
-  const initials =
-    (firstName.charAt(0) || "U").toUpperCase() +
-    (lastName.charAt(0) || "").toUpperCase();
+function showErrorToast(message) {
+  const $toast = $("#toast");
 
-  // Desktop header
-  $("#userInitials").text(initials);
-  $("#userGreeting").text(`Hi ${firstName}`);
+  $toast
+    .removeClass("hidden toast-success")
+    .addClass("toast-error")
+    .text(message);
 
-  // Mobile header
-  $("#mobileUserBadge").text(initials);
-  $("#mobileUserName").text(`Hello, ${firstName}`);
+  setTimeout(() => {
+    $toast.addClass("hidden");
+  }, 3000);
 }
-document.addEventListener("DOMContentLoaded", function () {
-  const $userInitials = $("#userInitials");
-  const $userGreeting = $("#userGreeting");
-  const $userIcon = $("#userDropdownIcon");
-  const $userMenu = $("#userMenu");
+// --------------------
+// GLOBAL USER STATE (API ONLY)
+// --------------------
+let API_USER = null;
 
-  if (!$userMenu.length) {
-    return;
-  }
+// --------------------
+// FORMAT HELPERS
+// --------------------
+function toNumber(val) {
+  if (val === null || val === undefined) return 0;
 
-  // Hide menu initially if not already hidden
-  if (!$userMenu.hasClass("hidden")) {
-    $userMenu.addClass("hidden");
-  }
+  // handles "1,108.37", "118840.42", 118840.42, etc
+  const s = String(val).replace(/,/g, "").trim();
+  const n = Number(s);
+  return Number.isFinite(n) ? n : 0;
+}
 
-  function toggleUserMenu(event) {
-    event.stopPropagation();
-    $userMenu.toggleClass("hidden");
-  }
-
-  // Open or close when user clicks any of these
-  $userInitials.on("click", toggleUserMenu);
-  $userGreeting.on("click", toggleUserMenu);
-  $userIcon.on("click", toggleUserMenu);
-
-  // Prevent click inside menu from closing it
-  $userMenu.on("click", function (event) {
-    event.stopPropagation();
+function formatNaira(amount) {
+  return "₦" + Number(amount || 0).toLocaleString("en-NG", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
   });
-
-  // Click anywhere outside closes the menu
-  $(document).on("click", function () {
-    $userMenu.addClass("hidden");
-  });
-});
-// -----------------------------------------------------
-// POPULATE HEADER ON LOAD
-// -----------------------------------------------------
-function populateHeader() {
-  let user = getCurrentUser();
-  if (!user) return;
-  updateHeaderUser(user);
 }
 
-// -----------------------------------------------------
-// PROFILE SUMMARY + PROFILE FORM POPULATION
-// -----------------------------------------------------
-function populateAccountSummary(user) {
-  if (!user) return;
-
-  const { firstName, lastName, phone, email, avatar } = user;
-
-  // FULL NAME
-  const fullName =
-    ((firstName || "") + " " + (lastName || "")).trim() || "User";
-
-  $("#profileFullName").text(fullName);
-
-  // AVATAR OR INITIALS
-  if (avatar) {
-    $("#avatarInner").css({
-      "background-image": `url(${avatar})`,
-      "background-size": "cover",
-      "background-position": "center",
-      "background-color": "transparent",
-    });
-    $("#avatarText").hide();
-  } else {
-    const initials =
-      (firstName?.[0] || "U").toUpperCase() + (lastName?.[0] || "");
-    $("#avatarInner").css({
-      "background-image": "none",
-      "background-color": "#E4E7EC",
-    });
-    $("#avatarText").text(initials).show();
-  }
-
-  // EMAIL + PHONE
-  $("#profileEmailText").text(email || "No email added yet");
-  $("#profilePhoneText").text(phone || "No phone number yet");
-  $("#currentEmailDisplay").text(email || "No email added yet");
-  $("#currentPhoneDisplay").text(phone || "No phone number yet");
-
-  // MERGED ADDRESS + STATE
-  let mergedAddress;
-  if (!user.address && !user.state) {
-    mergedAddress = "No address added yet";
-  } else if (user.address && !user.state) {
-    mergedAddress = user.address;
-  } else if (!user.address && user.state) {
-    mergedAddress = user.state;
-  } else {
-    mergedAddress = `${user.address}, ${user.state}`;
-  }
-
-  $("#profileAddressStateText").text(mergedAddress);
-
-  // FORM FIELDS
-  $("#profileAddressInput").val(user.address || "");
-  $("#profileStateInput").val(user.state || "");
+// --------------------
+// SAFE SETTERS
+// --------------------
+function setText(selector, text) {
+  const el = document.querySelector(selector);
+  if (el) el.textContent = text;
 }
 
-// -----------------------------------------------------
-// MAIN ACCOUNT PAGE LOAD
-// -----------------------------------------------------
-function populateAccountPage() {
-  let user = getCurrentUser();
-  if (!user) return;
-
-  user.walletBalance = Number(user.walletBalance || 0);
-  saveCurrentUser(user);
-
-  const formatted = formatNaira(user.walletBalance);
-  $("#walletBalance").text(formatted);
-  $("#mobileWalletBalance").text(formatted);
-
-  updateHeaderUser(user);
-  populateAccountSummary(user);
-
-  if (user.password) {
-    $("#currentPasswordInput").val(user.password);
-  }
+function setJqText(selector, text) {
+  const $el = $(selector);
+  if ($el.length) $el.text(text);
 }
 
-// -----------------------------------------------------
-// PROFILE FORM SUBMIT (UPDATE PROFILE DETAILS)
-// -----------------------------------------------------
-$("#profileForm").on("submit", function (e) {
-  e.preventDefault();
+function show(selector) {
+  const $el = $(selector);
+  if ($el.length) $el.removeClass("hidden");
+}
 
-  let user = getCurrentUser();
-  if (!user) return;
+function hide(selector) {
+  const $el = $(selector);
+  if ($el.length) $el.addClass("hidden");
+}
 
-  user.address = $("#profileAddressInput").val().trim();
-  user.state = $("#profileStateInput").val().trim();
+// ===============================
+// PASSWORD POPULATE + TOGGLES (COMBINED)
+// ===============================
+function populateCurrentPasswordField() {
+  
+}
 
-  saveCurrentUser(user);
-
-  populateAccountSummary(user);
-
-  showSuccessToast("Profile updated successfully.");
-});
-// =====================================================
-// =====================================================
-// PASSWORD UPDATE LOGIC AND TOGGLES (FINAL COMBINED)
-// =====================================================
-
-// Handle password update
-$("#passwordForm").on("submit", function (e) {
-  e.preventDefault();
-
-  let user = getCurrentUser();
-  if (!user) return;
-
-  const current = $("#currentPasswordInput").val().trim();
-  const newPass = $("#newPasswordInput").val().trim();
-  const confirmPass = $("#confirmPasswordInput").val().trim();
-
-  if (!current || !newPass || !confirmPass) {
-    showError("Please fill all password fields.");
-    return;
-  }
-
-  if (current !== user.password) {
-    showError("Current password is incorrect.");
-    return;
-  }
-
-  if (newPass.length < 6) {
-    showError("New password should be at least 6 characters.");
-    return;
-  }
-
-  if (newPass !== confirmPass) {
-    showError("New password and confirmation do not match.");
-    return;
-  }
-
-  // Save new password
-  user.password = newPass;
-  saveCurrentUser(user);
-
-  // Show new password inside the current password field
-  $("#currentPasswordInput").val(newPass);
-
-  // Update masked display if available
-  if ($("#currentPasswordDisplay").length) {
-    $("#currentPasswordDisplay").text("********");
-  }
-
-  // Clear these two only
-  $("#newPasswordInput").val("");
-  $("#confirmPasswordInput").val("");
-
-  // Show toast
-  showSuccessToast("Your password has been updated successfully!");
-});
-
-// =====================================================
-// PASSWORD VISIBILITY TOGGLE FUNCTIONS
-// =====================================================
 function togglePassword(inputId, iconId) {
   const input = document.getElementById(inputId);
   const icon = document.getElementById(iconId);
@@ -329,1609 +107,2228 @@ function togglePassword(inputId, iconId) {
     icon.classList.add("fa-eye");
   }
 }
+// ======================BUTTON SPINNER================
+function startButtonLoading($btn) {
+  $btn.prop("disabled", true);
+  $btn.find(".btn-spinner").removeClass("hidden");
+}
 
-// Toggle buttons
-$("#currentPasswordIcon").on("click", function () {
+function stopButtonLoading($btn) {
+  $btn.prop("disabled", false);
+  $btn.find(".btn-spinner").addClass("hidden");
+}
+
+// ======================ACCOUNT PROFILE UPDATE===========
+$("#profileForm").on("submit", function (e) {
+  e.preventDefault();
+
+  const $btn = $("#updateProfileBtn");
+  const token = sessionStorage.getItem("AUTH_TOKEN");
+
+  if (!token) {
+    showErrorToast("Session expired. Please log in again.");
+    return;
+  }
+
+  const address = $("#profileAddressInput").val().trim();
+  const state = $("#profileStateInput").val();
+
+  if (!address || !state) {
+    showErrorToast("Address and state are required.");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("token", token);        
+  formData.append("address", address);
+  formData.append("state", state);
+
+  //START BUTTON LOADER
+  startButtonLoading($btn);
+
+  $.ajax({
+    url: "https://api.faadaakaa.com/api/updateprofile",
+    type: "POST",
+    headers: {
+      Authorization: "Bearer " + token   
+    },
+    data: formData,
+    processData: false,
+    contentType: false,
+
+    success: function (res) {
+      if (!res || res.status !== true) {
+        showErrorToast(res?.message || "Profile update failed");
+        return;
+      }
+
+      showGreenToast("Profile updated successfully");
+
+      // OPTIONAL: update profile summary UI immediately
+      if (res.data) {
+        $("#profileAddressStateText").text(
+          `${res.data.address}, ${res.data.state}`
+        );
+      }
+    },
+
+    error: function (xhr) {
+      console.error("Update profile error:", xhr.responseText);
+      showErrorToast(
+        xhr.responseJSON?.message ||
+        "Unable to update profile. Please try again."
+      );
+    },
+
+    complete: function () {
+      //  STOP BUTTON LOADER
+      stopButtonLoading($btn);
+    }
+  });
+});
+// =============ACCOUNT PASSWORD UPDATE FIELDS===================
+// Bind eye icons (make sure these IDs match your HTML)
+$(document).on("click", "#currentPasswordIcon", function () {
   togglePassword("currentPasswordInput", "currentPasswordIcon");
 });
 
-$("#newPasswordIcon").on("click", function () {
+$(document).on("click", "#newPasswordIcon", function () {
   togglePassword("newPasswordInput", "newPasswordIcon");
 });
 
-$("#confirmPasswordIcon").on("click", function () {
+$(document).on("click", "#confirmPasswordIcon", function () {
+  const input = document.getElementById("confirmPasswordInput");
+  if (input) input.removeAttribute("data-masked");
   togglePassword("confirmPasswordInput", "confirmPasswordIcon");
 });
-// =====================================================
-// UPDATE EMAIL WITH OTP
-// =====================================================
 
-$("#requestEmailOtpBtn").on("click", function () {
-  const newEmail = $("#newEmailInput").val().trim();
-  if (!newEmail || !newEmail.includes("@")) {
-    showError("Enter a valid email address.");
+$("#passwordForm").on("submit", function (e) {
+  e.preventDefault();
+
+  const $btn = $("#updatePasswordBtn");
+  const token = sessionStorage.getItem("AUTH_TOKEN");
+
+  if (!token) {
+    showErrorToast("Session expired. Please log in again.");
     return;
   }
 
-  pendingEmail = newEmail;
-  currentEmailOtp = generateOtp();
+  const currentPassword = $("#currentPasswordInput").val();
+  const newPassword = $("#newPasswordInput").val();
+  const confirmPassword = $("#confirmPasswordInput").val();
 
-  console.log("EMAIL OTP (demo):", currentEmailOtp);
-
-  $("#emailOtpInput").val("");
-  $("#emailOtpModal").removeClass("hidden").addClass("flex");
-});
-
-$("#cancelEmailOtp").on("click", function () {
-  $("#emailOtpModal").addClass("hidden").removeClass("flex");
-  $("#emailOtpInput").val("");
-  pendingEmail = null;
-  currentEmailOtp = null;
-});
-
-$("#verifyEmailOtp").on("click", function () {
-  const entered = $("#emailOtpInput").val().trim();
-  if (!entered) {
-    showError("Enter the OTP.");
+  if (!currentPassword || !newPassword || !confirmPassword) {
+    showErrorToast("All fields are required.");
     return;
   }
 
-  if (entered !== currentEmailOtp || !pendingEmail) {
-    showError("Invalid OTP.");
+  if (newPassword.length < 8) {
+    showErrorToast("Password must be at least 8 characters.");
     return;
   }
 
-  let user = getCurrentUser();
-  if (!user) user = {};
-
-  user.email = pendingEmail;
-  user.emailVerified = true;
-  saveCurrentUser(user);
-
-  pendingEmail = null;
-  currentEmailOtp = null;
-
-  $("#emailOtpModal").addClass("hidden").removeClass("flex");
-  $("#emailOtpInput").val("");
-  $("#newEmailInput").val("");
-
-  populateAccountSummary(user);
-
-  showSuccessToast("Your email has been verified successfully!");
-});
-
-// =====================================================
-// UPDATE PHONE WITH OTP
-// =====================================================
-
-$("#requestPhoneOtpBtn").on("click", function () {
-  const newPhone = $("#newPhoneInput").val().trim();
-  if (!newPhone || newPhone.length < 11) {
-    showError("Enter a valid 11-digit phone number.");
+  if (newPassword !== confirmPassword) {
+    showErrorToast("Passwords do not match.");
     return;
   }
 
-  pendingPhone = newPhone;
-  currentPhoneOtp = generateOtp();
+  const formData = new FormData();
+  formData.append("current_password", currentPassword);
+  formData.append("new_password", newPassword);
+  formData.append("confirm_new_password", confirmPassword);
+  formData.append("token", token);
 
-  console.log("PHONE OTP (demo):", currentPhoneOtp);
+  startButtonLoading($btn);
 
-  $("#phoneOtpInput").val("");
-  $("#phoneOtpModal").removeClass("hidden").addClass("flex");
+  $.ajax({
+    url: "https://api.faadaakaa.com/api/updatepassword",
+    type: "POST",
+    headers: {
+      Authorization: "Bearer " + token
+    },
+    data: formData,
+    processData: false,
+    contentType: false,
+
+    success: function (res) {
+      if (!res || res.status !== true) {
+        showErrorToast(res?.message || "Password update failed");
+        return;
+      }
+
+      $("#currentPasswordInput").val("");
+      $("#newPasswordInput").val("");
+      $("#confirmPasswordInput").val("");
+
+      showGreenToast("Password updated successfully");
+    },
+
+    error: function (xhr) {
+      showErrorToast(
+        xhr.responseJSON?.message ||
+        "Unable to update password. Please try again."
+      );
+    },
+
+    complete: function () {
+      stopButtonLoading($btn);
+    }
+  });
 });
 
-$("#cancelPhoneOtp").on("click", function () {
-  $("#phoneOtpModal").addClass("hidden").removeClass("flex");
-  $("#phoneOtpInput").val("");
-  pendingPhone = null;
-  currentPhoneOtp = null;
-});
+/// ======================== ACCOUNT UPDATE EMAIL ========================
 
-$("#verifyPhoneOtp").on("click", function () {
-  const entered = $("#phoneOtpInput").val().trim();
-  if (!entered) {
-    showError("Enter the OTP.");
-    return;
-  }
+// Resend OTP timer
+function startEmailResendTimer(seconds) {
+  let remaining = seconds;
 
-  if (entered !== currentPhoneOtp || !pendingPhone) {
-    showError("Invalid OTP.");
-    return;
-  }
+  $("#resendEmailOtpBtn").prop("disabled", true);
+  $("#emailResendTimer").text(remaining);
 
-  let user = getCurrentUser();
-  if (!user) user = {};
+  const timer = setInterval(function () {
+    remaining -= 1;
+    $("#emailResendTimer").text(remaining);
 
-  user.phone = pendingPhone;
-  user.phoneVerified = true;
-  saveCurrentUser(user);
-
-  pendingPhone = null;
-  currentPhoneOtp = null;
-
-  $("#phoneOtpModal").addClass("hidden").removeClass("flex");
-  $("#phoneOtpInput").val("");
-  $("#newPhoneInput").val("");
-
-  populateAccountSummary(user);
-
-  showSuccessToast("Your phone number has been verified successfully!");
-});
-
-// =====================================================
-// SIDEBAR TABS (LEFT) → SWITCH MAIN CONTENT
-// =====================================================
-
-// ===============================
-// MAIN TAB SWITCH FUNCTION
-// ===============================
-function switchMainTab(tab) {
-  // 1. Hide all main sections
-  $("#accountContent, #walletContent, #loanCreditContent, #deliveryContent, #ordersContent, #orderDetailsContent, #loanPaymentPage")
-    .addClass("hidden");
-
-  // 2. Remove active background from all sidebar buttons
-  $("#tab-account, #tab-wallet, #tab-loans, #tab-delivery, #tab-orders")
-    .removeClass("bg-[#EAECF0]");
-
-  // 3. Show the selected section
-  if (tab === "account") {
-    $("#accountContent").removeClass("hidden");
-  } else if (tab === "wallet") {
-    $("#walletContent").removeClass("hidden");
-  } else if (tab === "loans") {
-    $("#loanCreditContent").removeClass("hidden");
-  } else if (tab === "delivery") {
-    $("#deliveryContent").removeClass("hidden");
-  } else if (tab === "orders") {
-    $("#ordersContent").removeClass("hidden");
-  }
-
-  // 4. Add active background to the correct button
-  $("#tab-" + tab).addClass("bg-[#EAECF0]");
+    if (remaining <= 0) {
+      clearInterval(timer);
+      $("#resendEmailOtpBtn").prop("disabled", false);
+      $("#resendEmailOtpBtn").text("Resend OTP");
+    }
+  }, 1000);
 }
 
-// ===============================
-// SIDEBAR CLICK HANDLERS
-// ===============================
-$("#tab-account").on("click", function () {
-  switchMainTab("account");
+// STEP 1: Request OTP
+$("#requestEmailOtpBtn").on("click", function (e) {
+  e.preventDefault();
+
+  const $btn = $("#requestEmailOtpBtn");
+  const token = sessionStorage.getItem("AUTH_TOKEN");
+
+  if (!token) {
+    showErrorToast("Session expired. Please log in again.");
+    return;
+  }
+
+  const email = $("#newEmailInput").val().trim();
+  if (!email) {
+    showErrorToast("Email is required.");
+    return;
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    showErrorToast("Enter a valid email address.");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("token", token);
+  formData.append("email", email);
+
+  startButtonLoading($btn);
+
+  $.ajax({
+    url: "https://api.faadaakaa.com/api/initiateemailupdate",
+    type: "POST",
+    headers: {
+      Authorization: "Bearer " + token
+    },
+    data: formData,
+    processData: false,
+    contentType: false,
+
+    success: function (res) {
+      if (!res || !res.message) {
+        showErrorToast("Failed to send OTP. Please try again.");
+        return;
+      }
+
+      showGreenToast(res.message);
+
+      sessionStorage.setItem("PENDING_EMAIL", email);
+
+      // Hide STEP 1 completely
+      $("#emailStepOne").addClass("hidden");
+
+      // Show STEP 2
+      $("#pendingEmailInput").val(email);
+      $("#emailOtpWrap").removeClass("hidden");
+
+      startEmailResendTimer(60);
+
+      document.getElementById("emailOtpWrap").scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+    },
+
+    error: function (xhr) {
+      showErrorToast(
+        xhr.responseJSON?.message ||
+        "Unable to process request. Please try again."
+      );
+    },
+
+    complete: function () {
+      stopButtonLoading($btn);
+    }
+  });
 });
 
-$("#tab-wallet").on("click", function () {
-  switchMainTab("wallet");
+// Toggle password visibility
+$(document).on("click", "#emailPasswordIcon", function () {
+  togglePassword("emailPasswordInput", "emailPasswordIcon");
 });
 
-$("#tab-loans").on("click", function () {
-  switchMainTab("loans");
+// STEP 2: Confirm Email Update
+$("#confirmEmailUpdateBtn").on("click", function () {
+  const $btn = $("#confirmEmailUpdateBtn");
+  const token = sessionStorage.getItem("AUTH_TOKEN");
+
+  if (!token) {
+    showErrorToast("Session expired. Please log in again.");
+    return;
+  }
+
+  const email = $("#pendingEmailInput").val();
+  const otp = $("#emailOtpInput").val().trim();
+  const password = $("#emailPasswordInput").val().trim();
+
+  if (!otp || !password) {
+    showErrorToast("OTP and password are required.");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("token", token);
+  formData.append("email", email);
+  formData.append("email_code", otp);
+  formData.append("password", password);
+
+  startButtonLoading($btn);
+
+  $.ajax({
+    url: "https://api.faadaakaa.com/api/updateemail",
+    type: "POST",
+    headers: {
+      Authorization: "Bearer " + token
+    },
+    data: formData,
+    processData: false,
+    contentType: false,
+
+    success: function (res) {
+      if (!res || res.status !== true) {
+        showErrorToast(res?.message || "Email update failed");
+        return;
+      }
+
+      showGreenToast("Email updated successfully");
+
+      $("#currentEmailDisplay").text(email);
+
+      // Reset UI back to STEP 1
+      $("#emailOtpWrap").addClass("hidden");
+      $("#emailStepOne").removeClass("hidden");
+
+      $("#newEmailInput").val("");
+      $("#emailOtpInput").val("");
+      $("#emailPasswordInput").val("");
+
+      sessionStorage.removeItem("PENDING_EMAIL");
+    },
+
+    error: function (xhr) {
+      showErrorToast(
+        xhr.responseJSON?.message ||
+        "Unable to update email. Please try again."
+      );
+    },
+
+    complete: function () {
+      stopButtonLoading($btn);
+    }
+  });
 });
 
-$("#tab-delivery").on("click", function () {
-  switchMainTab("delivery");
+// ========================ACCOUNT UPDATE PHONE===================
+function startPhoneResendTimer(seconds) {
+  let remaining = seconds;
+  $("#resendPhoneOtpBtn").prop("disabled", true);
+  $("#phoneResendTimer").text(remaining);
+
+  const timer = setInterval(function () {
+    remaining -= 1;
+    $("#phoneResendTimer").text(remaining);
+
+    if (remaining <= 0) {
+      clearInterval(timer);
+      $("#resendPhoneOtpBtn").prop("disabled", false).text("Resend OTP");
+    }
+  }, 1000);
+}
+
+$("#requestPhoneOtpBtn").on("click", function (e) {
+  e.preventDefault();
+
+  const $btn = $("#requestPhoneOtpBtn");
+  const token = sessionStorage.getItem("AUTH_TOKEN");
+
+  if (!token) {
+    showErrorToast("Session expired. Please log in again.");
+    return;
+  }
+
+  const phone = $("#newPhoneInput").val().trim();
+  if (!phone || phone.length !== 11) {
+    showErrorToast("Enter a valid 11-digit phone number.");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("token", token);
+  formData.append("phone", phone);
+
+  // 🔄 START LOADER
+  startButtonLoading($btn);
+
+  $.ajax({
+    url: "https://api.faadaakaa.com/api/initiatephoneupdate",
+    type: "POST",
+    headers: {
+      Authorization: "Bearer " + token
+    },
+    data: formData,
+    processData: false,
+    contentType: false,
+
+    success: function (res) {
+      if (!res || !res.message) {
+        showErrorToast("Failed to send OTP.");
+        return;
+      }
+
+      // ✅ SUCCESS
+      showGreenToast(res.message);
+
+      sessionStorage.setItem("PENDING_PHONE", phone);
+
+      // 🔥 STEP TRANSITION (SAME PATTERN AS EMAIL)
+      $("#phoneStep1").addClass("hidden");
+      $("#pendingPhoneInput").val(phone);
+      $("#phoneOtpWrap").removeClass("hidden");
+
+      // Resend timer
+      $("#resendPhoneOtpBtn").html(
+        'Resend OTP in <span id="phoneResendTimer">60</span>s'
+      );
+      startPhoneResendTimer(60);
+
+      document.getElementById("phoneOtpWrap").scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+    },
+
+    error: function (xhr) {
+      showErrorToast(
+        xhr.responseJSON?.message ||
+        "Unable to process request. Please try again."
+      );
+    },
+
+    complete: function () {
+      // 🔄 STOP LOADER
+      stopButtonLoading($btn);
+    }
+  });
 });
 
-$("#tab-orders").on("click", function () {
-  switchMainTab("orders");
-});
 
-// LOGOUT
-$("#tab-logout").on("click", function () {
-  localStorage.removeItem("faadaakaaLoggedIn");
-  // localStorage.removeItem("faadaakaaUser"); // if you want
+
+// ======================== RESEND EMAIL OTP ========================
+$("#resendEmailOtpBtn").on("click", function () {
+  const token = sessionStorage.getItem("AUTH_TOKEN");
+  const email = sessionStorage.getItem("PENDING_EMAIL");
+
+  if (!token) {
+    showErrorToast("Session expired. Please log in again.");
+    return;
+  }
+
+  if (!email) {
+    showErrorToast("No email found to resend OTP.");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("token", token);
+  formData.append("email", email);
+
+  $.ajax({
+    url: "https://api.faadaakaa.com/api/initiateemailupdate",
+    type: "POST",
+    headers: {
+      Authorization: "Bearer " + token
+    },
+    data: formData,
+    processData: false,
+    contentType: false,
+
+    success: function (res) {
+    
+      showGreenToast(res?.message || "OTP has been resent to your email.");
+
+      startEmailResendTimer(300);
+    },
+
+    error: function (xhr) {
+      showErrorToast(
+        xhr.responseJSON?.message ||
+        "Unable to resend OTP. Please try again."
+      );
+    }
+  });
+});
+$("#confirmPhoneUpdateBtn").on("click", function () {
+  const $btn = $("#confirmPhoneUpdateBtn");
+  const token = sessionStorage.getItem("AUTH_TOKEN");
+
+  if (!token) {
+    showErrorToast("Session expired. Please log in again.");
+    return;
+  }
+
+  const phoneCode = $("#phoneOtpInput").val().trim();
+  const password = $("#phonePasswordInput").val().trim();
+  const phone = sessionStorage.getItem("PENDING_PHONE");
+
+  if (!phoneCode || phoneCode.length !== 6) {
+    showErrorToast("Enter a valid 6-digit OTP.");
+    return;
+  }
+
+  if (!password) {
+    showErrorToast("Password is required.");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("token", token);        // BODY
+  formData.append("phone_code", phoneCode);
+  formData.append("password", password);
+
+  // 🔄 START LOADER
+  startButtonLoading($btn);
+
+  $.ajax({
+    url: "https://api.faadaakaa.com/api/updatephone",
+    type: "POST",
+    headers: {
+      Authorization: "Bearer " + token    // HEADER
+    },
+    data: formData,
+    processData: false,
+    contentType: false,
+
+    success: function (res) {
+      if (!res || !res.message) {
+        showErrorToast("Phone update failed.");
+        return;
+      }
+
+      // ✅ SUCCESS
+      showGreenToast(res.message);
+
+      // Update profile display
+      $("#currentPhoneDisplay").text(phone);
+
+      // 🔁 RESET UI BACK TO STEP 1
+      $("#phoneOtpWrap").addClass("hidden");
+      $("#phoneStep1").removeClass("hidden");
+
+      // Clear inputs
+      $("#newPhoneInput").val("");
+      $("#phoneOtpInput").val("");
+      $("#phonePasswordInput").val("");
+
+      sessionStorage.removeItem("PENDING_PHONE");
+
+      document
+        .querySelector('[data-account-section="phone"]')
+        .scrollIntoView({ behavior: "smooth", block: "start" });
+    },
+
+    error: function (xhr) {
+      showErrorToast(
+        xhr.responseJSON?.message ||
+        "Unable to update phone. Please try again."
+      );
+    },
+
+    complete: function () {
+      // 🔄 STOP LOADER
+      stopButtonLoading($btn);
+    }
+  });
+});
+$(document).on("click", "#phonePasswordIcon", function () {
+  const input = $("#phonePasswordInput");
+  const type = input.attr("type") === "password" ? "text" : "password";
+  input.attr("type", type);
+  $(this).toggleClass("fa-eye fa-eye-slash");
+});
+// FETCH PROFILE
+// --------------------
+async function fetchCurrentUser() {
+  const token = getToken();
+  if (!token) {
+    window.location.replace = "index.html";
+    return;
+  }
+  const fd = new FormData();
+  fd.append("token", token);
+
+  try {
+    const res = await fetch("https://api.faadaakaa.com/api/loadprofile", {
+      method: "POST",
+      body: fd
+    });
+
+    const json = await res.json();
+
+    if (!json || !json.status || !json.data) {
   window.location.href = "login.html";
-});
-
-// ===============================
-// INITIAL TAB ON PAGE LOAD
-// This runs after everything
-// It checks URL: ?fromCart=1, ?tab=orders or ?show=orders
-// ===============================
-setTimeout(function () {
-  const params = new URLSearchParams(window.location.search);
-
-  const fromCart = params.get("fromCart");
-  const orderId = params.get("order");
-  const tabParam =
-    params.get("tab") ||
-    params.get("show") ||
-    params.get("section");
-
-  // If coming from Cart, force Orders and open details
-  if (fromCart === "1") {
-    stopDefaultLoad = true;
-
-    // Hide all account sections except orders
-    document.querySelectorAll(
-      "#accountContent, #walletContent, #loanCreditContent, #deliveryContent"
-    ).forEach(sec => sec.classList.add("hidden"));
-
-    switchMainTab("orders");
-
-    if (orderId) {
-      setTimeout(() => {
-        openOrderDetails(orderId);
-      }, 300);
-    }
-    return;
-  }
-
-  // Normal deep links
-  if (tabParam === "orders") {
-    switchMainTab("orders");
-    if (orderId) {
-      setTimeout(() => {
-        openOrderDetails(orderId);
-      }, 300);
-    }
-  } else if (tabParam === "wallet") {
-    switchMainTab("wallet");
-  } else if (tabParam === "loans") {
-    switchMainTab("loans");
-  } else if (tabParam === "delivery") {
-    switchMainTab("delivery");
-  } else {
-    // Default when there is no param and not blocked
-    if (!stopDefaultLoad) {
-      switchMainTab("account");
-    }
-  }
-}, 0);
-
-$("#tab-logout").on("click", () => {
-  localStorage.removeItem("faadaakaaLoggedIn");
-  // Keep user object if you want, or clear both:
-  // localStorage.removeItem("faadaakaaUser");
-  window.location.href = "login.html"; // change to "index.html" if you prefer
-});
-
-// =====================================================
-// HEADER DROPDOWN MENU → TRIGGER SAME TABS
-// =====================================================
-if ($("#menuAccount").length) {
-  $("#menuAccount").on("click", function () {
-    switchMainTab("account");
-    $("#userMenu").addClass("hidden");
-  });
+  return;
 }
 
-if ($("#menuWallet").length) {
-  $("#menuWallet").on("click", function () {
-    switchMainTab("wallet");
-    $("#userMenu").addClass("hidden");
-  });
+    API_USER = json.data;
+    mapApiUserToUI(API_USER);
+  } catch (err) {
+  console.error("PROFILE ERROR", err);
+  window.location.href = "login.html";
+}
+hideAccountLoader();
 }
 
-if ($("#menuOrders").length) {
-  $("#menuOrders").on("click", function () {
-    switchMainTab("orders");
-    $("#userMenu").addClass("hidden");
-  });
+
+
+
+// =====================================================
+// PROFILE VERIFICATION BADGES (BVN-BASED)
+// =====================================================
+
+// EMAIL
+function renderEmailVerificationBadge(user) {
+  const badge = $("#emailVerifiedBadge");
+  if (!badge.length) return;
+
+  const emailIsVerified =
+    user.email_verified === 1 ||
+    String(user.identity_verification_status || "").toLowerCase() === "verified";
+
+  badge.toggleClass("hidden", !emailIsVerified);
 }
 
-// =====================================================
-// INNER ACCOUNT TABS (PROFILE / PASSWORD / EMAIL / PHONE)
-// =====================================================
+// PHONE
+function renderPhoneVerificationBadge(user) {
+  const badge = $("#phoneVerifiedBadge");
+  if (!badge.length) return;
 
-function switchAccountInnerTab(key) {
-  $(".account-inner-tab")
-    .removeClass("border-b-2 border-[#1570EF] text-[#1570EF]")
-    .addClass("text-[#667085]");
-  $("[data-account-tab='" + key + "']")
-    .addClass("border-b-2 border-[#1570EF] text-[#1570EF]")
-    .removeClass("text-[#667085]");
+  const phoneIsVerified =
+    user.mobile_verified === 1 ||
+    !!user.verified_phone ||
+    String(user.identity_verification_status || "").toLowerCase() === "verified";
 
-  $(".account-inner-section").addClass("hidden");
-  $("[data-account-section='" + key + "']").removeClass("hidden");
+  badge.toggleClass("hidden", !phoneIsVerified);
 }
 
-$("[data-account-tab]").on("click", function () {
-  const key = $(this).data("account-tab");
-  switchAccountInnerTab(key);
-});
+// NAME (BVN full name)
+function renderNameVerificationBadge(user) {
+  const badge = $("#nameVerifiedBadge");
+  if (!badge.length) return;
 
-// =====================================================
-// WALLET HELPERS + RENDER
-// =====================================================
+  const nameIsVerified =
+    !!user.verified_fullname ||
+    String(user.identity_verification_status || "").toLowerCase() === "verified";
 
-const PAYSTACK_PUBLIC_KEY = "pk_test_e8433bd39a6e59a8dc725c5b22325f078da31dd2"; // your test key
-
-function updateWalletDisplays(user) {
-  if (!user) return;
-  const balance = Number(user.walletBalance || 0);
-  const formatted = formatNaira(balance);
-  $("#walletBalance").text(formatted);
-  $("#mobileWalletBalance").text(formatted);
-  $("#walletBalanceBox").text(formatted);
+  badge.toggleClass("hidden", !nameIsVerified);
 }
 
-function renderWalletFromStorage() {
-  const user = getCurrentUser();
+function mapApiUserToUI(user) {
   if (!user) return;
 
-  user.walletBalance = Number(user.walletBalance || 0);
-  user.cards = user.cards || [];
-  saveCurrentUser(user);
+  const first = (user.first_name || "").trim();
+  const last = (user.last_name || "").trim();
 
-  updateWalletDisplays(user);
+  const safeFirst = first || "User";
+  const fullName = `${first} ${last}`.trim() || "User";
 
+  const initials =
+    (safeFirst.charAt(0) || "U").toUpperCase() +
+    (last.charAt(0) || "").toUpperCase();
+
+  // HEADER
+  setJqText("#userInitials", initials);
+  setJqText("#mobileUserBadge", initials);
+  setJqText("#userGreeting", `Hi ${safeFirst}`);
+  setJqText("#mobileUserName", `Hello, ${safeFirst}`);
+
+  // PROFILE
+  setJqText("#profileFullName", fullName);
+  setJqText("#profileEmailText", user.email || "No email added yet");
+  setJqText("#currentEmailDisplay", user.email || "No email added yet");
+
+  const phone = user.verified_phone || user.phone || "No phone number yet";
+  setJqText("#profilePhoneText", phone);
+  setJqText("#currentPhoneDisplay", phone);
+
+  renderPhoneVerificationBadge(user);
+
+  $("#avatarText").text(initials).removeClass("hidden");
+  $("#avatarInner").css({
+    backgroundImage: "none",
+    backgroundColor: "#E4E7EC"
+  });
+
+  const rootAddress = (user.address1 || "").trim();
+  const rootState = (user.state || "").trim();
+
+  let mergedAddress = "No address added yet";
+  if (rootAddress && rootState) mergedAddress = `${rootAddress}, ${rootState}`;
+  else if (rootAddress) mergedAddress = rootAddress;
+  else if (rootState) mergedAddress = rootState;
+
+  setJqText("#profileAddressStateText", mergedAddress);
+  $("#profileAddressInput").val(rootAddress);
+ loadStatesIntoSelect("profileStateInput", user.state || "");
+
+  const isVerified =
+    String(user.identity_verification_status || "").toLowerCase() === "verified";
+
+  $("#accountVerifiedBadge").toggleClass("hidden", !isVerified);
+
+  populateCurrentPasswordField();
+
+  const walletBal = Number(user.wallet?.data?.wallet_balance || 0);
+  setJqText("#walletBalance", formatNaira(walletBal));
+  setJqText("#mobileWalletBalance", formatNaira(walletBal));
+  setJqText("#walletBalanceBox", formatNaira(walletBal));
+
+  renderWalletCards(user.payment_cards?.data || []);
+  renderAddressesFromApi(user.addresses?.data || []);
+  hydrateActiveDeliveryAddress(user.addresses?.data || []);
+  renderLoanAndCreditFromApi(user);
+  renderNameVerificationBadge(user);
+renderEmailVerificationBadge(user);
+renderPhoneVerificationBadge(user);
+}
+
+// =====================================================
+// ACCOUNT HEADER DROPDOWN MENU (FIXED)
+// =====================================================
+document.addEventListener("DOMContentLoaded", function () {
+  const $badge = $("#mobileUserBadge");
+  const $name = $("#mobileUserName");
+  const $icon = $("#userDropdownIcon");
+  const $menu = $("#userMenu");
+
+  if (!$menu.length) return;
+
+  // Always start hidden
+  $menu.addClass("hidden");
+
+  function toggleMenu(e) {
+    e.stopPropagation();
+    $menu.toggleClass("hidden");
+  }
+
+  // Click triggers
+  $badge.on("click", toggleMenu);
+  $name.on("click", toggleMenu);
+  $icon.on("click", toggleMenu);
+
+  // Prevent menu self close
+  $menu.on("click", function (e) {
+    e.stopPropagation();
+  });
+
+  // Outside click closes menu
+  $(document).on("click", function () {
+    $menu.addClass("hidden");
+  });
+});
+
+
+$("#menuAccount").on("click", function () {
+  switchMainTab("account");
+  $("#userMenu").addClass("hidden");
+});
+
+$("#menuWallet").on("click", function () {
+  switchMainTab("wallet");
+  $("#userMenu").addClass("hidden");
+});
+
+$("#menuOrders").on("click", function () {
+  switchMainTab("orders");
+  $("#userMenu").addClass("hidden");
+});
+
+
+// =====================================================
+// WALLET SECTION
+// =====================================================
+// ========================WALLET CARDS =============================
+
+// ====================== RENDER CARD (WITH DELETE BUTTON) ======================
+function renderNewCard(card) {
+  $("#walletEmptyCards").remove();
+
+  const paymentCardId =
+    card.payment_card_id ||
+    card.card_id ||
+    card.id ||
+    "";
+
+  const brand = card.card_type || card.brand || "Card";
+  const first6 = card.bin || card.first2 || "";
+  const last4 = card.last4 || card.last_4 || "0000";
+
+  const maskedNumber = `${first6}****${last4}`;
+
+  const cardHtml = `
+    <div
+      class="wallet-card flex items-center justify-between border border-[#EAECF0] rounded-[8px] p-[12px]"
+      data-payment_card_id="${paymentCardId}">
+      
+      <p class="text-[14px] text-[#101828]">
+        ${maskedNumber} | ${brand}
+      </p>
+
+      <button
+        type="button"
+        class="deleteCardBtn text-[12px] text-[#D92D20]"
+        data-payment_card_id="${paymentCardId}">
+        Delete
+      </button>
+    </div>
+  `;
+
+  $("#walletCardsBody").append(cardHtml);
+}
+
+// ====================== RENDER ALL WALLET CARDS ======================
+function renderWalletCards(cards) {
   const $body = $("#walletCardsBody");
   if (!$body.length) return;
 
-  if (!user.cards.length) {
+  $body.empty();
+
+  if (!Array.isArray(cards) || cards.length === 0) {
     $body.html(`
-      <div class="flex flex-col items-center justify-center text-center text-[14px] text-[#667085] min-h-[80px]">
-        <i class="fa-regular fa-credit-card mb-[6px] text-[18px] text-[#98A2B3]"></i>
+      <div id="walletEmptyCards"
+           class="flex flex-col items-center justify-center text-center text-[14px] text-[#667085] py-[20px]">
+        <i class="fa-regular fa-credit-card mb-[6px] text-[20px] text-[#98A2B3]"></i>
         <p>No payment cards added yet</p>
       </div>
     `);
     return;
   }
 
-  let html = "";
-  user.cards.forEach((card) => {
-    const display = `**** **** **** ${card.last4} | ${card.type || "Debit Card"}`;
-    html += `
-      <div class="flex items-center justify-between border border-[#EAECF0] rounded-[8px] px-[12px] py-[8px] mb-[8px]">
-        <div class="flex items-center gap-[8px]">
-          <i class="fa-regular fa-credit-card text-[#667085]"></i>
-          <span class="text-[13px] text-[#344054]">${display}</span>
-        </div>
-        <button class="wallet-delete-btn text-[12px] text-[#D92D20] hover:underline"
-                data-id="${card.cardId}">
+  cards.forEach(card => {
+    const paymentCardId =
+      card.payment_card_id ||
+      card.card_id ||
+      card.id ||
+      "";
+
+    const brand = card.card_type || card.brand || "Card";
+    const first6 = card.bin || card.first2 || "";
+    const last4 = card.last4 || card.last_4 || "0000";
+
+    const maskedNumber = `${first6}****${last4}`;
+
+    const cardHtml = `
+      <div
+        class="wallet-card flex items-center justify-between border border-[#EAECF0] rounded-[8px] p-[12px] mb-[8px]"
+        data-payment_card_id="${paymentCardId}">
+        
+        <p class="text-[14px] text-[#101828]">
+          ${maskedNumber} | ${brand}
+        </p>
+
+        <button
+          type="button"
+          class="deleteCardBtn text-[12px] text-[#D92D20]"
+          data-payment_card_id="${paymentCardId}">
           Delete
         </button>
       </div>
     `;
+
+    $body.append(cardHtml);
   });
-  $body.html(html);
 }
 
-// Delete card
-$("#walletCardsBody").on("click", ".wallet-delete-btn", function () {
-  const id = $(this).data("id");
-  let user = getCurrentUser();
-  if (!user || !user.cards) return;
+// ====================== DELETE CARD (OPTION A: INSTANT UI UPDATE) ======================
+$(document)
+  .off("click", ".deleteCardBtn")
+  .on("click", ".deleteCardBtn", function () {
+    const token = getToken();
+    const paymentCardId = $(this).data("payment_card_id");
 
-  user.cards = user.cards.filter((c) => c.cardId !== id);
-  saveCurrentUser(user);
-  renderWalletFromStorage();
+    if (!token) {
+      showErrorToast("Session expired. Please log in again.");
+      return;
+    }
+
+    if (!paymentCardId) {
+      showErrorToast("Missing card reference.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("token", token);
+    formData.append("payment_card_id", paymentCardId);
+
+    $.ajax({
+      url: "https://api.faadaakaa.com/api/delete_payment_card",
+      type: "POST",
+      headers: {
+        Authorization: "Bearer " + token
+      },
+      data: formData,
+      processData: false,
+      contentType: false,
+
+      success: function (res) {
+        if (!res || res.status !== true) {
+          showErrorToast(res?.message || "Unable to delete card.");
+          return;
+        }
+
+        showGreenToast("Payment card deleted successfully.");
+
+        // ✅ REMOVE CARD INSTANTLY FROM UI
+        $(`.wallet-card[data-payment_card_id="${paymentCardId}"]`).remove();
+
+        // ✅ SHOW EMPTY STATE IF NO CARDS LEFT
+        if ($("#walletCardsBody .wallet-card").length === 0) {
+          $("#walletCardsBody").html(`
+            <div id="walletEmptyCards"
+                 class="flex flex-col items-center justify-center text-center text-[14px] text-[#667085] py-[20px]">
+              <i class="fa-regular fa-credit-card mb-[6px] text-[20px] text-[#98A2B3]"></i>
+              <p>No payment cards added yet</p>
+            </div>
+          `);
+        }
+      },
+
+      error: function (xhr) {
+        showErrorToast(
+          xhr.responseJSON?.message || "Unable to delete card."
+        );
+      }
+    });
+  });
+
+// ================= INITIAL PAYMENT PERCENTAGE =================
+$("#updateInitialPaymentBtn").on("click", function () {
+  $("#walletSuccessTitle").text("Coming soon");
+  $("#walletSuccessMessage").text(
+    "We are still cooking this feature. Please stay tuned!"
+  );
+
+  $("#walletSuccessModal").removeClass("hidden");
 });
 
-// =====================================================
-// ADD NEW CARD FLOW (MODAL + PAYSTACK)
-// =====================================================
+// ====================== CLOSE SUCCESS MODAL AND REFRESH WALLET ======================
+$("#walletSuccessOkBtn").off("click").on("click", function () {
+  $("#walletSuccessModal").addClass("hidden");
 
-$("#addCardBtn").on("click", function () {
-  const user = getCurrentUser();
-  if (!user) return;
+  $("#walletFundingPage").addClass("hidden");
+  $("#walletMainPage").removeClass("hidden");
 
-  user.cards = user.cards || [];
-  if (user.cards.length >= 3) {
-    showSuccessToast("You can only save up to 3 payment cards.");
-    return;
-  }
 
+});
+
+// ====================== CARD CHARGE MODAL ======================
+$(document).off("click", "#addCardBtn").on("click", "#addCardBtn", function () {
   $("#cardChargeModal").removeClass("hidden");
 });
 
-$("#cardChargeCancelBtn").on("click", function () {
+$("#cardChargeCancelBtn").off("click").on("click", function () {
   $("#cardChargeModal").addClass("hidden");
 });
 
-$("#cardChargeYesBtn").on("click", function () {
+// ====================== PAYSTACK BUTTON ======================
+$("#cardChargeYesBtn").off("click").on("click", function () {
   $("#cardChargeModal").addClass("hidden");
-  openPaystackForNewCard();
+  paystackAddCardCharge();
 });
 
-function openPaystackForNewCard() {
-  let user = getCurrentUser();
-  if (!user) return;
+function paystackAddCardCharge() {
+  const token = getToken();
+  const email = API_USER?.email;
 
-  const email = user.email || "test@example.com";
+  if (!token || !email) {
+    showErrorToast("Session expired. Please log in again.");
+    return;
+  }
 
-  const handler = PaystackPop.setup({
-    key: PAYSTACK_PUBLIC_KEY,
+  let handler = PaystackPop.setup({
+    key: PAYSTACK_API_KEY,
     email: email,
     amount: 500, // ₦5 in kobo
     currency: "NGN",
+    channels: ["card"],
 
     callback: function (response) {
-      const last4 = String(Math.floor(1000 + Math.random() * 9000));
-
-      const newCard = {
-        last4: last4,
-        type: "DEBIT CARD",
-        cardId: "card_" + Date.now(),
-      };
-
-      let u = getCurrentUser();
-      if (!u) return;
-
-      u.cards = u.cards || [];
-      u.cards.push(newCard);
-      saveCurrentUser(u);
-
-      renderWalletFromStorage();
-
-      showSuccessToast("Payment card added successfully.");
-    },
-
-    onClose: function () {
-      console.log("Payment popup closed");
-    },
+      confirmAddCard(response.reference);
+    }
   });
 
   handler.openIframe();
 }
 
-// =====================================================
-// FUND WALLET - SHOW FUNDING PAGE
-// =====================================================
+function confirmAddCard(payref) {
+  const token = getToken();
 
-$("#fundWalletBtn").on("click", function () {
-  showFundingPage();
-});
-
-function showFundingPage() {
-  $("#walletMainPage").addClass("hidden");
-  $("#walletFundingPage").removeClass("hidden");
-  populateFundingCards();
-}
-
-// Go back
-$("#walletFundingBackBtn").on("click", function () {
-  showMainWallet();
-});
-
-function showMainWallet() {
-  $("#walletFundingPage").addClass("hidden");
-  $("#walletMainPage").removeClass("hidden");
-}
-
-// Show/hide cards based on method
-$("input[name='fundMethod']").on("change", function () {
-  if ($(this).val() === "card") {
-    $("#fundingCardsWrapper").removeClass("hidden");
-    populateFundingCards();
-  } else {
-    $("#fundingCardsWrapper").addClass("hidden");
-  }
-});
-
-// Populate cards
-function populateFundingCards() {
-  const user = getCurrentUser();
-  if (!user) return;
-
-  const cards = user.cards || [];
-  const container = $("#fundingCardsListPage");
-
-  if (!cards.length) {
-    container.html(`
-      <p class="text-[13px] text-[#667085]">
-        No payment card found. Please add a card first.
-      </p>
-    `);
+  if (!token) {
+    showErrorToast("Session expired. Please log in again.");
     return;
   }
 
-  let html = "";
-  cards.forEach((card, index) => {
-    html += `
-      <label class="flex items-center gap-[8px] cursor-pointer text-[13px] text-[#344054]">
-        <input type="radio" name="fundCardPage" value="${card.cardId}" ${
-      index === 0 ? "checked" : ""
-    }>
-        **** **** **** ${card.last4} | ${card.type}
-      </label>
-    `;
-  });
+  const formData = new FormData();
+  formData.append("token", token);
+  formData.append("payref", payref);
 
-  container.html(html);
+  $.ajax({
+    url: "https://api.faadaakaa.com/api/addcard_trans_ref",
+    type: "POST",
+    headers: {
+      Authorization: "Bearer " + token
+    },
+    data: formData,
+    processData: false,
+    contentType: false,
+
+    success: function (res) {
+      if (!res || res.status !== true) {
+        showErrorToast(res?.message || "Unable to add card.");
+        return;
+      }
+
+      // Close charge modal
+      $("#cardChargeModal").addClass("hidden");
+
+      // Show success modal
+      showWalletSuccess(
+        "Card Added",
+        "Your payment card has been added successfully."
+      );
+
+      // Reload profile to get cards
+      loadWalletCards();
+      loadProfileAndRefreshCards();
+    },
+
+    error: function (xhr) {
+      showErrorToast(
+        xhr.responseJSON?.message ||
+        "Payment verification failed. Please try again."
+      );
+    }
+  });
+}
+// ====================== SUCCESS MODAL ======================
+function showWalletSuccess(title, message) {
+  $("#walletSuccessTitle").text(title);
+  $("#walletSuccessMessage").text(message);
+  $("#walletSuccessModal").removeClass("hidden");
 }
 
-// Confirm & fund wallet
+// ====================== LOAD WALLET CARDS ======================
+function loadWalletCards() {
+  const token = getToken();
+
+  if (!token) {
+    showErrorToast("Session expired. Please log in again.");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("token", token);
+
+  $.ajax({
+    url: "https://api.faadaakaa.com/api/loadprofile",
+    type: "POST",
+    data: formData,
+    processData: false,
+    contentType: false,
+
+    success: function (res) {
+      const cards = res?.data?.payment_cards?.data || [];
+      renderWalletCards(cards);
+    },
+
+    error: function (xhr) {
+      console.error("Load profile error:", xhr.responseText);
+      showErrorToast("Unable to load wallet data.");
+    }
+  });
+}
+
+// ========================WALLET FUNDING =============================
+// ============SHOW FUND WALLET PAGE=====================
+$("#fundWalletBtn").on("click", function () {
+  $("#walletMainPage").addClass("hidden");
+  $("#walletFundingPage").removeClass("hidden");
+  loadProfileAndRefreshCards();
+});
+
+$("#walletFundingBackBtn").on("click", function () {
+  $("#walletFundingPage").addClass("hidden");
+  $("#walletMainPage").removeClass("hidden");
+});
+
+// ============ LOAD SAVED CARDS INTO FUND WALLET PAGE ============
+function renderFundingCards(cards) {
+  const $list = $("#fundingCardsListPage");
+  $list.empty();
+
+  if (!Array.isArray(cards) || cards.length === 0) return;
+
+  cards.slice(0, 3).forEach(card => {
+    const cardId =
+      card.payment_card_id ||
+      card.card_id ||
+      card.id ||
+      "";
+
+    if (!cardId) return;
+
+    const masked = `${card.bin}****${card.last4}`;
+    const brand = card.card_type || card.brand || "Card";
+
+    $list.append(`
+      <label class="flex items-center justify-between cursor-pointer">
+        <div class="flex items-center gap-[8px]">
+          <input
+            type="radio"
+            name="fundMethod"
+            value="card_${cardId}"
+          >
+          <span class="text-[13px] text-[#344054]">
+            ${brand}
+          </span>
+        </div>
+
+        <span class="text-[12px] text-[#475467]">
+          ${masked}
+        </span>
+      </label>
+    `);
+  });
+}
+function clearFundAmountInput() {
+  $("#fundAmountInputPage").val("");
+}
+
+// ============ CONFIRM & FUND WALLET============
 $("#fundWalletPagePayBtn").on("click", function () {
   const amount = Number($("#fundAmountInputPage").val());
   const method = $("input[name='fundMethod']:checked").val();
 
-  if (amount < 100) {
+  if (!amount || amount < 100) {
     $("#fundAmountErrorPage").removeClass("hidden");
     return;
   }
 
   $("#fundAmountErrorPage").addClass("hidden");
 
-  openPaystackForFunding(amount, method);
-});
-
-// Paystack for funding
-function openPaystackForFunding(amount, method) {
-  const user = getCurrentUser();
-  if (!user) return;
-
-  const email = user.email || "test@example.com";
-
-  const channels = method === "bank" ? ["bank"] : ["card"];
-
-  const handler = PaystackPop.setup({
-    key: PAYSTACK_PUBLIC_KEY,
-    email: email,
-    amount: amount * 100,
-    currency: "NGN",
-    channels: channels,
-
-    callback: function (response) {
-      let u = getCurrentUser();
-      if (!u) return;
-
-      const current = Number(u.walletBalance || 0);
-      u.walletBalance = current + Number(amount);
-
-      saveCurrentUser(u);
-
-      updateWalletDisplays(u);
-      renderWalletFromStorage();
-
-      showSuccessToast("Your wallet has been funded successfully.");
-      showMainWallet();
-    },
-
-    onClose: function () {
-      console.log("Payment popup closed.");
-    },
-  });
-
-  handler.openIframe();
-}
-
-// =====================================================
-// LOANS & CREDITS: BVN VERIFICATION + BANK LINK (PER USER)
-// =====================================================
-// =====================================================
-// FAKE BVN API FUNCTION, RETURNS REAL BVN DATA
-// =====================================================
-function fakeBvnApiLookup(bvn) {
-  // This simulates a real server response
-  // You can replace with your real API later
-  return {
-    fullName: "FISH PARKER JUICE",  // BVN full legal name
-    phone: "09045562882"                 // BVN registered phone number
-  };
-}
-
-// =====================================================
-// BANK LIST
-// =====================================================
-const BANKS = [
-  { name: "GTBank", account: "0149951600" },
-  { name: "Zenith Bank", account: "2005689943" },
-  { name: "First Bank", account: "3078895421" },
-  { name: "UBA", account: "2088845573" },
-  { name: "Access Bank", account: "0774550021" },
-  { name: "Fidelity Bank", account: "5037781220" },
-  { name: "FCMB", account: "3009911833" }
-];
-
-let generatedBvnOtp = null;
-
-// =====================================================
-// VERIFY BVN BUTTON CLICK
-// =====================================================
-$("#verifyBvnBtn").on("click", function () {
-  const currentLabel = $("#verifyBvnBtn").text().trim();
-
-  if (currentLabel === "Submit OTP") {
-    submitBvnOtp();
+  // STRICT BANK TRANSFER
+  if (method === "bank") {
+    startPaystackWalletFunding(amount);
     return;
   }
 
-  const bvn = $("#bvnInput").val().trim();
-  if (bvn.length !== 11) {
-    $("#bvnError").removeClass("hidden");
-    return;
-  }
-
-  $("#bvnError").addClass("hidden");
-
-  $("#bvnFeeModal").removeClass("hidden").addClass("flex");
-});
-
-// =====================================================
-// USER CONFIRMS ₦500 FEE
-// =====================================================
-$("#bvnConfirmYes").on("click", function () {
-  $("#bvnFeeModal").addClass("hidden").removeClass("flex");
-
-  let user = getCurrentUser();
-  if (!user) {
-    showError("Session expired. Please login again.");
-    return;
-  }
-
-  let balance = Number(user.walletBalance || 0);
-  if (balance < 500) {
-    showGreenToast("Insufficient wallet balance. Please fund your wallet.");
-    return;
-  }
-
-  balance -= 500;
-  user.walletBalance = balance;
-  saveCurrentUser(user);
-  updateWalletDisplays(user);
-
-  generatedBvnOtp = generateOtp();
-  console.log("BVN OTP (demo):", generatedBvnOtp);
-
-  $("#bvnOtpInput").removeClass("hidden").addClass("block");
-  $("#verifyBvnBtn").text("Submit OTP");
-
-  showGreenToast("₦500 deducted. OTP sent to your number.");
-});
-
-$("#bvnConfirmNo").on("click", function () {
-  $("#bvnFeeModal").addClass("hidden").removeClass("flex");
-});
-
-// =====================================================
-// SUBMIT BVN OTP
-// =====================================================
-function submitBvnOtp() {
-  const otpEntered = $("#bvnOtpInput").val().trim();
-  if (!otpEntered) {
-    alert("Enter the OTP.");
-    return;
-  }
-
-  if (otpEntered !== generatedBvnOtp) {
-    alert("Invalid OTP.");
-    return;
-  }
-
-  let user = getCurrentUser() || {};
-  const bvn = $("#bvnInput").val().trim();
-  const masked = "xxxxxxx" + bvn.slice(-4);
-
-  // =====================================================
-  // FETCH DATA FROM FAKE BVN API
-  // =====================================================
-  const bvnData = fakeBvnApiLookup(bvn);
-  const apiFullName = bvnData.fullName;
-  const apiPhone = bvnData.phone;
-
-  // Save into user profile
-  user.bvnVerified = true;
-  user.maskedBvn = `BVN | ${masked}`;
-  user.fullNameForBvn = apiFullName;
-  user.phoneFromBvn = apiPhone;
-
-  // Save both keys
-  localStorage.setItem("faadaakaaUser", JSON.stringify(user));
-  localStorage.setItem("faadaakaaActiveUser", JSON.stringify(user));
-
-  // Update UI
-  $("#verifiedFullName").text(apiFullName.toUpperCase());
-  $("#verifiedBvnMasked").text(`BVN | ${masked}`);
-
-  $("#bvnFormSection").addClass("hidden");
-  $("#bvnVerifiedSection").removeClass("hidden");
-
-  $("#accountVerifiedBadge").removeClass("hidden");
-
-  showGreenToast("BVN verified successfully.");
-
-  generatedBvnOtp = null;
-  $("#bvnOtpInput").val("");
-  $("#verifyBvnBtn").text("Verify BVN");
-
-  loadIdentityStatus();
-
-  // UPDATE PROFILE PAGE NAME + PHONE
-  $("#profileFullName").text(apiFullName.toUpperCase());
-  $("#profilePhoneText").text(apiPhone);
-  // Replace profile name with BVN name
-  user.firstName = fullName.split(" ")[0] || fullName;
-  user.lastName = fullName.split(" ").slice(1).join(" ") || "";
-
-  saveCurrentUser(user);
-
-  renderLoanCreditPage();
-}
-
-function loadIdentityStatus() {
-  const user = JSON.parse(localStorage.getItem("faadaakaaUser"));
-  const badge = document.getElementById("accountVerifiedBadge");
-  if (!badge || !user) return;
-
-  if (user.bvnVerified === true) badge.classList.remove("hidden");
-  else badge.classList.add("hidden");
-}
-
-document.addEventListener("DOMContentLoaded", loadIdentityStatus);
-
-// =====================================================
-// BANK LINKING SYSTEM
-// =====================================================
-$("#linkBankBtn").on("click", function () {
-  $("#bankLinkModal").removeClass("hidden").addClass("flex");
-  renderBankOptions();
-});
-
-$("#closeBankModal").on("click", function () {
-  $("#bankLinkModal").addClass("hidden");
-});
-
-function renderBankOptions() {
-  const container = $("#bankList");
-  container.empty();
-
-  BANKS.forEach((b, index) => {
-    container.append(`
-      <button 
-        class="w-full flex items-center justify-between border border-[#EAECF0] 
-               rounded-[8px] px-[14px] py-[10px] hover:bg-[#F9FAFB]"
-        data-id="${index}">
-        <span class="text-[14px] font-medium text-[#344054]">${b.name}</span>
-        <i class="fa-solid fa-chevron-right text-[#98A2B3]"></i>
-      </button>
-    `);
-  });
-}
-
-$("#bankList").on("click", "button", function () {
-  const index = $(this).data("id");
-  const selected = BANKS[index];
-
-  localStorage.setItem("faadaakaaTempBank", JSON.stringify(selected));
-
-  $("#bankStepSelect").addClass("hidden");
-  $("#bankStepLogin").removeClass("hidden");
-});
-
-$("#bankContinueToToken").on("click", function () {
-  $("#bankStepLogin").addClass("hidden");
-  $("#bankStepToken").removeClass("hidden");
-});
-
-// =====================================================
-// TOKEN → FINISH LINKING BANK
-// =====================================================
-$("#bankFinishLink").on("click", function () {
-  const temp = JSON.parse(localStorage.getItem("faadaakaaTempBank"));
-  if (!temp) return;
-
-  const finalData = {
-    bankName: temp.name,
-    accountNumber: temp.account,
-    creditValue: 120000 + Math.floor(Math.random() * 8000),
-    creditStatus: "ACTIVE"
-  };
-
-  let user = getCurrentUser() || {};
-  user.bank = finalData;
-  user.loans = {
-    creditEligible: true,
-    creditLimit: finalData.creditValue,
-    creditStatus: "Active",
-    activeLoan: false,
-    loanHistory: []
-  };
-
-  saveCurrentUser(user);
-
-  $("#bankLinkModal").addClass("hidden");
-
-  // =====================================================
-  // SHOW GREEN CHECKMARK BESIDE BANK ACCOUNT
-  // =====================================================
-  $("#bankCheckIcon").removeClass("hidden");
-
-  updateCreditUI();
-  renderLoanCreditPage();
-});
-
-// =====================================================
-// UPDATE UI IN BVN VERIFIED SECTION
-// =====================================================
-function updateCreditUI() {
-  const user = getCurrentUser();
-  const data = user?.bank;
-  if (!data) return;
-
-  $("#linkBankBtn").hide();
-
-  const html = `
-    <p class="text-[14px]"><strong>Bank:</strong> ${data.bankName} (${data.accountNumber})</p>
-    <p class="text-[14px] mt-[4px]"><strong>Credit Value:</strong> ₦${data.creditValue.toLocaleString()}</p>
-    <p class="text-[14px] mt-[4px]"><strong>Credit Status:</strong> <span class="text-green-600">${data.creditStatus}</span></p>
-
-    <button id="relinkBankBtn"
-            class="mt-[12px] w-[160px] h-[40px] bg-[#1570EF] text-white rounded-[8px]">
-      Re-link Bank Account
-    </button>
-  `;
-
-  $("#bvnVerifiedSection .grid div:nth-child(2)").html(html);
-}
-
-// =====================================================
-// MAIN LOAN PAGE LOGIC
-// =====================================================
-function renderLoanCreditPage() {
-  const user = getCurrentUser() || {};
-
-  const verified = !!user.bvnVerified;
-  const bank = user.bank || null;
-  const loans = user.loans || null;
-
-  const maskedBvn = user.maskedBvn || "";
-  const fullName =
-    user.fullNameForBvn ||
-    `${user.firstName || ""} ${user.lastName || ""}`.trim() ||
-    "User";
-
-  // FULL DASHBOARD
-  if (verified && bank) {
-    $("#bvnFormSection").addClass("hidden");
-    $("#bvnVerifiedSection").addClass("hidden");
-    $("#loanDashboardSection").removeClass("hidden");
-
-    $("#dashBankName").text(bank.bankName);
-    $("#dashBankAccount").text(bank.accountNumber);
-    $("#dashCreditValue").text("₦" + bank.creditValue.toLocaleString());
-    $("#dashAvailableCredit").text("₦" + bank.creditValue.toLocaleString());
-    $("#dashCreditStatus").text(loans?.creditStatus || "ACTIVE");
-    $("#dashBvnMasked").text(maskedBvn);
-    $("#dashFullName").text(fullName.toUpperCase());
-
-    // restore checkmark
-    $("#bankCheckIcon").removeClass("hidden");
-
-    return;
-  }
-
-  // STAGE 2: BVN VERIFIED BUT NO BANK
-  if (verified && !bank) {
-    $("#bvnFormSection").addClass("hidden");
-    $("#bvnVerifiedSection").removeClass("hidden");
-    $("#loanDashboardSection").addClass("hidden");
-
-    $("#verifiedFullName").text(fullName.toUpperCase());
-    $("#verifiedBvnMasked").text(maskedBvn);
-
-    return;
-  }
-
-  // STAGE 1: NEW USER
-  $("#bvnFormSection").removeClass("hidden");
-  $("#bvnVerifiedSection").addClass("hidden");
-  $("#loanDashboardSection").addClass("hidden");
-}
-
-// =====================================================
-// DELIVERY ADDRESSES (PER USER, SEPARATE FROM PROFILE ADDRESS)
-// =====================================================
-
-let addresses = [];
-let editingIndex = null;
-
-// Load addresses from current user
-function loadAddresses() {
-  const user = getCurrentUser();
-  addresses = user?.addresses || [];
-}
-
-// Save addresses back into current user
-function saveAddresses() {
-  const user = getCurrentUser();
-  if (!user) return;
-  user.addresses = addresses;
-  saveCurrentUser(user);
-}
-
-// =========================
-// RENDER SAVED ADDRESSES
-// =========================
-function renderAddresses() {
-  const container = $("#savedAddressesContainer");
-  container.empty();
-
-  if (!addresses.length) {
-    container.addClass("hidden");
-    return;
-  }
-
-  container.removeClass("hidden");
-
-  addresses.forEach((addr, index) => {
-    const isDefault = addr.isDefault;
-
-    const borderColor = isDefault ? "#1570EF" : "#D0D5DD";
-    const borderBottom = isDefault ? "4px" : "1px";
-    const borderRight = isDefault ? "4px" : "1px";
-
-    const card = $(`
-      <div 
-        class="relative w-full rounded-[8px] p-[16px] bg-[#F9FAFB]
-               flex justify-between items-start cursor-pointer"
-        data-id="${index}"
-        style="
-          border: 1px solid ${borderColor};
-          border-bottom-width: ${borderBottom};
-          border-right-width: ${borderRight};
-        "
-      >
-
-        <!-- LEFT SIDE CONTENT -->
-        <div class="flex flex-col text-[14px] leading-[20px] 
-                    ${isDefault ? 'text-[#1570EF]' : 'text-[#344054]'}">
-
-          <span class="font-semibold flex gap-1 items-center">
-            ${addr.fullName} | ${addr.phone}
-            ${isDefault ? "<span class='text-green-600 text-[12px]'>(Default)</span>" : ""}
-          </span>
-
-          <span>${addr.address}</span>
-          <span>${addr.state}</span>
-        </div>
-
-        <!-- RIGHT SIDE ACTION BUTTONS -->
-        <div class="flex flex-col items-end gap-[8px] text-[14px]">
-
-          <!-- EDIT -->
-          <button class="edit-btn" data-id="${index}" title="Edit">
-            <i class="fa-regular fa-pen-to-square text-blue-600 text-[16px]"></i>
-          </button>
-
-          <!-- DELETE -->
-          <button class="delete-btn" data-id="${index}" title="Delete">
-            <i class="fa-regular fa-trash-can text-red-500 text-[16px]"></i>
-          </button>
-
-          <!-- SET AS DEFAULT (TEXT) ONLY FOR NON-DEFAULT -->
-          ${
-            !isDefault
-              ? `<button 
-                   class="default-btn text-[#1570EF] text-[13px] underline mt-[8px]"
-                   data-id="${index}">
-                   Set as Active Address
-                 </button>`
-              : ""
-          }
-        </div>
-
-        <!-- SMALL CHECKMARK ONLY FOR DEFAULT -->
-        ${
-          isDefault
-            ? `<div class="absolute bottom-[6px] right-[6px]">
-                 <i class="fa-solid fa-check text-green-600 text-[14px]"></i>
-               </div>`
-            : ""
-        }
-
-      </div>
-    `);
-
-    container.append(card);
-  });
-}
-
-// =========================
-// ADD NEW ADDRESS
-// =========================
-$("#deliveryForm").on("submit", function(e) {
-  e.preventDefault();
-
-  if (addresses.length >= 3) {
-    showToast("Maximum of 3 saved addresses allowed.");
-    return;
-  }
-
-  const fullName = $("#deliveryFullName").val().trim();
-  const phone = $("#deliveryPhone").val().trim();
-  const address = $("#deliveryAddress").val().trim();
-  const state = $("#deliveryState").val().trim();
-
-  if (!fullName || !phone || phone.length !== 11 || !address || !state) {
-    showToast("Fill all fields correctly.");
-    return;
-  }
-
-  const newAddress = {
-    fullName,
-    phone,
-    address,
-    state,
-    isDefault: addresses.length === 0 // FIRST address becomes default
-  };
-
-  addresses.push(newAddress);
-  saveAddresses();
-  renderAddresses();
-  this.reset();
-
-  showToast("Address added successfully.");
-});
-
-// =========================
-// DELETE ADDRESS
-// =========================
-$(document).on("click", ".delete-btn", function() {
-  const index = $(this).data("id");
-
-  addresses.splice(index, 1);
-
-  // Reset default if removed
-  if (!addresses.some(a => a.isDefault) && addresses.length > 0) {
-    addresses[0].isDefault = true;
-  }
-
-  saveAddresses();
-  renderAddresses();
-
-  showToast("Address deleted.");
-});
-
-// =========================SET DEFAULT ADDRESS
-// =========================
-$(document).on("click", ".default-btn", function() {
-  const index = $(this).data("id");
-
-  addresses.forEach(a => a.isDefault = false);
-  addresses[index].isDefault = true;
-
-  saveAddresses();
-  renderAddresses();
-
-  showToast("Default address updated.");
-});
-
-// =========================
-// OPEN EDIT MODAL
-// =========================
-$(document).on("click", ".edit-btn", function() {
-  editingIndex = $(this).data("id");
-  const a = addresses[editingIndex];
-
-  $("#editFullName").val(a.fullName);
-  $("#editPhone").val(a.phone);
-  $("#editAddress").val(a.address);
-  $("#editState").val(a.state);
-
-  $("#editModal").removeClass("hidden");
-});
-
-// CLOSE MODAL
-$("#closeEditModal").on("click", function() {
-  $("#editModal").addClass("hidden");
-});
-
-// SAVE EDIT
-$("#saveEditModal").on("click", function() {
-  const fullName = $("#editFullName").val().trim();
-  const phone = $("#editPhone").val().trim();
-  const address = $("#editAddress").val().trim();
-  const state = $("#editState").val();
-
-  if (!fullName || !phone || phone.length !== 11 || !address || !state) {
-    showToast("Fill all fields correctly.");
-    return;
-  }
-
-  addresses[editingIndex] = { 
-    ...addresses[editingIndex],
-    fullName,
-    phone,
-    address,
-    state
-  };
-
-  saveAddresses();
-  $("#editModal").addClass("hidden");
-
-  renderAddresses();
-  showToast("Address updated.");
-});
-
-// =========================
-// EXPORT DEFAULT ADDRESS (if needed elsewhere)
-// =========================
-function getDefaultAddress() {
-  return addresses.find(a => a.isDefault) || null;
-}
-
-$(document).ready(function () {
-  populateHeader();
-  populateAccountPage();
-
-  // Default tab: Account → Profile inner tab
-  if (!stopDefaultLoad) {
-    switchMainTab("account");
-  }
-  switchAccountInnerTab("profile");
-
-  // Wallet / Loans / Delivery initialisation
-  renderWalletFromStorage();
-  updateCreditUI();        // uses user.bank
-  renderLoanCreditPage();  // applies 3-stage logic
-
-  loadAddresses();         // load from user
-  renderAddresses();
-});
-
-// Small helper to format naira the same way everywhere
-function formatNaira(amount) {
-  return "₦" + Number(amount || 0).toLocaleString();
-}
-
-// Keep a global context for the loan payment modal
-let currentLoanContext = null;
-
-// ======================================================
-// LOAD ORDERS FOR USER (OUTRIGHT = PAID, INSTALLMENT = OUTSTANDING AMOUNT)
-// ======================================================
-function loadOrdersForUser() {
-  const orders = JSON.parse(localStorage.getItem("orders")) || [];
-
-  const totalOrdersEl = document.getElementById("totalOrders");
-  const totalValueEl = document.getElementById("totalOrderValue");
-  const outstandingLoanEl = document.getElementById("outstandingLoan");
-  const tableBody = document.getElementById("ordersTableBody");
-  const emptyMsg = document.getElementById("ordersEmpty");
-
-  if (!totalOrdersEl || !tableBody) return;
-
-  if (orders.length === 0) {
-    emptyMsg.classList.remove("hidden");
-    tableBody.innerHTML = "";
-    totalOrdersEl.textContent = "0";
-    totalValueEl.textContent = "₦0.00";
-    outstandingLoanEl.textContent = "₦0.00";
-    return;
-  }
-
-  emptyMsg.classList.add("hidden");
-
-  // Summary
-  const totalOrders = orders.length;
-  const totalValue = orders.reduce((sum, o) => sum + o.item.total, 0);
-
-  const outstanding = orders.reduce((sum, o) => {
-    return sum + (o.paymentMethod === "Wallet" ? 0 : Number(o.outstandingAmount || 0));
-  }, 0);
-
-  totalOrdersEl.textContent = totalOrders;
-  totalValueEl.textContent = formatNaira(totalValue);
-  outstandingLoanEl.textContent = formatNaira(outstanding);
-
-  // Build table rows
-  let rows = "";
-
-  orders.forEach(order => {
-    const purchaseType = order.paymentMethod === "Wallet" ? "Outright" : "Installment";
-
-    // Outstanding color logic
-    let outstandingDisplay;
-    let outstandingColorClass;
-
-    if (order.paymentMethod === "Wallet" || Number(order.outstandingAmount) <= 0) {
-      outstandingDisplay = "Paid";
-      outstandingColorClass = "text-green-600 font-semibold";
-    } else {
-      outstandingDisplay = formatNaira(order.outstandingAmount || 0);
-      outstandingColorClass = "text-[#D92D20] font-semibold"; // red
-    }
-
-    rows += `
-      <tr class="border-b border-[#EAECF0]">
-        <td class="py-[10px]">${order.date}</td>
-        <td class="py-[10px]">#${order.orderNumber}</td>
-        <td class="py-[10px]">${formatNaira(order.item.total)}</td>
-        <td class="py-[10px]">${formatNaira(order.walletUsed)}</td>
-        <td class="py-[10px]">${purchaseType}</td>
-
-        <td class="py-[10px] ${outstandingColorClass}">
-          ${outstandingDisplay}
-        </td>
-
-        <td class="py-[10px] text-[#1570EF] cursor-pointer"
-            onclick="openOrderDetails(${order.orderNumber})">
-          Order Details
-        </td>
-      </tr>
-    `;
-  });
-
-  tableBody.innerHTML = rows;
-}
-
-// ======================================================
-// OPEN ORDER DETAILS PAGE
-// ======================================================
-function openOrderDetails(orderId) {
-  const orders = JSON.parse(localStorage.getItem("orders")) || [];
-  const order = orders.find(o => o.orderNumber == orderId);
-  if (!order) return;
-
-  // Show / hide main sections
-  document.getElementById("ordersContent").classList.add("hidden");
-  document.getElementById("orderDetailsContent").classList.remove("hidden");
-
-  // Back button
-  document.getElementById("backToOrdersBtn").onclick = () => {
-    document.getElementById("orderDetailsContent").classList.add("hidden");
-    document.getElementById("ordersContent").classList.remove("hidden");
-    currentLoanContext = null;
-  };
-
-  // Main order details
-  document.getElementById("detailOrderId").textContent = "#" + order.orderNumber;
-  document.getElementById("detailOrderDate").textContent = order.date;
-  document.getElementById("detailOrderValue").textContent =
-    formatNaira(order.item.total);
-
-  // Outstanding logic for detail view
-  const outstandingEl = document.getElementById("detailOutstanding");
-  const clearLoanBtn = document.getElementById("clearLoanBtn");
-  const repaymentSection = document.getElementById("repaymentSection");
-
-  const isOutright = order.paymentMethod === "Wallet";
-  const outAmount = Number(order.outstandingAmount || 0);
-
-  if (isOutright || outAmount <= 0) {
-    outstandingEl.textContent = "Paid";
-    outstandingEl.classList.remove("text-[#D92D20]");
-    outstandingEl.classList.add("text-green-600", "font-semibold");
-    clearLoanBtn.classList.add("hidden");
-    repaymentSection.classList.add("hidden");
-  } else {
-    outstandingEl.textContent = formatNaira(outAmount);
-    outstandingEl.classList.remove("text-green-600");
-    outstandingEl.classList.add("text-[#D92D20]", "font-semibold");
-    clearLoanBtn.classList.remove("hidden");
-    repaymentSection.classList.remove("hidden");
-
-    clearLoanBtn.onclick = function () {
-      if (!order.outstandingAmount || order.outstandingAmount <= 0) return;
-      currentLoanContext = {
-        orderNumber: order.orderNumber,
-        mode: "clearAll",
-        repaymentIndex: null,
-        amount: Number(order.outstandingAmount || 0)
-      };
-      openLoanPaymentPage(currentLoanContext);
-    };
-
-    // Repayment schedule must also load
-    renderRepaymentSchedule(order);
-  }
-
-  // Item details
-  document.getElementById("detailItemName").textContent = order.item.name;
-  document.getElementById("detailItemQty").textContent = "Qty: " + order.item.qty;
-  document.getElementById("detailItemQtyRight").textContent = order.item.qty;
-  document.getElementById("detailItemPrice").textContent =
-    formatNaira(order.item.total);
-
-  if (document.getElementById("detailItemImage")) {
-    document.getElementById("detailItemImage").src =
-      order.item.image || "/assets/images/iphone16plus.jpg";
-  }
-
-  // Payment details
-  document.getElementById("detailPayAmount").textContent =
-    formatNaira(order.item.total);
-  document.getElementById("detailPaid").textContent =
-    formatNaira(order.walletUsed);
-  document.getElementById("detailMethod").textContent = order.paymentMethod;
-  document.getElementById("detailType").textContent =
-    isOutright ? "Outright" : "Installment";
-
-  // Delivery from default address
-  const defaultAddress =
-    JSON.parse(localStorage.getItem("faadaakaaUser"))?.addresses?.find(
-      a => a.isDefault
-    );
-
-  if (defaultAddress) {
-    document.getElementById("deliveryName").textContent = defaultAddress.fullName;
-    document.getElementById("deliveryPhone").textContent = defaultAddress.phone;
-    document.getElementById("deliveryAddress").textContent = defaultAddress.address;
-    document.getElementById("deliveryState").textContent = defaultAddress.state;
-  } else {
-    document.getElementById("deliveryName").textContent = "No default address";
-    document.getElementById("deliveryPhone").textContent = "-";
-    document.getElementById("deliveryAddress").textContent = "-";
-    document.getElementById("deliveryState").textContent = "-";
-  }
-
-  // PAY ALL REPAYMENTS BUTTON
-  const payAllBtn = document.getElementById("payAllRepaymentsBtn");
-  if (payAllBtn) {
-    payAllBtn.onclick = function () {
-      const outstanding = Number(order.outstandingAmount || 0);
-      if (!outstanding) return;
-
-      currentLoanContext = {
-        orderNumber: order.orderNumber,
-        mode: "clearAll",
-        repaymentIndex: null,
-        amount: outstanding
-      };
-
-      openLoanPaymentPage(currentLoanContext);
-    };
-  }
-}
-
-// ======================================================
-// RENDER REPAYMENT SCHEDULE TABLE
-// ======================================================
-function renderRepaymentSchedule(order) {
-  const tbody = document.getElementById("repaymentTableBody");
-  if (!tbody) return;
-
-  const repayments = order.repayments || [];
-
-  if (!repayments.length) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="6" class="px-[12px] py-[10px] text-[13px] text-[#667085]">
-          No repayment schedule found for this order.
-        </td>
-      </tr>
-    `;
-    return;
-  }
-
-  let rows = "";
-  let firstUnpaidFound = false;
-
-  repayments.forEach((rep, index) => {
-    const isPaid = rep.status === "Paid";
-
-    const statusHtml = isPaid
-      ? `<span class="text-[#12B76A] font-medium">Paid</span>`
-      : `<span class="text-[#B42318] font-medium">Unpaid</span>`;
-
-    // Only the FIRST unpaid repayment is active
-    let actionHtml = "";
-
-    if (isPaid) {
-      actionHtml = `<span class="text-[12px] text-[#98A2B3]">Completed</span>`;
-    } else {
-      if (!firstUnpaidFound) {
-        // First unpaid one is active
-        actionHtml = `
-          <button 
-            class="text-[13px] text-[#1570EF] underline"
-            onclick="handlePaySingleRepayment(${order.orderNumber}, ${index})">
-            Pay now
-          </button>`;
-        firstUnpaidFound = true;
-      } else {
-        // Other unpaid ones are disabled
-        actionHtml = `
-          <button 
-            class="text-[13px] text-[#98A2B3] underline cursor-not-allowed"
-            disabled>
-            Pay now
-          </button>`;
-      }
-    }
-
-    rows += `
-      <tr class="border-t border-[#EAECF0]">
-        <td class="px-[12px] py-[8px]">${rep.sn}</td>
-        <td class="px-[12px] py-[8px]">${formatNaira(rep.amount)}</td>
-        <td class="px-[12px] py-[8px]">${rep.dueDate}</td>
-        <td class="px-[12px] py-[8px]">${rep.paidOn || "Not set"}</td>
-        <td class="px-[12px] py-[8px]">${statusHtml}</td>
-        <td class="px-[12px] py-[8px] text-right">${actionHtml}</td>
-      </tr>
-    `;
-  });
-
-  tbody.innerHTML = rows;
-}
-window.renderRepaymentSchedule = renderRepaymentSchedule;
-
-// ======================================================
-// HANDLE PAY NOW FOR A SINGLE REPAYMENT
-// ======================================================
-function handlePaySingleRepayment(orderNumber, index) {
-  const orders = JSON.parse(localStorage.getItem("orders")) || [];
-  const order = orders.find(o => o.orderNumber == orderNumber);
-  if (!order || !order.repayments || !order.repayments[index]) return;
-
-  const rep = order.repayments[index];
-  if (rep.status === "Paid") return;
-
-  currentLoanContext = {
-    orderNumber,
-    mode: "single",
-    repaymentIndex: index,
-    amount: Number(rep.amount || 0)
-  };
-
-  openLoanPaymentPage(currentLoanContext);
-}
-window.handlePaySingleRepayment = handlePaySingleRepayment;
-
-// ======================================================
-// CLEAR THIS LOAN NOW BUTTON
-// ======================================================
-window.attachClearLoanAction = function(order) {
-  const clearLoanBtn = document.getElementById("clearLoanBtn");
-  if (!clearLoanBtn) return;
-
-  if (order.paymentMethod === "Installment") {
-    clearLoanBtn.classList.remove("hidden");
-
-    clearLoanBtn.onclick = function () {
-      currentLoanContext = {
-        orderNumber: order.orderNumber,
-        mode: "clearAll",
-        repaymentIndex: null,
-        amount: Number(order.outstandingAmount || 0)
-      };
-
-      openLoanPaymentPage(currentLoanContext);
-    };
-  } else {
-    clearLoanBtn.classList.add("hidden");
-  }
-};
-
-// ======================================================
-// FULL PAGE LOAN PAYMENT PAGE
-// ======================================================
-function openLoanPaymentPage(context) {
-  currentLoanContext = context;
-  if (!context) return;
-
-  // Hide order details
-  document.getElementById("orderDetailsContent")?.classList.add("hidden");
-
-  // Show full payment page
-  const page = document.getElementById("loanPaymentPage");
-  if (page) page.classList.remove("hidden");
-
-  // Fill values
-  document.getElementById("loanPaymentOrderId").textContent =
-    "#" + context.orderNumber;
-
-  document.getElementById("loanPaymentAmount").textContent =
-    formatNaira(context.amount);
-
-  // Wallet
-  const user = JSON.parse(localStorage.getItem("faadaakaaUser")) || {};
-  document.getElementById("loanWalletBalance").textContent =
-    formatNaira(Number(user.walletBalance || 0));
-}
-window.openLoanPaymentPage = openLoanPaymentPage;
-
-// ======================================================
-// BACK BUTTON
-// ======================================================
-document.getElementById("loanPaymentBackBtn")?.addEventListener("click", () => {
-  document.getElementById("loanPaymentPage")?.classList.add("hidden");
-  document.getElementById("orderDetailsContent")?.classList.remove("hidden");
-  currentLoanContext = null;
-});
-
-// ======================================================
-// CONFIRM PAYMENT
-// ======================================================
-document.getElementById("loanPaymentConfirmBtn")?.addEventListener("click", () => {
-  if (!currentLoanContext) return;
-
-  const methodInput = document.querySelector("input[name='loanPayMethod']:checked");
-  const method = methodInput ? methodInput.value : null;
-
-  if (!method) {
-    alert("Please select a payment method.");
-    return;
-  }
-
-  let orders = JSON.parse(localStorage.getItem("orders")) || [];
-  let order = orders.find(o => o.orderNumber == currentLoanContext.orderNumber);
-
-  let user = JSON.parse(localStorage.getItem("faadaakaaUser")) || {};
-  let walletBalance = Number(user.walletBalance || 0);
-  let email = user.email || "test@example.com";
-  let amount = Number(currentLoanContext.amount);
-
-  // WALLET PAYMENT
-  if (method === "wallet") {
-    if (walletBalance < amount) {
-      alert("Insufficient wallet balance.");
+  // STRICT CARD FUNDING
+  if (method && method.startsWith("card_")) {
+    const cardId = method.replace("card_", "");
+
+    if (!cardId) {
+      showErrorToast("Invalid card selected.");
       return;
     }
 
-    user.walletBalance = walletBalance - amount;
-    localStorage.setItem("faadaakaaUser", JSON.stringify(user));
-
-    if (typeof updateWalletDisplays === "function") {
-      updateWalletDisplays(user);
-    }
-
-    markLoanPaid(order, orders);
+    fundWalletWithExistingCard(amount, cardId);
     return;
   }
 
-  // PAYSTACK (CARD OR BANK)
-  const channels = method === "bank" ? ["bank"] : ["card"];
+  // FALLBACK SAFETY
+  showErrorToast("Please select a funding method.");
+});
+// ============ PAYSTACK WALLET FUNDING ============
+function startPaystackWalletFunding(amount) {
+  const email = API_USER?.email;
 
-  const handler = PaystackPop.setup({
-    key: "pk_test_e8433bd39a6e59a8dc725c5b22325f078da31dd2",
+  let handler = PaystackPop.setup({
+    key: PAYSTACK_API_KEY,
     email: email,
     amount: amount * 100,
     currency: "NGN",
-    channels: channels,
+    channels: ["bank_transfer"],
 
-    callback: function(response) {
-      // PAYMENT SUCCESSFUL
-      markLoanPaid(order, orders);
-      alert("Payment successful");
-    },
-
-    onClose: function() {
-      alert("Payment window closed.");
+    callback: function (response) {
+      confirmWalletFunding(response.reference);
     }
   });
 
   handler.openIframe();
-});
+}
+function startPaystackCardFunding(amount, cardId) {
+  const email = API_USER?.email;
 
-// ========================================================
-// UPDATE LOAN STATUS AFTER PAYMENT
-// ========================================================
-function markLoanPaid(order, orders) {
-  const today = new Date().toDateString();
+  let handler = PaystackPop.setup({
+    key: PAYSTACK_API_KEY,
+    email: email,
+    amount: amount * 100,
+    currency: "NGN",
 
-  if (currentLoanContext.mode === "clearAll") {
-    order.repayments = order.repayments.map(rep => ({
-      ...rep,
-      status: "Paid",
-      paidOn: today
-    }));
-    order.outstandingAmount = 0;
-  }
+    // ✅ CARD ONLY
+    channels: ["card"],
 
-  if (currentLoanContext.mode === "single") {
-    const idx = currentLoanContext.repaymentIndex;
-    const rep = order.repayments[idx];
+    callback: function (response) {
+      // backend will charge the selected card
+      fundWalletWithExistingCard(amount, cardId);
+    }
+  });
 
-    rep.status = "Paid";
-    rep.paidOn = today;
-
-    let newBalance = Number(order.outstandingAmount) - Number(rep.amount);
-    order.outstandingAmount = newBalance < 0 ? 0 : newBalance;
-  }
-
-  localStorage.setItem("orders", JSON.stringify(orders));
-
-  document.getElementById("loanPaymentPage").classList.add("hidden");
-  openOrderDetails(order.orderNumber);
-  loadOrdersForUser();
-
-  currentLoanContext = null;
+  handler.openIframe();
 }
 
-// Load orders on script load
-loadOrdersForUser();
+function refreshWalletBalanceFromBackend(done) {
+  const token = getToken();
+  if (!token) return;
 
-// Trigger load when Orders tab is opened
-document.getElementById("tab-orders")?.addEventListener("click", loadOrdersForUser);
+  const formData = new FormData();
+  formData.append("token", token);
 
-// logout functionality
-$("#tab-logout").on("click", () => {
-  // Remove all user session data
-  localStorage.removeItem("faadaakaaLoggedIn");
-  localStorage.removeItem("faadaakaaUser");
-  localStorage.removeItem("faadaakaaActiveUser");
+  $.ajax({
+    url: "https://api.faadaakaa.com/api/loadprofile",
+    type: "POST",
+    headers: {
+      Authorization: "Bearer " + token
+    },
+    data: formData,
+    processData: false,
+    contentType: false,
+
+    success: function (res) {
+      if (!res || res.status !== true) return;
+
+      const walletBalance =
+        res?.data?.wallet?.data?.wallet_balance ??
+        res?.data?.wallet_balance ??
+        "0.00";
+
+      updateWalletBalanceInstant(walletBalance);
+
+      if (typeof done === "function") done();
+    },
+
+    error: function () {
+      showErrorToast("Unable to refresh wallet balance.");
+    }
+  });
+}
+function showWalletUpdatingOverlay() {
+  $("#walletUpdatingOverlay").removeClass("hidden");
+}
+
+function hideWalletUpdatingOverlay() {
+  $("#walletUpdatingOverlay").addClass("hidden");
+}
+function getCurrentWalletBalanceFromUI() {
+  const text = $("#walletBalanceMain").text().replace(/[₦,]/g, "");
+  return Number(text) || 0;
+}
+
+function pollUntilBalanceChanges(oldBalance, onUpdated) {
+  const token = getToken();
+  if (!token) return;
+
+  let tries = 0;
+  const maxTries = 15; // about 15 seconds
+  const delay = 1000;  // 1 second
+
+  const timer = setInterval(() => {
+    tries++;
+
+    fetchWalletBalance(function (newBalance) {
+      // balance changed, stop polling
+      if (Number(newBalance) !== Number(oldBalance)) {
+        clearInterval(timer);
+        updateWalletBalanceEverywhere(newBalance);
+
+        if (typeof onUpdated === "function") onUpdated(newBalance);
+        return;
+      }
+
+      // timeout
+      if (tries >= maxTries) {
+        clearInterval(timer);
+        showErrorToast(
+          "Payment confirmed, but wallet update is taking longer than expected. Please wait and refresh later."
+        );
+      }
+    });
+  }, delay);
+}
+
+// ============  INSTANT WALLET BALANCE UPDATE ============
+function updateWalletBalanceInstant(amount) {
+  updateWalletBalanceEverywhere(amount);
+}
+function updateWalletBalanceEverywhere(amount) {
+  const formatted = `₦${Number(amount).toLocaleString("en-NG", {
+    minimumFractionDigits: 2
+  })}`;
+
+  // Existing IDs you already use
+  $("#walletBalanceTop").text(formatted);
+  $("#walletBalanceMain").text(formatted);
+
+  // Add extra safe selectors (top nav often uses another span)
+  $("[data-wallet-balance]").text(formatted);
+  $(".js-wallet-balance").text(formatted);
+}
+function fetchWalletBalance(done) {
+  const token = getToken();
+  if (!token) return;
+
+  const formData = new FormData();
+  formData.append("token", token);
+
+  $.ajax({
+    url: "https://api.faadaakaa.com/api/loadprofile",
+    type: "POST",
+    headers: { Authorization: "Bearer " + token },
+    data: formData,
+    processData: false,
+    contentType: false,
+    success: function (res) {
+      if (!res || res.status !== true) return;
+
+      const bal =
+        Number(
+          res?.data?.wallet?.data?.wallet_balance ??
+          res?.data?.wallet_balance ??
+          0
+        );
+
+      if (typeof done === "function") done(bal, res);
+    },
+    error: function () {
+      showErrorToast("Unable to load wallet balance.");
+    }
+  });
+}
+// ============ CONFIRM FUNDING TRANSFER / PAYSTACK ============
+function confirmWalletFunding(payref) {
+  const token = getToken();
+  if (!token) {
+    showErrorToast("Session expired. Please log in again.");
+    return;
+  }
+
+  // 1) get old balance from backend first (not UI)
+  fetchWalletBalance(function (oldBalance) {
+
+    const formData = new FormData();
+    formData.append("token", token);
+    formData.append("payref", payref);
+
+    $.ajax({
+      url: "https://api.faadaakaa.com/api/addfundbytransfer_trans_ref",
+      type: "POST",
+      headers: { Authorization: "Bearer " + token },
+      data: formData,
+      processData: false,
+      contentType: false,
+
+      success: function (res) {
+        if (!res || res.status !== true) {
+          showErrorToast(res?.message || "Funding failed.");
+          return;
+        }
+        showWalletUpdatingOverlay();
+        //  poll until wallet balance changes in backend
+        pollUntilBalanceChanges(oldBalance, function () {
+          clearFundAmountInput();
+
+          //  move to main page first
+          $("#walletFundingPage").addClass("hidden");
+          $("#walletMainPage").removeClass("hidden");
+
+          //  now show success (wallet already updated)
+          showWalletSuccess("Wallet Funded", "Your wallet has been funded successfully.");
+
+          //  auto close success modal after 1.2s
+          setTimeout(() => {
+            $("#walletSuccessModal").addClass("hidden");
+          }, 1200);
+        });
+      },
+
+      error: function () {
+        showErrorToast("Unable to fund wallet.");
+      }
+    });
+  });
+}
+
+// ============ FUNDING WITH EXISTING CARD ============
+function fundWalletWithExistingCard(amount, cardId) {
+  const token = getToken();
+  if (!token) {
+    showErrorToast("Session expired. Please log in again.");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("token", token);               
+  formData.append("amount", amount);
+  formData.append("payment_method_id", cardId);
+
+  $.ajax({
+    url: "https://api.faadaakaa.com/api/addfundby_exsting_card",
+    type: "POST",
+    headers: {
+      Authorization: "Bearer " + token
+    },
+    data: formData,
+    processData: false,
+    contentType: false,
+
+    success: function (res) {
+      if (!res || res.status !== true) {
+        showErrorToast(res?.message || "Unable to fund wallet.");
+        return;
+      }
+
+      const walletBalance =
+        res?.data?.wallet_balance ??
+        res?.data?.wallet?.data?.wallet_balance ??
+        "0.00";
+
+      updateWalletBalanceInstant(walletBalance);
+      clearFundAmountInput();
+
+      $("#walletFundingPage").addClass("hidden");
+      $("#walletMainPage").removeClass("hidden");
+
+      showWalletSuccess(
+        "Wallet Funded",
+        "Your wallet has been funded successfully."
+      );
+    },
+
+    error: function (xhr) {
+      showErrorToast(
+        xhr.responseJSON?.message || "Unable to fund wallet."
+      );
+    }
+  });
+}
+
+// ============ HELPERS FOR PAYMENT CARD ============
+function loadProfileAndRefreshCards() {
+  console.log("Loading profile to refresh cards...");
+  const token = getToken();
+
+  if (!token) return;
+
+  const formData = new FormData();
+  formData.append("token", token);
+
+  $.ajax({
+    url: "https://api.faadaakaa.com/api/loadprofile",
+    type: "POST",
+    data: formData,
+    processData: false,
+    contentType: false,
+
+    success: function (res) {
+      if (!res || res.status !== true) {
+        console.error("Load profile failed", res);
+        return;
+      }
+
+      const cards = res.data?.payment_cards?.data || [];
+
+      // Wallet page
+      renderWalletCards(cards);
+
+      // Funding page
+      renderFundingCards(cards);
+    },
+
+    error: function (xhr) {
+      console.error("Load profile error:", xhr.responseText);
+    }
+  });
+}
+
+
+
+
+
+// =====================================================
+// LOANS + CREDIT (API)
+// This is the correct mapping for your response shape
+// =====================================================
+function formatNaira(value) {
+  return `₦${Number(value).toLocaleString("en-NG", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  })}`;
+}
+
+function toNumber(val) {
+  if (!val) return 0;
+  return Number(String(val).replace(/,/g, ""));
+}
+
+function renderLoanAndCreditFromApi(user) {
+  if (!user) return;
+
+  // ---------------------------
+  // IDENTITY VERIFICATION
+  // ---------------------------
+  const bvnMasked = user.identity_number
+    ? `BVN | xxxxxxx${String(user.identity_number).slice(-4)}`
+    : "BVN | Not Available";
+
+  $("#loanDashBvnMasked").text(bvnMasked);
+
+  const fullName = user.verified_fullname?.trim()
+    ? user.verified_fullname
+    : `${user.first_name || ""} ${user.last_name || ""}`.trim();
+
+  $("#loanDashFullName").text(fullName.toUpperCase());
+  console.log("loanDashFullName:", fullName);
+  console.log('loanDashBvnMasked', bvnMasked);
+
+  // ---------------------------
+  // CREDIT (wallet)
+  // ---------------------------
+  const wallet = user.wallet?.data;
+
+  if (wallet) {
+    $("#dashCreditValue").text(formatNaira(wallet.credit_value));
+    $("#dashAvailableCredit").text(formatNaira(wallet.credit_balance));
+    $("#dashCreditStatus").text(wallet.credit_status.toUpperCase());
+  }
+
+  // ---------------------------
+  // BANK DETAILS
+  // ---------------------------
+  $("#dashBankName").text(user.bank_name || "-");
+  $("#dashBankAccount").text(user.bank_account_number || "-");
+  
+
+  if (user.has_linked_bank_account === "yes") {
+    $("#bankCheckIcon").removeClass("hidden");
+  }
+
+  // ---------------------------
+  // LOANS (financials)
+  // ---------------------------
+  const fin = user.financials?.data?.[0];
+
+  if (fin) {
+    $("#dashTotalAccessed").text(
+      formatNaira(toNumber(fin.total_accessed_loan))
+    );
+
+    $("#dashTotalRepaid").text(
+      formatNaira(toNumber(fin.total_repaid_loan))
+    );
+
+    $("#dashUnsettled").text(
+      formatNaira(toNumber(fin.unsettled_loan))
+    );
+  }
+
+  // ---------------------------
+  // VISIBILITY CONTROL
+  // ---------------------------
+  const verified =
+    String(user.identity_verification_status).toLowerCase() === "verified";
+
+  const hasBank =
+    String(user.has_linked_bank_account).toLowerCase() === "yes";
+
+  if (verified && hasBank) {
+    $("#loanDashboardSection").removeClass("hidden");
+    $("#bvnFormSection, #bvnVerifiedSection").addClass("hidden");
+  }
+}
+
+
+// =====================================================
+// ADDRESSES (API)
+// =====================================================
+
+
+// ===============RENDER STATE API=======================
+// =============== LOAD STATES INTO SELECT =================
+async function loadStatesIntoSelect(selectId, selectedValue = "") {
+  try {
+    const token = sessionStorage.getItem("AUTH_TOKEN");
+    if (!token) return;
+
+    const formData = new FormData();
+    formData.append("token", token);
+
+    const res = await fetch("https://api.faadaakaa.com/api/loadstates", {
+      method: "POST",
+      body: formData
+    });
+
+    const json = await res.json();
+    if (!json.status || !Array.isArray(json.data)) return;
+
+    const select = document.getElementById(selectId);
+    if (!select) return;
+
+    select.innerHTML = `<option value="">Select state</option>`;
+
+    json.data.forEach(state => {
+      const option = document.createElement("option");
+      option.value = state.name;
+      option.textContent = state.name;
+
+      // 🔥 THIS FIXES YOUR ISSUE
+      option.dataset.stateId = state.id;
+
+      if (
+        selectedValue &&
+        state.name.toLowerCase() === selectedValue.toLowerCase()
+      ) {
+        option.selected = true;
+      }
+
+      select.appendChild(option);
+    });
+
+  } catch (err) {
+    console.error("Failed to load states", err);
+  }
+}
+function renderAddressesFromApi(addresses) {
+  const $container = $("#savedAddressesContainer");
+  if (!$container.length) return;
+
+  $container.empty();
+  apiAddresses = addresses || [];
+
+  if (!apiAddresses.length) {
+    $container.addClass("hidden");
+    return;
+  }
+
+  $container.removeClass("hidden");
+
+  apiAddresses.forEach(addr => {
+    const isActive = String(addr.active) === "1";
+
+    const borderColor = isActive ? "#1570EF" : "#D0D5DD";
+    const borderBottom = isActive ? "4px" : "1px";
+    const borderRight = isActive ? "4px" : "1px";
+
+   $container.append(`
+  <div
+    class="address-card relative w-full rounded-[8px] p-[16px] bg-[#F9FAFB]
+           flex justify-between items-start"
+    data-address-id="${addr.id}"
+    style="border:1px solid ${borderColor};
+           border-bottom-width:${borderBottom};
+           border-right-width:${borderRight};"
+  >
+
+    <div class="flex flex-col text-[14px] leading-[20px]
+                ${isActive ? "text-[#1570EF]" : "text-[#344054]"}">
+      <span class="font-semibold">
+        ${addr.name} | ${addr.mobile}
+        ${isActive ? "<span class='text-green-600 text-[12px]'>(Active)</span>" : ""}
+      </span>
+      <span>${addr.address}</span>
+      <span>${addr.state}</span>
+    </div>
+
+    <div class="flex flex-col items-end gap-[8px]">
+      <button class="delete-address-btn" data-id="${addr.id}">
+        <i class="fa-regular fa-trash-can text-red-500"></i>
+      </button>
+
+      ${
+        !isActive
+          ? `<button
+               class="set-active-btn text-[#1570EF] text-[13px] underline"
+               data-id="${addr.id}">
+               Set as Active Address
+             </button>`
+          : ""
+      }
+    </div>
+
+    ${
+      isActive
+        ? `<div class="absolute bottom-[6px] right-[6px]">
+             <i class="fa-solid fa-check text-green-600"></i>
+           </div>`
+        : ""
+    }
+  </div>
+`);
+  });
+}
+
+$(document).on("click", ".set-active-btn", function () {
+  const id = $(this).data("id");
+
+  apiAddresses = apiAddresses.map(a => ({
+    ...a,
+    active: String(a.id) === String(id) ? "1" : "0"
+  }));
+
+  renderAddressesFromApi(apiAddresses);
+  hydrateActiveDeliveryAddress(apiAddresses);
+
+  showGreenToast("Active address updated.");
+});
+
+$(document).on("click", ".delete-address-btn", function () {
+  const addressId = $(this).data("id");
+  const token = sessionStorage.getItem("AUTH_TOKEN");
+
+  if (!token || !addressId) {
+    showGreenToast("Invalid session or address.", "error");
+    return;
+  }
+
+  // 🔥 IMMEDIATE UI REMOVAL (Optimistic UI)
+  const $card = $(`.address-card[data-address-id="${addressId}"]`);
+  $card.slideUp(200, function () {
+    $(this).remove();
+  });
+
+  fetch("https://api.faadaakaa.com/api/delete_address", {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      token: token,
+      address_id: addressId
+    })
+  })
+    .then(res => res.json())
+    .then(json => {
+      if (!json.status) {
+        showGreenToast(json.message || "Failed to delete address.", "error");
+
+        // 🔄 Rollback UI if backend fails
+        fetchDeliveryAddresses();
+        return;
+      }
+
+      showGreenToast("Address deleted successfully.", "success");
+
+      // Optional background sync
+      if (typeof fetchDeliveryAddresses === "function") {
+        fetchDeliveryAddresses();
+      }
+    })
+    .catch(err => {
+      console.error("Delete address error", err);
+
+      showGreenToast("Something went wrong. Restoring address.", "error");
+
+      // 🔄 Rollback UI on error
+      fetchDeliveryAddresses();
+    });
+});
+
+
+
+// ================ADD NEW DELIVERY ADDRESS=========
+function hydrateActiveDeliveryAddress(addresses) {
+  const active = addresses.find(a => String(a.active) === "1");
+
+  if (!active) {
+    setText("#deliveryName", "No active address");
+    setText("#deliveryPhone", "-");
+    setText("#deliveryAddress", "-");
+    setText("#deliveryState", "-");
+    return;
+  }
+
+  setText("#deliveryName", active.name);
+  setText("#deliveryPhone", active.mobile);
+  setText("#deliveryAddress", active.address);
+  setText("#deliveryState", active.state);
+}
+$(document).ready(function () {
+
+  const $form = $("#deliveryForm");
+  const $deliveryFullName = $("#deliveryFullName");
+  const $deliveryPhone = $("#deliveryPhone");
+  const $deliveryAddress = $("#deliveryAddress");
+  const $deliveryState = $("#deliveryStateInput");
+
+  loadStatesIntoSelect("deliveryStateInput");
+
+  $form.on("submit", function (e) {
+    e.preventDefault();
+
+    const token = sessionStorage.getItem("AUTH_TOKEN");
+    if (!token) {
+      showGreenToast("Session expired. Please login again.", "error");
+      return;
+    }
+
+    const $selectedOption = $("#deliveryStateInput option:selected");
+
+    const payload = {
+      name: $deliveryFullName.val().trim(),
+      mobile: $deliveryPhone.val().trim(),
+      address: $deliveryAddress.val().trim(),
+      state: $selectedOption.val(),
+      state_id: $selectedOption.data("stateId")
+    };
+
+    if (!payload.name || !payload.mobile || !payload.address) {
+      showGreenToast("Please fill all fields", "error");
+      return;
+    }
+
+    if (!payload.state || !payload.state_id) {
+      showGreenToast("Please select a state", "error");
+      return;
+    }
+
+    if (payload.mobile.length !== 11) {
+      showGreenToast("Phone number must be 11 digits", "error");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("token", token);
+    formData.append("name", payload.name);
+    formData.append("mobile", payload.mobile);
+    formData.append("address", payload.address);
+    formData.append("state", payload.state);
+    formData.append("state_id", payload.state_id);
+
+    fetch("https://api.faadaakaa.com/api/addaddress", {
+      method: "POST",
+      body: formData
+    })
+      .then(res => res.json())
+      .then(json => {
+        if (!json.status) {
+          showGreenToast(json.message || "Failed to add address", "error");
+          return;
+        }
+
+        showGreenToast("Delivery address added successfully", "success");
+
+        const newAddress = {
+          id: json.address_id || Date.now(),
+          name: payload.name,
+          mobile: payload.mobile,
+          address: payload.address,
+          state: payload.state,
+          active: apiAddresses.length ? "0" : "1"
+        };
+
+        apiAddresses.push(newAddress);
+        renderAddressesFromApi(apiAddresses);
+        hydrateActiveDeliveryAddress(apiAddresses);
+
+        $form[0].reset();
+        $("#deliveryStateInput").val("");
+      })
+      .catch(err => {
+        console.error("Add address error", err);
+        showGreenToast("Something went wrong. Try again.", "error");
+      });
+  });
+
+});
+
+
+
+// =====================================================
+//ORDERS AND ORDER DETAILS (API)
+// =====================================================
+const BASE_URL = "https://api.faadaakaa.com/api";
+const IMAGE_BASE = "https://fdk1.nyc3.digitaloceanspaces.com/fdk_bucket/";
+
+let currentOrdersPage = 1;
+let ordersCache = [];
+
+/* ==============================
+   HELPERS
+============================== */
+function formatPrice(amount) {
+  return `₦${Number(amount || 0).toLocaleString()}`;
+}
+
+function formatDate(dateStr) {
+  const d = new Date(dateStr);
+  return d.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric"
+  });
+}
+
+/* ==============================
+   LOAD ORDERS
+============================== */
+
+
+/* ==============================
+   SUMMARY CARDS
+============================== */
+function renderOrdersSummary(data) {
+  const totalOrders =
+    data.total_orders_count?.[0]?.total_orders_count || 0;
+
+  $("#totalOrders").text(totalOrders);
+  $("#totalOrderValue").text(formatPrice(data.order_sum));
+  $("#outstandingLoan").text(formatPrice(data.debt));
+}
+
+/* ==============================
+   ORDERS TABLE
+============================== */
+function renderOrdersTable(orders) {
+  const $tbody = $("#ordersTableBody");
+  $tbody.empty();
+
+  if (!orders.length) {
+    showEmptyOrders();
+    return;
+  }
+
+  $("#ordersEmpty").addClass("hidden");
+
+  orders.forEach(order => {
+    const outstanding =
+      order.loan && order.loan > 0
+        ? formatPrice(order.loan)
+        : "₦0";
+
+    const purchaseType =
+      order.payment_model === "instalment"
+        ? `${order.payment_period} months`
+        : "Outright";
+
+    $tbody.append(`
+      <tr class="border-b border-[#EAECF0] text-[#1D2939]">
+        <td class="py-[10px]">${formatDate(order.created_at)}</td>
+        <td class="py-[10px]">#${order.id}</td>
+        <td class="py-[10px]">${formatPrice(order.order_amount)}</td>
+        <td class="py-[10px]">${formatPrice(order.amount_paid)}</td>
+        <td class="py-[10px] capitalize">${purchaseType}</td>
+        <td class="py-[10px] text-[#D92D20]">${outstanding}</td>
+        <td class="py-[10px]">
+          <button
+            class="text-[#1570EF] font-medium viewOrderBtn"
+            data-id="${order.id}">
+            View
+          </button>
+        </td>
+      </tr>
+    `);
+  });
+}
+
+/* ==============================
+   EMPTY STATE
+============================== */
+function showEmptyOrders() {
+  $("#ordersTableBody").empty();
+  $("#ordersEmpty").removeClass("hidden");
+}
+
+
+/* ==============================
+   ORDER DETAILS VIEW
+============================== */
+$(document).on("click", ".viewOrderBtn", function () {
+  const orderId = $(this).data("id");
+  const order = ordersCache.find(o => o.id === orderId);
+  if (!order) return;
+
+  $("#ordersContent").addClass("hidden");
+  $("#orderDetailsContent").removeClass("hidden");
+
+  populateOrderDetails(order);
+
+  // ===== LOAD ORDER DETAILS (CORRECT) =====
+  const formData = new FormData();
+  formData.append("token", sessionStorage.getItem("AUTH_TOKEN"));
+  formData.append("orderId", orderId); // ✅ THIS IS THE FIX
+
+  fetch("https://api.faadaakaa.com/api/loadorderdetails", {
+    method: "POST",
+    body: formData
+  })
+    .then(res => res.json())
+    .then(result => {
+      console.log("LOAD ORDER DETAILS RESPONSE:", result);
+
+      if (
+        result.status === true &&
+        result.data &&
+        Array.isArray(result.data.repayment_schedule)
+      ) {
+        $("#repaymentSection").removeClass("hidden");
+        renderRepaymentSchedule(result.data.repayment_schedule);
+      }
+    })
+    .catch(err => console.error("Load order details error:", err));
+});
+
+/* ==============================
+   POPULATE ORDER DETAILS
+============================== */
+function populateOrderDetails(order) {
+  $("#detailOrderId").text(`#${order.id}`);
+  $("#detailOrderDate").text(formatDate(order.created_at));
+  $("#detailOrderValue").text(formatPrice(order.order_amount));
+  $("#detailOutstanding").text(formatPrice(order.loan || 0));
+
+  if (order.payment_model === "instalment" && order.loan > 0) {
+    $("#clearLoanBtn").removeClass("hidden");
+    $("#repaymentSection").removeClass("hidden");
+  } else {
+    $("#clearLoanBtn").addClass("hidden");
+    $("#repaymentSection").addClass("hidden");
+  }
+
+  $("#detailItemImage").attr("src", IMAGE_BASE + order.order_image);
+
+  $("#detailItemName").text(`Items (${order.items_count})`);
+  $("#detailItemQty").text(`Qty: ${order.items_count}`);
+  $("#detailItemQtyRight").text(order.items_count);
+  $("#detailItemPrice").text(formatPrice(order.order_amount));
+
+  $("#detailPayAmount").text(formatPrice(order.order_amount));
+  $("#detailPaid").text(formatPrice(order.amount_paid));
+  $("#detailMethod").text(order.payment_method);
+  $("#detailType").text(order.payment_model);
+
+  const addressText = order.address.replace(/<br>/g, ", ");
+  $("#deliveryName").text(order.delivery_name || "N/A");
+  $("#deliveryPhone").text(order.delivery_phone || "N/A");
+  $("#deliveryAddress").text(addressText);
+  $("#deliveryState").text(addressText.split(",").pop());
+}
+
+/* ==============================
+   BACK TO ORDERS
+============================== */
+$("#backToOrdersBtn").on("click", function () {
+  $("#orderDetailsContent").addClass("hidden");
+  $("#ordersContent").removeClass("hidden");
+});
+
+/* ==============================
+   RENDER REPAYMENT SCHEDULE
+============================== */
+function renderRepaymentSchedule(schedule) {
+  const $tbody = $("#repaymentTableBody");
+  $tbody.empty();
+
+  if (!Array.isArray(schedule) || schedule.length === 0) return;
+
+  schedule.forEach((item, index) => {
+    const isPaid = item.status === "paid";
+
+    const hasPreviousUnpaid = schedule
+      .slice(0, index)
+      .some(s => s.status !== "paid");
+
+    const canPayNow = !isPaid && !hasPreviousUnpaid;
+
+    const actionBtn = isPaid
+      ? `<span class="text-[#12B76A] font-medium">Paid</span>`
+      : `<button
+          class="payInstallmentBtn px-[12px] py-[6px] text-[13px] rounded-[6px]
+          ${canPayNow ? "bg-[#1570EF] text-white" : "bg-[#E4E7EC] text-[#98A2B3] cursor-not-allowed"}"
+          data-id="${item.id}"
+          ${canPayNow ? "" : "disabled"}>
+          Pay now
+        </button>`;
+
+    const row = `
+      <tr class="border-b border-[#EAECF0]">
+        <td class="px-[12px] py-[10px]">${index + 1}</td>
+        <td class="px-[12px] py-[10px]">₦${formatPrice(item.amount_to_pay)}</td>
+        <td class="px-[12px] py-[10px]">${formatDate(item.due_at)}</td>
+        <td class="px-[12px] py-[10px]">${item.paid_at ? formatDate(item.paid_at) : "-"}</td>
+        <td class="px-[12px] py-[10px] capitalize">${item.status}</td>
+        <td class="px-[12px] py-[10px] text-right">${actionBtn}</td>
+      </tr>
+    `;
+
+    $tbody.append(row);
+  });
+}
+/* ==============================
+   INIT
+============================== */
+$(document).ready(function () {
+  loadOrders(1);
+});
+function loadOrders(page = 1) {
+  const token = sessionStorage.getItem("AUTH_TOKEN");
+  if (!token) {
+    console.error("No auth token found");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("token", token);
+  formData.append("page", page);
+
+  fetch("https://api.faadaakaa.com/api/load_orders", {
+    method: "POST",
+    body: formData
+  })
+    .then(res => res.text()) // IMPORTANT
+    .then(text => {
+      try {
+        const res = JSON.parse(text);
+
+        if (!res.status) {
+          showEmptyOrders();
+          return;
+        }
+
+        const data = res.data;
+        ordersCache = data.orders || [];
+
+        renderOrdersSummary(data);
+        renderOrdersTable(ordersCache);
+        currentOrdersPage = page;
+
+      } catch (err) {
+        console.error("Invalid JSON response:", text);
+      }
+    })
+    .catch(err => {
+      console.error("Load orders error:", err);
+    });
+}
+
+// =====================================================
+// TAB SWITCHING (kept like yours, fixed selector IDs)
+// =====================================================
+function switchMainTab(tab) {
+  $("#accountContent,#walletContent,#loanCreditContent,#deliveryContent,#ordersContent,#orderDetailsContent,#loanPaymentPage")
+    .addClass("hidden");
+
+  $("#tab-account,#tab-wallet,#tab-loans,#tab-delivery,#tab-orders")
+    .removeClass("bg-[#EAECF0]");
+
+  if (tab === "account") $("#accountContent").removeClass("hidden");
+  if (tab === "wallet") $("#walletContent").removeClass("hidden");
+  if (tab === "loans") $("#loanCreditContent").removeClass("hidden");
+  if (tab === "delivery") $("#deliveryContent").removeClass("hidden");
+  if (tab === "orders") $("#ordersContent").removeClass("hidden");
+
+  $("#tab-" + tab).addClass("bg-[#EAECF0]");
+}
+
+$("#tab-account").on("click", () => switchMainTab("account"));
+$("#tab-wallet").on("click", () => switchMainTab("wallet"));
+$("#tab-loans").on("click", () => switchMainTab("loans"));
+$("#tab-delivery").on("click", () => switchMainTab("delivery"));
+$("#tab-orders").on("click", () => switchMainTab("orders"));
+$("#tab-logout").on("click", function () {
+  // Clear authentication
+  sessionStorage.removeItem("AUTH_TOKEN");
+
+  // Optional safety cleanup
+  sessionStorage.removeItem("Redirect_AFTER_LOGIN");
 
   // Redirect to homepage
   window.location.href = "index.html";
 });
+
+// =====================================================
+// INNER PROFILE TABS (unchanged behavior)
+// =====================================================
+function switchAccountInnerTab(key) {
+  $(".account-inner-section").addClass("hidden");
+  $(`[data-account-section='${key}']`).removeClass("hidden");
+
+  $(".account-inner-tab")
+    .removeClass("border-b-2 border-[#1570EF] text-[#1570EF]")
+    .addClass("text-[#667085]");
+
+  $(`[data-account-tab='${key}']`)
+    .addClass("border-b-2 border-[#1570EF] text-[#1570EF]")
+    .removeClass("text-[#667085]");
+}
+
+$("[data-account-tab]").on("click", function () {
+  switchAccountInnerTab($(this).data("account-tab"));
+});
+
+// ===============================
+// ACCOUNT LOADER (STABLE)
+// ===============================
+function showAccountLoader() {
+  accountLoaderStart = Date.now();
+  $("#accountPageLoader").removeClass("hidden");
+  $("#accountPageContent").addClass("hidden");
+}
+
+function hideAccountLoader() {
+  const MIN_TIME = 700;
+  const elapsed = Date.now() - accountLoaderStart;
+  const remaining = MIN_TIME - elapsed;
+
+  const done = () => {
+    $("#accountPageLoader").addClass("hidden");
+    $("#accountPageContent").removeClass("hidden");
+  };
+
+  if (remaining > 0) {
+    setTimeout(done, remaining);
+  } else {
+    done();
+  }
+}
+// =================================================
+// INIT
+// =====================================================
+$(document).ready(function () {
+  showAccountLoader();
+  fetchCurrentUser();
+  switchMainTab("account");
+  switchAccountInnerTab("profile");
+  
+});
+

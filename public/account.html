@@ -13,8 +13,7 @@
   
 </head>
 
-<body>
-
+<body data-active-tab="<%= activeTab %>">
 <!-- ===============================
      ACCOUNT PAGE LOADER
 =============================== -->
@@ -103,8 +102,8 @@
 
 
         <!-- LOGO -->
-        <a href="index.html" id="logoContainer" class="flex items-center">
-          <img id="siteLogo" src="./assets/images/logo.png" alt="Faadaakaa Logo"
+        <a href="/index.html" id="logoContainer" class="flex items-center">
+          <img id="siteLogo" src="/assets/images/logo.png" alt="Faadaakaa Logo"
             class="w-[140px] h-[32px] sm:w-[160px] sm:h-[36px] lg:w-[190px] lg:h-[44px] object-contain" />
         </a>
 
@@ -607,82 +606,95 @@
       <div id="accountInner"
            class="w-full h-auto flex flex-col lg:flex-row gap-[24px] lg:gap-[32px]">
 
-        <!-- LEFT SIDEBAR TABS -->
-        <div class="w-[277px] h-[350px] rounded-[8px] p-4 flex flex-col gap-4 md:w-[277px] w-full bg-white ">
-          <!-- TAB: My Account -->
-       <div class="flex items-center justify-between pr-3">
-  
-  <button
-    id="tab-account"
-    class="w-full lg:w-[173px] h-[36px] flex items-center px-4 py-2 rounded-md 
-           text-[#101828] text-[14px] font-medium leading-[22px] tracking-[-0.03em]
-           bg-[#EAECF0]">
-    My account
-  </button>
+      <!-- LEFT SIDEBAR -->
+<div class="w-[277px] h-[400px] shrink-0 rounded-[8px] p-4 flex flex-col gap-2 bg-white">
 
-  <!-- VERIFIED BADGE -->
-  <span id="accountVerifiedBadge"
-        class="hidden ml-3 inline-flex items-center gap-[6px]
-               pl-[10px] pr-[14px] py-[3px]
-               bg-[#15803D] text-white text-[11px] font-medium
-               rounded-l-full rounded-r-[4px] shadow-sm whitespace-nowrap">
-      <span class="w-[6px] h-[6px] rounded-full bg-white"></span>
-      Identity Verified
-  </span>
+  <!-- My Account -->
+  <a href="/account"
+     id="tab-account"
+     class="flex items-center justify-between w-full h-[44px] px-4 rounded-md
+            text-[#101828] text-[14px] font-medium
+             hover:bg-[#E4E7EC]">
+
+    <div class="flex items-center gap-3">
+      <i class="fa-regular fa-user text-[14px]"></i>
+      <span>My account</span>
+    </div>
+
+    <!-- VERIFIED BADGE (HIDDEN BY DEFAULT, DO NOT TOUCH) -->
+<span id="accountVerifiedBadge"
+      class="hidden items-center gap-[6px]
+             px-[10px] py-[3px]
+             bg-[#15803D] text-white text-[11px] font-medium
+             rounded-r-none rounded-l-full whitespace-nowrap">
+  <span class="w-[6px] h-[6px] rounded-full bg-white"></span>
+  Identity Verified
+</span>
+  </a>
+
+  <!-- My Wallet -->
+  <a href="/account/wallet"
+     id="tab-wallet"
+     class="flex items-center w-full h-[44px] px-4 rounded-md
+            text-[#101828] text-[14px] font-medium
+            hover:bg-[#F2F4F7]">
+
+    <i class="fa-solid fa-wallet mr-3 text-[14px]"></i>
+    My wallet
+  </a>
+
+  <!-- Loans & Credits -->
+  <a href="/account/loans"
+     id="tab-loans"
+     class="flex items-center w-full h-[44px] px-4 rounded-md
+            text-[#101828] text-[14px] font-medium
+            hover:bg-[#F2F4F7]">
+
+    <i class="fa-solid fa-credit-card mr-3 text-[14px]"></i>
+    Loans & Credits
+  </a>
+
+  <!-- Delivery Addresses -->
+  <a href="/account/delivery"
+     id="tab-delivery"
+     class="flex items-center w-full h-[44px] px-4 rounded-md
+            text-[#101828] text-[14px] font-medium
+            hover:bg-[#F2F4F7]">
+
+    <i class="fa-solid fa-location-dot mr-3 text-[14px]"></i>
+    Delivery Addresses
+  </a>
+
+  <!-- My Orders -->
+  <a href="/account/orders"
+     id="tab-orders"
+     class="flex items-center w-full h-[44px] px-4 rounded-md
+            text-[#101828] text-[14px] font-medium
+            hover:bg-[#F2F4F7]">
+
+    <i class="fa-solid fa-box mr-3 text-[14px]"></i>
+    My orders
+  </a>
+
+  <!-- Logout -->
+  <a href=""
+     id="tab-logout"
+     class="logoutBtn flex items-center w-full h-[44px] px-4 rounded-md
+            text-[#B42318] text-[14px] font-medium
+            hover:bg-[#FEF3F2]">
+
+    <i class="fa-solid fa-right-from-bracket mr-3 text-[14px]"></i>
+    Logout
+  </a>
 
 </div>
-
-          <!-- TAB: My Wallet -->
-          <button
-            id="tab-wallet"
-            class="w-full lg:w-[173px] h-[36px] flex items-center px-4 py-2 rounded-md 
-                   text-[#101828] text-[14px] font-medium leading-[22px] tracking-[-0.03em]
-                   hover:bg-[#F9FAFB]">
-            My wallet
-          </button>
-
-          <!-- TAB: Loans & Credits -->
-          <button
-            id="tab-loans"
-            class="w-full lg:w-[173px] h-[36px] flex items-center px-4 py-2 rounded-md 
-                   text-[#101828] text-[14px] font-medium leading-[22px] tracking-[-0.03em]
-                   hover:bg-[#F9FAFB]">
-            Loans & Credits
-          </button>
-
-          <!-- TAB: Delivery Addresses -->
-          <button
-            id="tab-delivery"
-            class="w-full lg:w-[173px] h-[36px] flex items-center px-4 py-2 rounded-md 
-                   text-[#101828] text-[14px] font-medium leading-[22px] tracking-[-0.03em]
-                   hover:bg-[#F9FAFB]">
-            Delivery Addresses
-          </button>
-
-          <!-- TAB: My Orders -->
-          <button
-            id="tab-orders"
-            class="w-full lg:w-[173px] h-[36px] flex items-center px-4 py-2 rounded-md 
-                   text-[#101828] text-[14px] font-medium leading-[22px] tracking-[-0.03em]
-                   hover:bg-[#F9FAFB]">
-            My orders
-          </button>
-
-          <!-- TAB: Logout -->
-          <button
-            id="tab-logout"
-            class="w-full lg:w-[173px] h-[36px] flex items-center px-4 py-2 rounded-md
-                   text-[#101828] text-[14px] font-medium leading-[22px] tracking-[-0.03em]
-                   hover:bg-[#F9FAFB]">
-            Logout
-          </button>
-        </div>
 
         <!-- RIGHT SIDE MAIN WRAPPER -->
         <div id="rightSideContainer"
              class="w-full flex-1">
-
-          <div id="accountContent" class="w-full">
+             <div class="accountRoutes">
+             
+          <div id="accountContent" class="w-full ">
 
   <!-- OUTER WRAPPER -->
   <div class="w-full bg-white">
@@ -776,36 +788,47 @@
     Update Profile Details
   </h2>
 
-  <form id="profileForm" class="flex flex-col gap-[12px] max-w-[600px]">
+  <form id="profileForm" class="flex flex-col gap-[12px] w-full">
 
-    <!-- ADDRESS -->
-    <div class="flex flex-col gap-[6px]">
-      <label class="text-[13px] font-medium text-[#414651]">Address</label>
-      <input id="profileAddressInput" type="text"
-             class="w-full h-[40px] border border-[#D0D5DD] rounded-[6px] px-[12px] text-[14px]">
-    </div>
+  <!-- ADDRESS -->
+  <div class="flex flex-col gap-[6px] w-full">
+    <label class="text-[13px] font-medium text-[#414651]">Address</label>
+    <input
+      id="profileAddressInput"
+      type="text"
+      class="w-full h-[40px] border border-[#D0D5DD]
+             rounded-[6px] px-[12px] text-[14px]"
+    />
+  </div>
 
-    <!-- STATE -->
-<div class="flex flex-col gap-[6px]">
-  <label class="text-[13px] font-medium text-[#414651]">State</label>
-  <select
-    id="profileStateInput"
-    class="w-full h-[40px] border border-[#D0D5DD] rounded-[6px] px-[12px] text-[14px] bg-white">
-    <option value="">Select state</option>
-  </select>
-</div>
-    <div class="flex justify-end mt-[8px]">
-     <button type="submit"
-        id="updateProfileBtn"
-        class="w-[140px] h-[40px] bg-[#1570EF] text-white rounded-[8px] text-[14px] font-medium
-               flex items-center justify-center gap-[8px] disabled:opacity-70">
-  <span>Update Profile</span>
-  <span class="btn-spinner hidden"></span>
-</button>
+  <!-- STATE -->
+  <div class="flex flex-col gap-[6px] w-full">
+    <label class="text-[13px] font-medium text-[#414651]">State</label>
+    <select
+      id="profileStateInput"
+      class="w-full h-[40px] border border-[#D0D5DD]
+             rounded-[6px] px-[12px] text-[14px] bg-white"
+    >
+      <option value="">Select state</option>
+    </select>
+  </div>
 
-    </div>
+  <!-- BUTTON -->
+  <div class="flex justify-end mt-[8px]">
+    <button
+      type="submit"
+      id="updateProfileBtn"
+      class="w-[140px] h-[40px] bg-[#1570EF] text-white
+             rounded-[8px] text-[14px] font-medium
+             flex items-center justify-center gap-[8px]
+             disabled:opacity-70"
+    >
+      <span>Update Profile</span>
+      <span class="btn-spinner hidden"></span>
+    </button>
+  </div>
 
-  </form>
+</form>
 
 </div>
 
@@ -813,48 +836,56 @@
      UPDATE PASSWORD SECTION (FORM)
 ===================================================== -->
 <div class="account-inner-section hidden" data-account-section="password">
-  <form id="passwordForm" class="w-full max-w-[480px] flex flex-col gap-[16px]">
+  <form id="passwordForm" class="w-full flex flex-col gap-[16px]">
 
-    <!-- Current Password -->
-    <div class="flex flex-col gap-[6px] relative">
-      <label class="text-[13px] font-medium text-[#414651]">Current Password</label>
-      <input type="password" id="currentPasswordInput"
-             class="w-full h-[44px] rounded-md border border-[#D0D5DD] px-[14px] pr-[40px] text-[14px]">
-      <i id="currentPasswordIcon"
-         class="fa-solid fa-eye absolute right-[12px] top-[38px] text-[#667085] cursor-pointer"></i>
-    </div>
+  <div class="flex flex-col gap-[6px] relative w-full">
+    <label class="text-[13px] font-medium text-[#414651]">Current Password</label>
+    <input
+      type="password"
+      id="currentPasswordInput"
+      class="w-full h-[44px] rounded-md border border-[#D0D5DD]
+             px-[14px] pr-[40px] text-[14px]"
+    />
+    <i class="fa-solid fa-eye absolute right-[12px] top-[38px] text-[#667085] cursor-pointer"></i>
+  </div>
 
-    <!-- New Password -->
-    <div class="flex flex-col gap-[6px] relative">
-      <label class="text-[13px] font-medium text-[#414651]">New Password</label>
-      <input type="password" id="newPasswordInput"
-             class="w-full h-[44px] rounded-md border border-[#D0D5DD] px-[14px] pr-[40px] text-[14px]">
-      <i id="newPasswordIcon"
-         class="fa-solid fa-eye absolute right-[12px] top-[38px] text-[#667085] cursor-pointer"></i>
-    </div>
+  <div class="flex flex-col gap-[6px] relative w-full">
+    <label class="text-[13px] font-medium text-[#414651]">New Password</label>
+    <input
+      type="password"
+      id="newPasswordInput"
+      class="w-full h-[44px] rounded-md border border-[#D0D5DD]
+             px-[14px] pr-[40px] text-[14px]"
+    />
+    <i class="fa-solid fa-eye absolute right-[12px] top-[38px] text-[#667085] cursor-pointer"></i>
+  </div>
 
-    <!-- Confirm Password -->
-    <div class="flex flex-col gap-[6px] relative">
-      <label class="text-[13px] font-medium text-[#414651]">Confirm New Password</label>
-      <input type="password" id="confirmPasswordInput"
-             class="w-full h-[44px] rounded-md border border-[#D0D5DD] px-[14px] pr-[40px] text-[14px]">
-      <i id="confirmPasswordIcon"
-         class="fa-solid fa-eye absolute right-[12px] top-[38px] text-[#667085] cursor-pointer"></i>
-    </div>
+  <div class="flex flex-col gap-[6px] relative w-full">
+    <label class="text-[13px] font-medium text-[#414651]">Confirm New Password</label>
+    <input
+      type="password"
+      id="confirmPasswordInput"
+      class="w-full h-[44px] rounded-md border border-[#D0D5DD]
+             px-[14px] pr-[40px] text-[14px]"
+    />
+    <i class="fa-solid fa-eye absolute right-[12px] top-[38px] text-[#667085] cursor-pointer"></i>
+  </div>
 
-    <div class="flex justify-end">
-      <button type="submit"
-        id="updatePasswordBtn"
-        class="w-[160px] h-[42px] bg-[#1570EF] text-white rounded-md text-[14px] font-semibold
-               flex items-center justify-center gap-[8px] disabled:opacity-70">
-  <span>Update Password</span>
+  <div class="flex justify-end mt-[8px]">
+    <button
+      type="submit"
+      id="updatePasswordBtn"
+      class="w-[160px] h-[42px] bg-[#1570EF] text-white
+             rounded-md text-[14px] font-semibold
+             flex items-center justify-center gap-[8px]
+             disabled:opacity-70"
+    >
+      <span>Update Password</span>
+      <span class="btn-spinner hidden"></span>
+    </button>
+  </div>
 
-  <!-- Spinner -->
-  <span class="btn-spinner hidden"></span>
-</button>
-    </div>
-
-  </form>
+</form>
 </div>
 <!-- GLOBAL SUCCESS TOAST -->
 <div id="toastSuccess"
@@ -869,25 +900,26 @@
      class="fa-solid fa-xmark ml-[8px] cursor-pointer"></i>
 </div>
 
-     <!-- =====================================================
+ <!-- =====================================================
            UPDATE EMAIL SECTION (FORM)
 ===================================================== -->
 <div class="account-inner-section hidden" data-account-section="email">
 
   <!-- STEP 1: REQUEST OTP -->
-  <div id="emailStepOne" class="w-full max-w-[480px] flex flex-col gap-[12px]">
+  <div id="emailStepOne" class="w-full flex flex-col gap-[12px]">
 
     <p class="text-[13px] text-[#667085]">
       Current email:
       <span id="currentEmailDisplay" class="font-medium text-[#101828]">Not set</span>
     </p>
 
-    <div class="flex flex-col gap-[6px]">
+    <div class="flex flex-col gap-[6px] w-full">
       <label class="text-[13px] font-medium text-[#414651]">New Email *</label>
       <input
         id="newEmailInput"
         type="email"
-        class="w-full h-[44px] border border-[#D0D5DD] rounded-[8px] px-[12px] text-[14px]"
+        class="w-full h-[44px] border border-[#D0D5DD]
+               rounded-[8px] px-[12px] text-[14px]"
         placeholder="Valid email address"
       />
     </div>
@@ -895,8 +927,9 @@
     <div class="flex justify-end">
       <button
         id="requestEmailOtpBtn"
-        class="relative w-[140px] h-[40px] bg-[#1570EF] text-white rounded-[8px]
-               text-[14px] font-medium flex items-center justify-center
+        class="relative w-[140px] h-[40px] bg-[#1570EF] text-white
+               rounded-[8px] text-[14px] font-medium
+               flex items-center justify-center
                disabled:opacity-70"
       >
         <span class="btn-text">Request OTP</span>
@@ -909,33 +942,33 @@
   <!-- STEP 2: OTP + PASSWORD -->
   <div
     id="emailOtpWrap"
-    class="hidden w-full max-w-[480px] flex flex-col gap-[12px] mt-[10px]"
+    class="hidden w-full flex flex-col gap-[12px] mt-[10px]"
   >
 
-    <div class="flex flex-col gap-[6px]">
+    <div class="flex flex-col gap-[6px] w-full">
       <label class="text-[13px] font-medium text-[#414651]">New Email *</label>
       <input
         id="pendingEmailInput"
         type="email"
         disabled
-        class="w-full h-[44px] border border-[#D0D5DD] rounded-[8px] px-[12px]
-               text-[14px] bg-[#F9FAFB]"
+        class="w-full h-[44px] border border-[#D0D5DD]
+               rounded-[8px] px-[12px] text-[14px] bg-[#F9FAFB]"
       />
     </div>
 
-    <div class="flex flex-col gap-[6px]">
+    <div class="flex flex-col gap-[6px] w-full">
       <label class="text-[13px] font-medium text-[#414651]">OTP *</label>
       <input
         id="emailOtpInput"
         type="text"
         maxlength="6"
-        class="w-full h-[44px] border border-[#D0D5DD] rounded-[8px] px-[12px]
-               text-[14px]"
+        class="w-full h-[44px] border border-[#D0D5DD]
+               rounded-[8px] px-[12px] text-[14px]"
         placeholder="Enter OTP"
       />
     </div>
 
-    <div class="flex flex-col gap-[6px] relative">
+    <div class="flex flex-col gap-[6px] relative w-full">
       <label class="text-[13px] font-medium text-[#414651]">Password *</label>
       <input
         id="emailPasswordInput"
@@ -975,78 +1008,112 @@
 
 </div>
 
-      <!-- =====================================================
+<!-- =====================================================
      UPDATE PHONE SECTION (FORM)
 ===================================================== -->
 <div class="account-inner-section hidden" data-account-section="phone">
-  <div class="w-full max-w-[480px] flex flex-col gap-[12px]" id="phoneStep1">
+
+  <div class="w-full flex flex-col gap-[12px]" id="phoneStep1">
 
     <p class="text-[13px] text-[#667085]">
       Current phone:
       <span id="currentPhoneDisplay" class="font-medium text-[#101828]">Not set</span>
     </p>
 
-    <div class="flex flex-col gap-[6px]">
+    <div class="flex flex-col gap-[6px] w-full">
       <label class="text-[13px] font-medium text-[#414651]">Update Phone (11-digit) *</label>
-      <input id="newPhoneInput" type="tel" maxlength="11"
-             class="w-full h-[44px] border border-[#D0D5DD] rounded-[8px] px-[12px] text-[14px]"
-             placeholder="Valid 11-digit phone number" />
+      <input
+        id="newPhoneInput"
+        type="tel"
+        maxlength="11"
+        class="w-full h-[44px] border border-[#D0D5DD]
+               rounded-[8px] px-[12px] text-[14px]"
+        placeholder="Valid 11-digit phone number"
+      />
     </div>
 
     <div class="flex justify-end">
-      <button id="requestPhoneOtpBtn"
-  class="relative w-[140px] h-[40px] bg-[#1570EF] text-white rounded-[8px]
-         text-[14px] font-medium flex items-center justify-center
-         disabled:opacity-70">
-
-  <span class="btn-text">Request OTP</span>
-  <span class="btn-spinner hidden absolute right-[14px]"></span>
-
-</button>
+      <button
+        id="requestPhoneOtpBtn"
+        class="relative w-[140px] h-[40px] bg-[#1570EF] text-white
+               rounded-[8px] text-[14px] font-medium
+               flex items-center justify-center
+               disabled:opacity-70"
+      >
+        <span class="btn-text">Request OTP</span>
+        <span class="btn-spinner hidden absolute right-[14px]"></span>
+      </button>
     </div>
+
   </div>
 
   <!-- STEP 2 -->
-  <div id="phoneOtpWrap" class="hidden w-full max-w-[480px] flex flex-col gap-[12px] mt-[10px]">
+  <div
+    id="phoneOtpWrap"
+    class="hidden w-full flex flex-col gap-[12px] mt-[10px]"
+  >
 
-    <div class="flex flex-col gap-[6px]">
+    <div class="flex flex-col gap-[6px] w-full">
       <label class="text-[13px] font-medium text-[#414651]">New Phone *</label>
-      <input id="pendingPhoneInput" type="tel" disabled
-             class="w-full h-[44px] bg-[#F9FAFB] border border-[#D0D5DD] rounded-[8px] px-[12px] text-[14px]" />
+      <input
+        id="pendingPhoneInput"
+        type="tel"
+        disabled
+        class="w-full h-[44px] bg-[#F9FAFB] border border-[#D0D5DD]
+               rounded-[8px] px-[12px] text-[14px]"
+      />
     </div>
 
-    <div class="flex flex-col gap-[6px]">
+    <div class="flex flex-col gap-[6px] w-full">
       <label class="text-[13px] font-medium text-[#414651]">OTP *</label>
-      <input id="phoneOtpInput" type="text" maxlength="6"
-             class="w-full h-[44px] border border-[#D0D5DD] rounded-[8px] px-[12px] text-[14px]"
-             placeholder="Enter OTP" />
+      <input
+        id="phoneOtpInput"
+        type="text"
+        maxlength="6"
+        class="w-full h-[44px] border border-[#D0D5DD]
+               rounded-[8px] px-[12px] text-[14px]"
+        placeholder="Enter OTP"
+      />
     </div>
 
-    <div class="flex flex-col gap-[6px] relative">
+    <div class="flex flex-col gap-[6px] relative w-full">
       <label class="text-[13px] font-medium text-[#414651]">Password *</label>
-      <input id="phonePasswordInput" type="password"
-             class="w-full h-[44px] rounded-md border border-[#D0D5DD] px-[14px] pr-[40px] text-[14px]">
-      <i id="phonePasswordIcon"
-         class="fa-solid fa-eye absolute right-[12px] top-[38px] text-[#667085] cursor-pointer"></i>
+      <input
+        id="phonePasswordInput"
+        type="password"
+        class="w-full h-[44px] rounded-md border border-[#D0D5DD]
+               px-[14px] pr-[40px] text-[14px]"
+      />
+      <i
+        id="phonePasswordIcon"
+        class="fa-solid fa-eye absolute right-[12px] top-[38px]
+               text-[#667085] cursor-pointer"
+      ></i>
     </div>
 
     <div class="flex items-center justify-between">
-      <button id="resendPhoneOtpBtn" disabled
-              class="text-[13px] text-[#1570EF] font-medium disabled:opacity-50">
+      <button
+        id="resendPhoneOtpBtn"
+        disabled
+        class="text-[13px] text-[#1570EF] font-medium disabled:opacity-50"
+      >
         Resend OTP in <span id="phoneResendTimer">60</span>s
       </button>
 
-     <button id="confirmPhoneUpdateBtn"
-  class="relative w-[140px] h-[40px] bg-[#1570EF] text-white rounded-[8px]
-         text-[14px] font-medium flex items-center justify-center
-         disabled:opacity-70">
-
-  <span class="btn-text">Update Phone</span>
-  <span class="btn-spinner hidden absolute right-[14px]"></span>
-
-</button>
+      <button
+        id="confirmPhoneUpdateBtn"
+        class="relative w-[140px] h-[40px] bg-[#1570EF] text-white
+               rounded-[8px] text-[14px] font-medium
+               flex items-center justify-center
+               disabled:opacity-70"
+      >
+        <span class="btn-text">Update Phone</span>
+        <span class="btn-spinner hidden absolute right-[14px]"></span>
+      </button>
     </div>
+
   </div>
+
 </div>
 
     </div>
@@ -1070,7 +1137,79 @@
     <!-- Two columns -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-[16px] md:gap-[24px]">
 
-      <!-- PAYMENT CARDS SECTION -->
+      <!-- WALLET DETAILS SECTION -->
+      <div class="flex flex-col gap-[8px]">
+
+        <!-- Title OUTSIDE BOX -->
+        <h3 class="text-[14px] font-semibold text-[#1B1D27] pl-[2px]">
+          Wallet Details
+        </h3>
+
+        <!-- BOX -->
+        <div class="border border-[#EAECF0] rounded-[12px] p-[16px] flex flex-col gap-[16px] min-h-[180px] h-full">
+          <i class="fa-regular fa-credit-card text-[#000] text-[14px]"></i>
+          <div class="flex-1 flex flex-col justify-center">
+            <p class="text-[13px] text-[#667085] mb-[4px]">Wallet Balance:</p>
+            <p id="walletBalanceBox"
+               class="text-[18px] font-semibold text-[#101828]" data-wallet-balance>
+              ₦0.00
+            </p>
+          </div>
+
+          <!-- DIVIDER -->
+          <div class="border-t border-[#EAECF0] mt-[14px]"></div>
+
+          <!-- BUTTON (Styled like a link) -->
+          <div class="flex justify-end pt-[2px]">
+            <button id="fundWalletBtn"
+                    class="text-[13px] text-[#1570EF] font-medium underline underline-offset-2">
+              Fund Wallet
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- INITIAL PAYMENT % SECTION -->
+<div class="flex flex-col gap-[8px]">
+
+  <!-- Title OUTSIDE BOX -->
+  <h3 class="text-[14px] font-semibold text-[#1B1D27] pl-[2px]">
+    Initial Payment %
+  </h3>
+
+  <!-- BOX -->
+  <div class="border border-[#EAECF0] rounded-[12px] p-[16px] flex flex-col gap-[16px] min-h-[180px] h-full">
+    <i class="fa-solid fa-percentage text-[#000] text-[14px]"></i>
+    <div class="flex-1 flex flex-col justify-center">
+      <p class="text-[13px] text-[#667085] mb-[4px]">
+        Initial Payment %:
+      </p>
+      <p id="initialPaymentValue"
+         class="text-[18px] font-semibold text-[#101828]">
+        40.00%
+      </p>
+
+      <p class="text-[12px] text-[#667085] mt-[6px]">
+        *This is the minimum % that must be paid before you can buy on credit*
+      </p>
+    </div>
+
+    <!-- DIVIDER -->
+    <div class="border-t border-[#EAECF0] mt-[14px]"></div>
+
+    <!-- BUTTON -->
+    <div class="flex justify-end pt-[2px]">
+      <button id="updateInitialPaymentBtn"
+              class="text-[13px] text-[#1570EF] font-medium underline underline-offset-2">
+        Update Initial %
+      </button>
+    </div>
+
+  </div>
+</div>
+
+ <!-- PAYMENT CARDS SECTION -->
       <div class="flex flex-col gap-[8px]">
         
 
@@ -1108,78 +1247,6 @@
 
         </div>
       </div>
-
-      <!-- WALLET DETAILS SECTION -->
-      <div class="flex flex-col gap-[8px]">
-
-        <!-- Title OUTSIDE BOX -->
-        <h3 class="text-[14px] font-semibold text-[#1B1D27] pl-[2px]">
-          Wallet Details
-        </h3>
-
-        <!-- BOX -->
-        <div class="border border-[#EAECF0] rounded-[12px] p-[16px] flex flex-col gap-[16px] min-h-[180px]">
-          <i class="fa-regular fa-credit-card text-[#000] text-[14px]"></i>
-          <div class="flex-1 flex flex-col justify-center">
-            <p class="text-[13px] text-[#667085] mb-[4px]">Wallet Balance:</p>
-            <p id="walletBalanceBox"
-               class="text-[18px] font-semibold text-[#101828]" data-wallet-balance>
-              ₦0.00
-            </p>
-          </div>
-
-          <!-- DIVIDER -->
-          <div class="border-t border-[#EAECF0] mt-[14px]"></div>
-
-          <!-- BUTTON (Styled like a link) -->
-          <div class="flex justify-end pt-[2px]">
-            <button id="fundWalletBtn"
-                    class="text-[13px] text-[#1570EF] font-medium underline underline-offset-2">
-              Fund Wallet
-            </button>
-          </div>
-
-        </div>
-      </div>
-
-      <!-- INITIAL PAYMENT % SECTION -->
-<div class="flex flex-col gap-[8px]">
-
-  <!-- Title OUTSIDE BOX -->
-  <h3 class="text-[14px] font-semibold text-[#1B1D27] pl-[2px]">
-    Initial Payment %
-  </h3>
-
-  <!-- BOX -->
-  <div class="border border-[#EAECF0] rounded-[12px] p-[16px] flex flex-col gap-[16px] min-h-[180px]">
-    <i class="fa-solid fa-percentage text-[#000] text-[14px]"></i>
-    <div class="flex-1 flex flex-col justify-center">
-      <p class="text-[13px] text-[#667085] mb-[4px]">
-        Initial Payment %:
-      </p>
-      <p id="initialPaymentValue"
-         class="text-[18px] font-semibold text-[#101828]">
-        40.00%
-      </p>
-
-      <p class="text-[12px] text-[#667085] mt-[6px]">
-        *This is the minimum % that must be paid before you can buy on credit*
-      </p>
-    </div>
-
-    <!-- DIVIDER -->
-    <div class="border-t border-[#EAECF0] mt-[14px]"></div>
-
-    <!-- BUTTON -->
-    <div class="flex justify-end pt-[2px]">
-      <button id="updateInitialPaymentBtn"
-              class="text-[13px] text-[#1570EF] font-medium underline underline-offset-2">
-        Update Initial %
-      </button>
-    </div>
-
-  </div>
-</div>
 
     </div>
 
@@ -1535,7 +1602,7 @@
 
   </div>
 
-  <!-- FINAL LOAN DASHBOARD (HIDDEN UNTIL BANK IS LINKED) -->
+
   <!-- FINAL LOAN DASHBOARD (hidden until bank is linked) -->
 <div id="loanDashboardSection" class="hidden w-full">
 
@@ -1729,76 +1796,102 @@
 </div>
 
           <!-- ========== TAB: DELIVERY ADDRESSES (HIDDEN INITIALLY) ========== -->
-         <div id="deliveryContent"
-     class="relative z-index-[1000]  w-full border border-[#EAECF0] rounded-[12px] bg-white p-[24px]">
+<div id="deliveryContent"
+     class="relative z-index-[1000] w-full border border-[#EAECF0]
+            rounded-[12px] bg-white p-[24px]">
 
   <!-- TITLE -->
-  <div class="flex items-center justify-between border-b border-[#EAECF0] pb-[10px] mb-[16px]">
-    <h2 class="text-[18px] font-semibold text-[#1B1D27]">Delivery Addresses</h2>
+  <div class="flex items-center justify-between border-b border-[#EAECF0]
+              pb-[10px] mb-[16px]">
+    <h2 class="text-[18px] font-semibold text-[#1B1D27]">
+      Delivery Addresses
+    </h2>
   </div>
 
-  <!-- SAVED ADDRESSES LIST (SHOW ONLY IF USER HAS AT LEAST ONE) -->
-  <div id="savedAddressesContainer" class="flex flex-col gap-[12px] mb-[24px] hidden">
-    
-    <!-- EACH ADDRESS CARD WILL BE INSERTED HERE BY JS -->
-    <!-- Example (JS will generate this):  
-   
-    -->
+  <!-- SAVED ADDRESSES LIST -->
+  <div id="savedAddressesContainer"
+       class="flex flex-col gap-[12px] mb-[24px] hidden">
+    <!-- Address cards injected by JS -->
   </div>
 
   <!-- NEW DELIVERY ADDRESS FORM -->
-  <h3 class="text-[16px] font-semibold text-[#1B1D27] mb-[8px]">New Delivery Address</h3>
+  <h3 class="text-[16px] font-semibold text-[#1B1D27] mb-[8px]">
+    New Delivery Address
+  </h3>
 
-  <form id="deliveryForm" class="flex flex-col gap-[12px] max-w-[600px]">
+  <!-- FULL WIDTH FORM -->
+  <form id="deliveryForm" class="flex flex-col gap-[12px] w-full">
 
-  <!-- FULL NAME -->
-  <div class="flex flex-col gap-[6px]">
-    <label class="text-[13px] font-medium text-[#414651]">Full Name</label>
-    <input id="deliveryFullName" type="text"
-      class="w-full h-[40px] border border-[#D0D5DD] rounded-[6px] px-[12px]
-             text-[14px] outline-none focus:ring-2 focus:ring-[#1570EF]"
-      placeholder="Receiver’s full name" />
-  </div>
+    <!-- FULL NAME -->
+    <div class="flex flex-col gap-[6px] w-full">
+      <label class="text-[13px] font-medium text-[#414651]">
+        Full Name
+      </label>
+      <input
+        id="deliveryFullName"
+        type="text"
+        class="w-full h-[40px] border border-[#D0D5DD]
+               rounded-[6px] px-[12px] text-[14px]
+               outline-none focus:ring-2 focus:ring-[#1570EF]"
+        placeholder="Receiver’s full name"
+      />
+    </div>
 
-  <!-- PHONE -->
-  <div class="flex flex-col gap-[6px]">
-    <label class="text-[13px] font-medium text-[#414651]">Phone</label>
-    <input id="deliveryPhone" type="text"
-      class="w-full h-[40px] border border-[#D0D5DD] rounded-[6px] px-[12px]
-             text-[14px] outline-none focus:ring-2 focus:ring-[#1570EF]"
-      placeholder="Receiver’s 11-digit phone number" />
-  </div>
+    <!-- PHONE -->
+    <div class="flex flex-col gap-[6px] w-full">
+      <label class="text-[13px] font-medium text-[#414651]">
+        Phone
+      </label>
+      <input
+        id="deliveryPhone"
+        type="text"
+        class="w-full h-[40px] border border-[#D0D5DD]
+               rounded-[6px] px-[12px] text-[14px]
+               outline-none focus:ring-2 focus:ring-[#1570EF]"
+        placeholder="Receiver’s 11-digit phone number"
+      />
+    </div>
 
-  <!-- ADDRESS -->
-  <div class="flex flex-col gap-[6px]">
-    <label class="text-[13px] font-medium text-[#414651]">Address*</label>
-    <input id="deliveryAddress" type="text"
-      class="w-full h-[40px] border border-[#D0D5DD] rounded-[6px] px-[12px]
-             text-[14px] outline-none focus:ring-2 focus:ring-[#1570EF]"
-      placeholder="Receiver’s address" />
-  </div>
+    <!-- ADDRESS -->
+    <div class="flex flex-col gap-[6px] w-full">
+      <label class="text-[13px] font-medium text-[#414651]">
+        Address*
+      </label>
+      <input
+        id="deliveryAddress"
+        type="text"
+        class="w-full h-[40px] border border-[#D0D5DD]
+               rounded-[6px] px-[12px] text-[14px]
+               outline-none focus:ring-2 focus:ring-[#1570EF]"
+        placeholder="Receiver’s address"
+      />
+    </div>
 
-  
-  <!-- STATE -->
-<div class="flex flex-col gap-[6px]">
-  <label class="text-[13px] font-medium text-[#414651]">State*</label>
-  <select
-    id="deliveryStateInput"
-    class="w-full h-[40px] border border-[#D0D5DD]
-           rounded-[6px] px-[12px] text-[14px] bg-white">
-    <option value="">Select state</option>
-  </select>
-</div>
+    <!-- STATE -->
+    <div class="flex flex-col gap-[6px] w-full">
+      <label class="text-[13px] font-medium text-[#414651]">
+        State*
+      </label>
+      <select
+        id="deliveryStateInput"
+        class="w-full h-[40px] border border-[#D0D5DD]
+               rounded-[6px] px-[12px] text-[14px] bg-white">
+        <option value="">Select state</option>
+      </select>
+    </div>
 
-  <!-- ADD BUTTON -->
-  <button type="submit"
-    class="w-[150px] h-[40px] bg-[#1570EF] text-white rounded-[8px]
-           text-[14px] font-medium mt-[8px]">
-    Add Address
-  </button>
+    
+    <div class="flex justify-end w-full mt-[8px]">
+      <button
+        type="submit"
+        class="w-[150px] h-[40px] bg-[#1570EF]
+               text-white rounded-[8px]
+               text-[14px] font-medium">
+        Add Address
+      </button>
+    </div>
 
-</form>
-  </div>
+  </form>
 </div>
 
           <!-- ========== TAB: MY ORDERS ========== -->
@@ -1816,7 +1909,7 @@
     <!-- Total Orders -->
     <div class="border border-[#EAECF0] rounded-[10px] p-[16px] flex flex-col gap-[6px]">
       <div class="flex items-center gap-[8px]">
-        <i class="fa-solid fa-cart-shopping text-[#1570EF] text-[20px]"></i>
+        <i class="fa-solid fa-cart-shopping text-[#000] text-[14px]"></i>
         <span class="text-[14px] font-medium text-[#1B1D27]">Total orders</span>
       </div>
       <span id="totalOrders" class="text-[20px] font-semibold text-[#1B1D27]">0</span>
@@ -1825,7 +1918,7 @@
     <!-- Total Order Value -->
     <div class="border border-[#EAECF0] rounded-[10px] p-[16px] flex flex-col gap-[6px]">
       <div class="flex items-center gap-[8px]">
-        <i class="fa-solid fa-receipt text-[#1570EF] text-[20px]"></i>
+        <i class="fa-solid fa-receipt text-[#000] text-[14px]"></i>
         <span class="text-[14px] font-medium text-[#1B1D27]">Total order value</span>
       </div>
       <span id="totalOrderValue" class="text-[20px] font-semibold text-[#1B1D27]">₦0.00</span>
@@ -1834,7 +1927,7 @@
     <!-- Outstanding Loan -->
     <div class="border border-[#EAECF0] rounded-[10px] p-[16px] flex flex-col gap-[6px]">
       <div class="flex items-center gap-[8px]">
-        <i class="fa-solid fa-credit-card text-[#1570EF] text-[20px]"></i>
+        <i class="fa-solid fa-credit-card text-[#000] text-[14px]"></i>
         <span class="text-[14px] font-medium text-[#1B1D27]">Outstanding Loan</span>
       </div>
       <span id="outstandingLoan" class="text-[20px] font-semibold text-[#D92D20]">₦0.00</span>
@@ -1844,224 +1937,412 @@
 
   
   <!-- ORDERS LIST SECTION -->
-<div class="border border-[#EAECF0] rounded-[10px] p-[16px]">
+<div class="border border-[#EAECF0] rounded-[12px] p-[16px] bg-white">
 
-  <h3 class="text-[16px] font-semibold text-[#1B1D27] mb-[10px]">Orders List</h3>
+  <h3 class="text-[16px] font-semibold text-[#1B1D27] mb-[14px]">
+    Orders List
+  </h3>
 
-  <!-- Orders table -->
   <div class="w-full overflow-x-auto">
-    <table class="w-full text-left text-[14px]">
+    <table class="w-full text-left text-[14px] table-fixed">
       <thead>
         <tr class="text-[#667085] border-b border-[#EAECF0]">
-          <th class="py-[10px]">Date</th>
-          <th class="py-[10px]">ID</th>
-          <th class="py-[10px]">Order Amount</th>
-          <th class="py-[10px]">Paid at Purchase</th>
-          <th class="py-[10px]">Purchase Type</th>
-          <th class="py-[10px]">Outstanding</th>
-          <th class="py-[10px]">Details</th>
+          <th class="py-[12px] w-[130px]">Date</th>
+          <th class="py-[12px] w-[80px]">ID</th>
+          <th class="py-[12px] w-[140px]">Order Amount</th>
+          <th class="py-[12px] w-[140px]">Paid at Purchase</th>
+          <th class="py-[12px] w-[160px]">Purchase Type</th>
+          <th class="py-[12px] w-[140px]">Outstanding</th>
+          <th class="py-[12px] w-[80px]">Details</th>
         </tr>
       </thead>
-      <tbody id="ordersTableBody"></tbody>
+
+      <tbody
+        id="ordersTableBody"
+        class="divide-y divide-[#EAECF0]"
+      ></tbody>
     </table>
-    
   </div>
 
-  <!-- Empty message -->
-  <p id="ordersEmpty" class="text-[14px] text-[#667085] hidden">
+  <p
+    id="ordersEmpty"
+    class="text-[14px] text-[#667085] hidden mt-[12px]"
+  >
     No order record for this profile
   </p>
 
 </div>
+<div
+  id="ordersPagination"
+  class="flex items-center justify-between mt-[16px]"
+>
+  <p id="ordersRangeText" class="text-[14px] text-[#667085]"></p>
 
+  <button
+    id="ordersPageBtn"
+    class="px-[12px] py-[6px] rounded-[6px] bg-[#1570EF] text-white hidden"
+  >
+    &gt;
+  </button>
+</div>
 </div>
 <div id="orderDetailsContent"
      class="hidden w-full rounded-[12px] bg-white p-[24px]">
 
-  <!-- BACK BUTTON -->
-  <div class="flex items-center gap-[10px] mb-[24px] cursor-pointer"
-       id="backToOrdersBtn">
-    <i class="fa-solid fa-arrow-left text-[18px]"></i>
-    <span class="text-[16px] font-medium">Back to Orders</span>
+  <!-- BACK -->
+  <div id="backToOrdersBtn"
+       class="flex items-center gap-[10px] mb-[20px] cursor-pointer text-[#1570EF]">
+    <i class="fa-solid fa-arrow-left"></i>
+    <span class="font-medium">Back to Orders</span>
   </div>
 
-  <!-- ORDER DETAILS HEADER -->
-  <h2 class="text-[20px] font-semibold mb-[12px] border-b border-[#EAECF0] pb-[8px]">
+  <!-- HEADER -->
+  <h2 class="text-[20px] font-semibold text-[#1B1D27] mb-[16px]">
     Order Details
   </h2>
 
   <!-- ORDER META -->
-  <div class="mb-[28px] text-[15px] text-[#344054] space-y-[10px]">
+  <div class="border border-[#EAECF0] rounded-[12px] p-[18px] mb-[24px]
+            text-[14px]">
 
-    <div class="flex justify-between">
-      <span class="font-semibold text-[#1D2939]">Order No:</span>
-      <span id="detailOrderId" class="text-[#1D2939]"></span>
-    </div>
+  <!-- ORDER NO -->
+  <div class="flex justify-between items-center mb-[8px]">
+    <span class="font-semibold">Order No:</span>
+    <span id="detailOrderId"></span>
+  </div>
 
-    <div class="flex justify-between">
-      <span class="font-semibold text-[#1D2939]">Order placed on:</span>
-      <span id="detailOrderDate" class="text-[#1D2939]"></span>
-    </div>
+  <!-- ORDER DATE -->
+  <div class="flex justify-between items-center mb-[8px]">
+    <span class="font-semibold">Order placed on:</span>
+    <span id="detailOrderDate"></span>
+  </div>
 
-    <div class="flex justify-between">
-      <span class="font-semibold text-[#1D2939]">Order Value:</span>
-      <span id="detailOrderValue" class="text-[#1D2939]"></span>
-    </div>
+  <!-- ORDER VALUE -->
+  <div class="flex justify-between items-center mb-[8px]">
+    <span class="font-semibold">Order Value:</span>
+    <span id="detailOrderValue"></span>
+  </div>
 
-    <div class="flex justify-between items-center gap-[12px]">
-      <div class="flex flex-col">
-        <span class="font-semibold text-[#1D2939]">Outstanding Loan:</span>
-        <span id="detailOutstanding" class="text-[#1D2939]"></span>
-      </div>
+  <!-- OUTSTANDING LOAN -->
+  <div class="flex justify-between items-center">
+    <span class="font-semibold">Outstanding Loan:</span>
 
-      <!-- This button is visible only for installment orders -->
+    <div class="flex items-center gap-[10px]">
+      <span id="detailOutstanding"
+            class="text-[#D92D20] font-semibold"></span>
+
       <button id="clearLoanBtn"
-              class="hidden px-[14px] py-[6px] text-[13px] rounded-[6px] bg-[#1570EF] text-white">
+              class="hidden px-[14px] py-[6px] text-[13px]
+                     rounded-[6px] bg-[#1570EF] text-white">
         Clear this loan now
       </button>
     </div>
   </div>
 
+</div>
+
   <!-- ORDER ITEMS -->
-  <div class="border border-[#EAECF0] rounded-[12px] p-[18px] mb-[28px]">
-    <h3 class="text-[16px] font-semibold mb-[14px]">Order Items</h3>
+ 
+<h3 class="text-[16px] font-semibold text-[#1B1D27] mb-[10px]">
+  Order Items
+</h3>
+<!-- ORDER ITEMS CONTAINER -->
+<div class="border border-[#EAECF0] rounded-[12px] p-[18px] mb-[24px]">
 
-    <div class="flex items-start justify-between gap-[18px]">
+ 
+  <!-- ORDER PLACED -->
+<div class="mb-[14px] text-[13px]">
 
-      <div class="flex items-start gap-[18px]">
-        <img src="/assets/images/iphone16plus.jpg"
-             id="detailItemImage"
-             class="w-[110px] h-[110px] rounded-[8px] object-cover">
+  <!-- TAG -->
+  <span
+    class="inline-block bg-[#FFA500] text-white px-[10px] py-[2px]
+           text-[11px] mb-[6px]"
+  >
+    Order Placed
+  </span>
 
-        <div class="flex flex-col gap-[6px]">
-          <p id="detailItemName"
-             class="font-medium text-[15px] text-[#1D2939] leading-[20px]"></p>
-          <p id="detailItemQty" class="text-[#667085] text-[14px]"></p>
-          <p id="detailItemPrice"
-             class="text-[#1B1D27] text-[15px] font-semibold"></p>
-        </div>
-      </div>
+  
+  <p class="text-[#667085] leading-[18px]">
+    Order placed on
+    <span id="orderPlacedTime" class="text-[#1570EF] font-medium">
+      
+    </span>
+  </p>
 
-      <!-- Right side mini summary for qty and unit price, like Figma -->
-      <div class="hidden md:flex flex-col items-end text-[14px] text-[#667085]">
-        <span>Qty</span>
-        <span class="font-medium text-[#1D2939]" id="detailItemQtyRight"></span>
-      </div>
+</div>
+
+  <!-- TABLE HEADER -->
+  <div class="grid grid-cols-[1fr_120px_120px] text-[13px] text-[#667085] mb-[10px]">
+    <span>Item</span>
+    <span class="text-center">Qty</span>
+    <span class="text-right">Unit Price</span>
+  </div>
+
+  <hr class="border-[#EAECF0] mb-[14px]" />
+
+ <!-- ITEM ROW -->
+<div class="grid grid-cols-[1fr_120px_120px] items-center">
+
+  <!-- ITEM COLUMN -->
+  <div class="flex gap-[16px] items-center">
+    <img
+      id="detailItemImage"
+      src=""
+      class="w-[96px] h-[96px] rounded-[8px] object-cover"
+    />
+
+    <div class="flex flex-col gap-[6px]">
+      <p
+        id="detailItemName"
+        class="text-[15px] font-medium text-[#1D2939] leading-[20px]"
+      ></p>
     </div>
   </div>
 
-  <!-- PAYMENT AND DELIVERY GRID -->
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-[24px] mb-[32px]">
+  <!-- QTY COLUMN -->
+  <div class="text-center text-[14px] font-medium text-[#1D2939]">
+    <span id="detailItemQtyRight"></span>
+  </div>
 
-    <!-- PAYMENT INFORMATION -->
-    <div class="border border-[#EAECF0] rounded-[12px] p-[18px]">
-      <h3 class="text-[16px] font-semibold text-[#1D2939] mb-[14px]">
-        Payment Information
-      </h3>
+  <!-- PRICE COLUMN -->
+  <div class="text-right text-[15px] font-semibold text-[#1B1D27]">
+    <span id="detailItemPrice"></span>
+  </div>
 
-      <ul class="space-y-[4px] text-[14px] text-[#344054] leading-[21px]">
-        <li><strong>Order Amount:</strong> <span id="detailPayAmount"></span></li>
-        <li><strong>Paid at Checkout:</strong> <span id="detailPaid"></span></li>
-        <li><strong>Payment Method:</strong> <span id="detailMethod"></span></li>
-        <li><strong>Payment Type:</strong> <span id="detailType"></span></li>
+</div>
+
+</div>
+
+  <!-- PAYMENT + DELIVERY -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-[24px] mb-[28px]">
+
+  <!-- PAYMENT SECTION -->
+  <div class="flex flex-col gap-[10px]">
+
+    <!-- HEADER OUTSIDE -->
+    <h3 class="text-[16px] font-semibold text-[#1D2939]">
+      Payment Information
+    </h3>
+
+    <!-- BOX -->
+    <div class="border border-[#EAECF0] rounded-[12px] p-[18px] h-full">
+      <ul class="space-y-[12px] text-[14px] text-[#344054]">
+
+        <li class="flex items-center justify-between gap-[16px]">
+          <span class="font-medium text-[#667085]">Order Amount</span>
+          <span id="detailPayAmount" class="font-semibold text-[16px] text-[#0A6CF1]"></span>
+        </li>
+
+        <li class="flex items-center justify-between gap-[16px]">
+          <span class="font-medium text-[#667085]">Paid at Checkout</span>
+          <span id="detailPaid" class="font-semibold text-[#101828]"></span>
+        </li>
+
+        <li class="flex items-start justify-between gap-[16px]">
+          <span class="font-medium text-[#667085]">Payment Method</span>
+          <span
+            id="detailMethod"
+            class="text-right max-w-[220px] break-words font-medium text-[#101828]"
+          ></span>
+        </li>
+
+        <li class="flex items-center justify-between gap-[16px]">
+          <span class="font-medium text-[#667085]">Payment Type</span>
+          <span id="detailType" class="font-medium text-[#101828] capitalize"></span>
+        </li>
+
       </ul>
     </div>
-
-    <!-- DELIVERY DETAILS -->
-    <div class="border border-[#EAECF0] rounded-[12px] p-[18px]">
-      <h3 class="text-[16px] font-semibold text-[#1D2939] mb-[14px]">
-        Delivery Details
-      </h3>
-
-      <div class="space-y-[4px] text-[14px] text-[#344054] leading-[21px]">
-        <p><strong>Name:</strong> <span id="deliveryName"></span></p>
-        <p><strong>Phone:</strong> <span id="deliveryPhone"></span></p>
-        <p><strong>Address:</strong> <span id="deliveryAddress"></span></p>
-        <p><strong>State:</strong> <span id="deliveryState"></span></p>
-      </div>
-    </div>
-
   </div>
 
-  <!-- REPAYMENT SCHEDULE - visible only for installment orders -->
-  <div id="repaymentSection" class="hidden mt-[8px]">
-    <h3 class="text-[16px] font-semibold text-[#1D2939] mb-[10px]">
+  <!-- DELIVERY SECTION -->
+  <div class="flex flex-col gap-[10px]">
+
+    <!-- HEADER OUTSIDE -->
+    <h3 class="text-[16px] font-semibold text-[#1D2939]">
+      Delivery Details
+    </h3>
+
+    <!-- BOX -->
+    <div class="border border-[#EAECF0] rounded-[12px] p-[18px] h-full">
+      <ul class="space-y-[10px] text-[14px] text-[#344054]">
+
+        <li class="flex items-center justify-between gap-[16px]">
+          <span class="font-medium">Name</span>
+          <span id="deliveryName"></span>
+        </li>
+
+        <li class="flex items-center justify-between gap-[16px]">
+          <span class="font-medium">Phone</span>
+          <span id="deliveryPhone"></span>
+        </li>
+
+        <li class="flex items-start justify-between gap-[16px]">
+          <span class="font-medium">Address</span>
+          <span id="deliveryAddress" class="text-right max-w-[220px] break-words"></span>
+        </li>
+
+        <li class="flex items-center justify-between gap-[16px]">
+          <span class="font-medium">State</span>
+          <span id="deliveryState"></span>
+        </li>
+
+        <hr class="border-[#EAECF0] my-[10px]" />
+
+        <li class="flex items-center justify-between gap-[16px]">
+          <span class="font-medium">Delivery Cost</span>
+          <span id="deliveryCost" class="font-medium"></span>
+        </li>
+
+      </ul>
+    </div>
+  </div>
+
+  <div
+  id="deliveryAddress"
+  class="text-[14px] text-[#344054] whitespace-pre-line"
+></div>
+
+</div>
+
+  <!-- REPAYMENT -->
+  <div id="repaymentSection" class="hidden">
+    <h3 class="text-[16px] font-semibold mb-[12px]">
       Repayment Schedule
     </h3>
 
     <div class="overflow-x-auto border border-[#EAECF0] rounded-[10px]">
       <table class="min-w-full text-[14px] text-left text-[#344054]">
-        <thead class="bg-[#F9FAFB] border-b border-[#EAECF0]">
+        <thead class="bg-[#F9FAFB] border-b">
           <tr>
             <th class="px-[12px] py-[8px]">S/N</th>
-            <th class="px-[12px] py-[8px]">Amount to Pay</th>
+            <th class="px-[12px] py-[8px]">Amount</th>
             <th class="px-[12px] py-[8px]">Due Date</th>
-            <th class="px-[12px] py-[8px]">Paid on</th>
+            <th class="px-[12px] py-[8px]">Paid On</th>
             <th class="px-[12px] py-[8px]">Status</th>
             <th class="px-[12px] py-[8px] text-right">Action</th>
           </tr>
         </thead>
-        <tbody id="repaymentTableBody">
-          <!-- rows will be rendered by JS -->
-        </tbody>
+        <tbody id="repaymentTableBody"></tbody>
       </table>
     </div>
 
     <div class="flex justify-end mt-[14px]">
-      <button id="payAllRepaymentsBtn" 
-              class="px-[16px] h-[40px] bg-[#1570EF] text-white rounded-[8px] text-[14px] font-medium">
+      <button id="payAllRepaymentsBtn"
+              class="px-[16px] h-[40px] bg-[#1570EF]
+                     text-white rounded-[8px] text-[14px] font-medium">
         Pay all repayments now
       </button>
     </div>
   </div>
 
 </div>
+<!-- CLEAR LOAN WRAPPER -->
+<div id="clearLoanWrapper" class="relative">
 
-<!-- FULL PAGE PAYMENT SECTION -->
-<div id="loanPaymentPage"
-     class="hidden w-full bg-white rounded-[12px] p-[20px] md:p-[24px]">
+  <!-- LOAN CONTENT (UNCHANGED) -->
+  <div id="clearLoanContent" class="hidden max-w-[900px] bg-white p-[24px]">
 
-  <div class="flex items-center gap-[10px] mb-[20px] cursor-pointer" id="loanPaymentBackBtn">
-    <i class="fa-solid fa-arrow-left text-[18px]"></i>
-    <span class="text-[16px] font-medium">Back to Order Details</span>
+    <!-- Back -->
+    <button
+      id="backToOrderDetailsBtn"
+      class="mb-[14px] text-[#1570EF] font-medium flex items-center gap-[6px]">
+      ← Back to Order Details
+    </button>
+
+    <!-- Title -->
+    <h2 class="text-[18px] font-semibold text-[#101828] mb-[4px]">
+      Outstanding Order Loan Settlement
+    </h2>
+
+    <!-- Description -->
+    <p class="text-[14px] text-[#475467] mb-[18px] max-w-[720px]">
+      Completing this payment will clear all outstanding loan repayments attributed
+      to order <strong id="clearLoanOrderId">#---</strong> in amount of
+      <strong id="clearLoanAmount">₦0.00</strong> only.
+      Please note that other outstanding loans are not affected by this action.
+    </p>
+
+    <!-- Select Payment -->
+    <div class="max-w-[720px]">
+
+      <p class="text-[14px] font-medium text-[#101828] mb-[6px]">
+        Select Payment Method
+      </p>
+
+      <div class="h-[1px] bg-[#EAECF0] mb-[16px]"></div>
+
+      <!-- Bank -->
+      <div class="flex items-center justify-between mb-[8px]">
+        <label class="flex items-center gap-[10px] cursor-pointer">
+          <input type="radio" name="paymentMethod" value="bank">
+          <span class="text-[#344054]">Bank Transfer</span>
+        </label>
+      </div>
+
+      <!-- Wallet -->
+      <div class="flex items-center justify-between mb-[8px]">
+        <label class="flex items-center gap-[10px] cursor-pointer">
+          <input type="radio" name="paymentMethod" value="wallet" checked>
+          <span class="text-[#344054]">Wallet</span>
+        </label>
+
+        <span class="text-[#667085] text-[14px]">
+          <span id="walletBalanceLoan">0.00</span>
+        </span>
+      </div>
+
+      <!-- Cards -->
+      <div class="max-w-[720px]">
+  <div id="cardsWrapper" class="flex flex-col gap-[6px]"></div>
+
+  <div class="flex justify-end mt-[6px]">
+    <button
+      id="addCardBtn"
+      class="text-[#1570EF] text-[13px] font-medium">
+      Add New Card
+    </button>
+  </div>
+</div>
+
+    </div>
+
+    <!-- Confirm -->
+    <button
+      id="confirmClearLoanBtn"
+      class="mt-[26px] w-full max-w-[720px]
+             bg-[#1570EF] text-white py-[14px]
+             rounded-[8px] font-medium text-[15px]
+             flex items-center justify-center gap-[10px]">
+
+      <span
+        id="confirmClearLoanSpinner"
+        class="hidden w-[18px] h-[18px]
+               border-[2px] border-white/40 border-t-white
+               rounded-full animate-spin">
+      </span>
+
+      <span id="confirmClearLoanText">Confirm & Pay ₦0.00</span>
+    </button>
+
   </div>
 
-  <h2 class="text-[18px] font-semibold mb-[10px]">
-    Outstanding Order Loan Settlement
-  </h2>
+  <!-- CLEAR LOAN OVERLAY (TAILWIND STYLED, CONTENT UNCHANGED) -->
+<div id="clearLoanOverlay"
+     class="hidden fixed inset-0 bg-black/40 flex items-center justify-center z-50">
 
-  <p class="text-[14px] text-[#475467] mb-[4px]">
-    Select Payment Method
-  </p>
+  <div class="overlay-content bg-white rounded-[12px] px-[20px] py-[16px] text-center">
 
-  <p class="text-[14px] text-[#475467] mb-[16px] leading-[20px]">
-    Completing this payment will clear loan repayments for
-    <span id="loanPaymentOrderId" class="font-semibold"></span>
-    in the amount of
-    <span id="loanPaymentAmount" class="font-semibold"></span>.
-  </p>
+    <div class="spinner mb-[10px] animate-spin rounded-full h-[32px] w-[32px]
+                border-4 border-gray-300 border-t-gray-700 mx-auto"></div>
 
-  <div class="border-t border-[#EAECF0] pt-[16px] space-y-[12px] text-[14px]">
-    <label class="flex items-center gap-[8px] cursor-pointer">
-      <input type="radio" name="loanPayMethod" value="bank">
-      <span>Bank Transfer</span>
-    </label>
+    <p class="text-[14px] text-[#101828] font-medium">
+      Processing payment, please wait…
+    </p>
 
-    <label class="flex items-center gap-[8px] cursor-pointer">
-      <input type="radio" name="loanPayMethod" value="wallet">
-      <span>Wallet (<span id="loanWalletBalance"></span>)</span>
-    </label>
-
-    <label class="flex items-center gap-[8px] cursor-pointer">
-      <input type="radio" name="loanPayMethod" value="card">
-      <span>Verve Debit</span>
-    </label>
   </div>
+</div>
 
-  <button id="loanPaymentConfirmBtn"
-          class="mt-[22px] w-full h-[42px] rounded-[8px] bg-[#1570EF] text-white text-[15px] font-medium">
-    Confirm & Pay
-  </button>
 </div>
 
         </div> 
@@ -2126,6 +2407,39 @@
          px-[16px] py-[12px] rounded-[8px]
          text-[14px] font-medium shadow-lg">
 </div>
+
+<!-- GLOBAL FEEDBACK MODAL -->
+<div id="feedbackModal"
+     class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/50">
+
+  <div class="bg-white w-[360px] rounded-[12px] p-[20px] text-center">
+
+    <!-- ICON -->
+    <div id="feedbackIcon"
+         class="mx-auto mb-[12px] flex h-[48px] w-[48px] items-center justify-center rounded-full">
+    </div>
+
+    <!-- TITLE -->
+    <h3 id="feedbackTitle"
+        class="text-[16px] font-semibold text-[#101828] mb-[6px]">
+    </h3>
+
+    <!-- MESSAGE -->
+    <p id="feedbackMessage"
+       class="text-[14px] text-[#475467] mb-[16px]">
+    </p>
+
+    <!-- ACTION -->
+    <button id="feedbackBtn"
+            class=" rounded-[8px] py-[10px] text-[14px] font-medium text-white">
+      OK
+    </button>
+  </div>
+</div>
+
+             </div>
+        </div>
+
 <footer class="w-full bg-[#011845] text-white font-inter">
 
   <!-- =============== UPPER FOOTER (blue gradient band) =============== -->
@@ -2224,11 +2538,13 @@
   </section>
 </footer>
 
+</body>
+
 
 <script src="https://js.paystack.co/v1/inline.js"></script>
 <script src="/assets/js/index.js"></script>
-<script src="./assets/js/account.js"></script>
-<script src="./assets/js/global-auth.js"></script>
+<script src="/assets/js/addCard.js"></script>
+<script src="/assets/js/account.js"></script>
 <script>
   (function () {
     function logout() {
@@ -2245,5 +2561,10 @@
     });
   })();
 </script>
+
+
+
+  </body>
+  </html>
 
 

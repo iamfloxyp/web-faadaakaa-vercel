@@ -131,8 +131,10 @@ function loadCartPage() {
       renderWalletAndCredit(CART_PROFILE.wallet?.data);
       renderPaymentTerms(cartItems);
       renderPaymentMethodWallet(CART_PROFILE.wallet?.data);
-      renderPaymentMethodCard(CART_PROFILE.payment_cards?.data);
+      renderPaymentMethodCards(CART_PROFILE.payment_cards?.data);
+      initPaymentMethods()
       renderDeliveryAddresses(addresses);
+      loadCartPaymentCards();
 
       renderOrderAndDueNow(
         cartItems,
@@ -1020,17 +1022,109 @@ function renderPaymentMethodWallet(walletData) {
 
   el.textContent = formatMoney(walletData.wallet_balance || 0);
 }
+// ================================================================
+// PAYMENT METHOD: RENDER SAVED CARDS
+// ============================================================
+window.loadCartPaymentCards = function () {
+  const token = sessionStorage.getItem("AUTH_TOKEN");
+  if (!token) return;
 
+  const fd = new FormData();
+  fd.append("token", token);
 
-function renderPaymentMethodCard(cards = []) {
-  const el = document.getElementById("cardLast4");
-  if (!el) return;
+  fetch("https://api.faadaakaa.com/api/loadprofile", {
+    method: "POST",
+    body: fd
+  })
+    .then(res => res.json())
+    .then(res => {
+      const cards = res?.data?.payment_cards?.data || [];
+      renderPaymentMethodCards(cards);
+    })
+    .catch(err => console.error("Load cart cards error:", err));
+};
 
-  if (!cards.length) {
-    el.textContent = "No card";
+function getCardDisplayName(card = {}) {
+  // Try the most common API keys first
+  return (
+    card.card_type ||
+    card.brand ||
+    card.scheme ||
+    card.card_brand ||
+    card.card_network ||
+    card.type ||
+    card.bank ||
+    "Card"
+  );
+}
+
+function renderPaymentMethodCards(cards = []) {
+  const container = document.getElementById("cardPaymentMethods");
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  if (!Array.isArray(cards) || cards.length === 0) {
+    container.innerHTML = `
+      <div class="w-full h-[48px] flex items-center px-[24px]
+                  text-[#667085] text-[13px]">
+        No saved cards
+      </div>
+    `;
     return;
   }
 
-  const card = cards[0];
-  el.textContent = `${card.bin}••••${card.last4}`;
+  cards.forEach(card => {
+    const name = getCardDisplayName(card); // ✅ Mastercard/Visa/Verve if available
+    const first6 = card.bin || "";
+    const last4 = card.last4 || card.last_4 || "0000";
+    const paymentCardId = card.id || card.payment_card_id || card.card_id || "";
+
+    const cardHtml = `
+      <div
+        class="payment-method w-full h-[48px] flex items-center justify-between
+               px-[24px] border-b border-[#D0D5DD] cursor-pointer"
+        data-method="card"
+        data-payment_card_id="${paymentCardId}">
+
+        <div class="flex items-center gap-[12px]">
+          <input type="radio" name="paymentMethod" class="hidden" />
+          <span class="method-indicator w-[20px] h-[20px]
+                       rounded-full border border-[#D0D5DD]"></span>
+
+          <p class="text-[#535862] text-[14px] leading-[22px]">
+            ${name}
+          </p>
+        </div>
+
+        <span class="text-[#344054] text-[14px] font-medium">
+          ${first6}••••${last4}
+        </span>
+      </div>
+    `;
+
+    container.insertAdjacentHTML("beforeend", cardHtml);
+  });
+
+  // ✅ rebind clicks so the dynamically added cards can be selected
+  initPaymentMethods();
+}
+// =======ADD NEW CARD IN CART PAGE=====
+$(document).on("click", "#addNewCardBtn", function () {
+  if (typeof window.openAddNewCardFlow === "function") {
+    window.openAddNewCardFlow();
+    return;
+  }
+  // Open the same Add Card modal used everywhere
+if ($("#cardChargeModal").length) {
+  $("#cardChargeModal").removeClass("hidden");
+} else {
+  console.error("Card charge modal not found");
+}
+});
+// Fallback if account toast is not loaded
+if (typeof window.showErrorToast !== "function") {
+  window.showErrorToast = function (msg) {
+    alert(msg);
+  };
 }

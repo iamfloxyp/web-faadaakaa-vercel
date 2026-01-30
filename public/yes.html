@@ -1,0 +1,45 @@
+<div id="loanPaymentPage"
+     class="hidden w-full bg-white rounded-[12px] p-[20px] md:p-[24px]">
+
+  <div class="flex items-center gap-[10px] mb-[20px] cursor-pointer" id="loanPaymentBackBtn">
+    <i class="fa-solid fa-arrow-left text-[18px]"></i>
+    <span class="text-[16px] font-medium">Back to Order Details</span>
+  </div>
+
+  <h2 class="text-[18px] font-semibold mb-[10px]">
+    Outstanding Order Loan Settlement
+  </h2>
+
+  <p class="text-[14px] text-[#475467] mb-[4px]">
+    Select Payment Method
+  </p>
+
+  <p class="text-[14px] text-[#475467] mb-[16px] leading-[20px]">
+    Completing this payment will clear loan repayments for
+    <span id="loanPaymentOrderId" class="font-semibold"></span>
+    in the amount of
+    <span id="loanPaymentAmount" class="font-semibold"></span>.
+  </p>
+
+  <div class="border-t border-[#EAECF0] pt-[16px] space-y-[12px] text-[14px]">
+    <label class="flex items-center gap-[8px] cursor-pointer">
+      <input type="radio" name="loanPayMethod" value="bank">
+      <span>Bank Transfer</span>
+    </label>
+
+    <label class="flex items-center gap-[8px] cursor-pointer">
+      <input type="radio" name="loanPayMethod" value="wallet">
+      <span>Wallet (<span id="loanWalletBalance"></span>)</span>
+    </label>
+
+    <label class="flex items-center gap-[8px] cursor-pointer">
+      <input type="radio" name="loanPayMethod" value="card">
+      <span>Verve Debit</span>
+    </label>
+  </div>
+
+  <button id="loanPaymentConfirmBtn"
+          class="mt-[22px] w-full h-[42px] rounded-[8px] bg-[#1570EF] text-white text-[15px] font-medium">
+    Confirm & Pay
+  </button>
+</div>

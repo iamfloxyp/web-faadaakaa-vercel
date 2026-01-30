@@ -35,9 +35,7 @@ app.get("/login", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "login.html"));
 });
 
-app.get("/account", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "account.html"));
-});
+
 
 app.get("/signup", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "signup.html"));
@@ -50,10 +48,48 @@ app.get("/verify/:email_string", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "verify.html"));
 });
 
-app.get("/verify/:email_string", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "signup.html"));
-});
+
+
 // ==============================
+// ACCOUNT PAGE
+// ==============================
+
+app.get("/account", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "account.html"));
+});
+
+app.get("/account/wallet", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "account.html"));
+});
+
+app.get("/account/wallet/fund", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "account.html"));
+});
+
+app.get("/account/loans", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "account.html"));
+});
+
+app.get("/account/delivery", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "account.html"));
+});
+
+app.get("/account/orders", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "account.html"));
+});
+
+app.get("/account/orders/:orderId", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "account.html"));
+});
+
+app.get("/loan-settlement/order/:orderId", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "account.html"));
+});
+
+app.get("/loan-settlement/repayment/:repaymentId", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "account.html"));
+});
+
 // START SERVER
 // ==============================
 app.listen(PORT, () => {

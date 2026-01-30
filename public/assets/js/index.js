@@ -164,40 +164,40 @@ $(document).on("click", function () {
 
 // Desktop navigation 
 $(document).on("click", "#menuAccount", function (e) {
+  e.preventDefault();
   e.stopPropagation();
-  setTimeout(() => {
-    window.location.href = "/account.html#account";
-  }, 0);
+  window.location.href = "/account";
 });
 
 $(document).on("click", "#menuWallet", function (e) {
+  e.preventDefault();
   e.stopPropagation();
-  setTimeout(() => {
-    window.location.href = "/account.html#wallet";
-  }, 0);
+  window.location.href = "/account/wallet";
 });
 
 $(document).on("click", "#menuOrders", function (e) {
+  e.preventDefault();
   e.stopPropagation();
-  setTimeout(() => {
-    window.location.href = "/account.html#orders";
-  }, 0);
+  window.location.href = "/account/orders";
 });
-
 // Mobile
+
 $(document).on("click", "#mobileMenuAccount", function (e) {
+  e.preventDefault();
   e.stopPropagation();
-  window.location.href = "/account.html#account";
+  window.location.href = "/account";
 });
 
 $(document).on("click", "#mobileMenuWallet", function (e) {
+  e.preventDefault();
   e.stopPropagation();
-  window.location.href = "/account.html#wallet";
+  window.location.href = "/account/wallet";
 });
 
 $(document).on("click", "#mobileMenuOrders", function (e) {
+  e.preventDefault();
   e.stopPropagation();
-  window.location.href = "/account.html#orders";
+  window.location.href = "/account/orders";
 });
 
 // =======================
@@ -452,6 +452,156 @@ $("#mobileCartBtn").on("click", function () {
 
   $("#mobileCartDropdown").toggleClass("hidden");
 });
+
+function renderCartUI(cartItems) {
+  // ========= DESKTOP =========
+  const $badge = $("#cartBadge");
+  const $tooltip = $("#cartTooltip");
+  const $itemsWrapper = $("#cartItemsWrapper");
+  const $subtotal = $("#cartSubtotal");
+  const $countText = $("#cartItemCountText");
+  const $headerTotal = $("#headerCartTotal");
+
+  // ========= MOBILE =========
+  const $mobileCount = $("#mobileCartCount");
+  const $mobileTotal = $("#mobileCartTotal");
+  const $mobileItems = $("#mobileCartItemsWrapper");
+  const $mobileSubtotal = $("#mobileCartSubtotal");
+
+  const totalQty = cartItems.length;
+
+  // ===== COUNTS =====
+  $badge.text(totalQty);
+  $countText.text(`(${String(totalQty).padStart(2, "0")})`);
+  $mobileCount.text(`Cart (${totalQty})`);
+
+  // ===== EMPTY CART =====
+  if (totalQty === 0) {
+    $badge.text("0");
+    $countText.text("(00)");
+    $mobileCount.text("Cart (0)");
+    $tooltip.text("Your cart is empty");
+
+    renderEmptyCartState();
+
+    $("#cartDropdown").addClass("hidden");
+    $("#mobileCartDropdown").addClass("hidden");
+    return;
+  }
+
+  // ===== TOOLTIP TEXT =====
+  if (totalQty === 1) {
+    $tooltip.text("1 item in cart");
+  } else {
+    $tooltip.text(`${totalQty} items in cart`);
+  }
+
+  // ===== CLEAR UI =====
+  $itemsWrapper.empty();
+  $mobileItems.empty();
+
+  let subtotal = 0;
+
+  cartItems.forEach(item => {
+    const itemTotal = Number(item.total_item_cost || 0);
+    subtotal += itemTotal;
+
+    // ========= DESKTOP ITEM =========
+    $itemsWrapper.append(`
+      <div class="cart-item border-b border-[#EAECF0] last:border-b-0">
+        <div class="flex items-center w-full min-h-[80px] gap-[12px] px-[8px] py-[12px]">
+
+          <div
+            class="cart-go flex items-center gap-[16px] flex-1 cursor-pointer
+                   hover:bg-[#F2F6FF] transition rounded-[8px] p-[4px]"
+            data-url="cart.html"
+          >
+            <img
+              src="https://fdk1.nyc3.digitaloceanspaces.com/fdk_bucket/${item.item_image}"
+              class="w-[80px] h-[80px] object-cover rounded-[8px]"
+            />
+
+            <div class="flex flex-col gap-[6px]">
+              <span class="text-[#101828] text-[14px] leading-[22px] line-clamp-2">
+                ${item.item_name}
+              </span>
+
+              <div class="flex items-center gap-[6px]">
+                <span class="text-[#475467] text-[13px]">
+                  ${item.quantity} ×
+                </span>
+                <span class="text-[#004EEB] text-[13px] font-[500]">
+                  ₦${itemTotal.toLocaleString()}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            class="remove-cart-item p-[6px]"
+            data-id="${item.id}"
+          >
+            <i class="fa-solid fa-xmark text-[#98A2B3] text-[16px]
+                      hover:text-[#D92D20] transition"></i>
+          </button>
+
+        </div>
+      </div>
+    `);
+
+    // ========= MOBILE ITEM =========
+    $mobileItems.append(`
+      <div class="cart-item border-b border-[#EAECF0] last:border-b-0">
+        <div class="flex items-center w-full gap-[12px] py-[12px]">
+
+          <div
+            class="cart-go flex items-center gap-[12px] flex-1 cursor-pointer
+                   rounded-[8px] p-[6px]"
+            data-url="/cart.html"
+          >
+            <img
+              src="https://fdk1.nyc3.digitaloceanspaces.com/fdk_bucket/${item.item_image}"
+              class="w-[60px] h-[60px] object-cover rounded-[8px]"
+            />
+
+            <div class="flex flex-col gap-[4px]">
+              <span class="text-[#101828] text-[13px] leading-[18px] line-clamp-2">
+                ${item.item_name}
+              </span>
+
+              <div class="flex items-center gap-[6px]">
+                <span class="text-[#475467] text-[12px]">
+                  ${item.quantity} ×
+                </span>
+                <span class="text-[#004EEB] text-[13px] font-[500]">
+                  ₦${itemTotal.toLocaleString()}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            class="remove-cart-item p-[6px]"
+            data-id="${item.id}"
+          >
+            <i class="fa-solid fa-xmark text-[#98A2B3] text-[16px]"></i>
+          </button>
+
+        </div>
+      </div>
+    `);
+  });
+
+  // ===== TOTALS =====
+  const formattedTotal = `₦${subtotal.toLocaleString()}`;
+
+  $subtotal.text(formattedTotal);
+  $headerTotal.text(formattedTotal);
+  $mobileSubtotal.text(formattedTotal);
+  $mobileTotal.text(formattedTotal);
+}
 // 🔔 GLOBAL CART REFRESH TRIGGER
 window.refreshCartUI = function () {
   loadCartFromProfile();
@@ -1033,5 +1183,21 @@ document.addEventListener("click", function (e) {
     } else {
         drop.classList.add("hidden");
     }
+});
+
+// =============LOGOUT============
+$(document).on("click", ".logoutBtn", function (e) {
+  e.preventDefault();
+  e.stopPropagation();
+
+  // Clear auth/session
+  sessionStorage.clear();
+  localStorage.clear();
+
+  // Optional: clear cookies if you use them
+  // document.cookie = "token=; Max-Age=0; path=/";
+
+  // Force redirect to homepage
+  window.location.href = "/index.html";
 });
 

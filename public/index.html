@@ -91,7 +91,7 @@
 
 
         <!-- LOGO -->
-        <a href="index.html" id="logoContainer" class="flex items-center">
+        <a href="/" id="logoContainer" class="flex items-center">
           <img id="siteLogo" src="./assets/images/logo.png" alt="Faadaakaa Logo"
             class="w-[140px] h-[32px] sm:w-[160px] sm:h-[36px] lg:w-[190px] lg:h-[44px] object-contain" />
         </a>
@@ -178,73 +178,77 @@
     </div>
   </div>
 
-  <!-- CART DROPDOWN -->
+ 
+ <!-- CART DROPDOWN -->
+<div
+  id="cartDropdown"
+  class="hidden absolute left-[-75px] mt-2 w-[376px]
+         max-h-[380px]
+         bg-white border border-[#EAECF0] rounded-[16px]
+         shadow-[0px_8px_40px_rgba(0,0,0,0.12)]
+         z-50 flex flex-col">
+
+  <!-- HEADER -->
   <div
-    id="cartDropdown"
-    class="hidden absolute left-[-75px] mt-2 w-[376px] h-[415px]
-           bg-white border border-[#EAECF0] rounded-[16px]
-           shadow-[0px_8px_40px_rgba(0,0,0,0.12)]
-           z-50 flex flex-col">
+    class="flex items-center justify-start gap-[6px]
+           w-full h-[54px] border-b border-[#EAECF0]
+           px-[24px] py-[16px]">
 
-    <!-- HEADER -->
-    <div
-      class="flex items-center justify-start gap-[6px]
-             w-full h-[54px] border-b border-[#EAECF0]
-             px-[24px] py-[16px]">
+    <span class="text-[#101828] text-[14px] font-[500]">
+      Shopping Cart
+    </span>
 
-      <span class="text-[#101828] text-[14px] font-[500]">
-        Shopping Cart
-      </span>
-
-      <span
-        id="cartItemCountText"
-        class="text-[#667085] text-[14px] font-[500]">
-        (0)
-      </span>
-    </div>
-
-    <!-- ITEMS WRAPPER (JS INJECTS HERE ONLY) -->
-    <div
-      id="cartItemsWrapper"
-      class="flex flex-col w-full px-[24px] py-[20px]
-             gap-[16px] border-b border-[#EAECF0]
-             overflow-y-auto max-h-[240px]">
-    </div>
-
-    <!-- SUBTOTAL -->
-    <div
-      class="flex items-center justify-between w-full h-[53px]
-             border-b border-[#EAECF0]
-             px-[24px] py-[20px]">
-
-      <span class="text-[#475467] text-[14px]">
-        Sub-Total:
-      </span>
-
-      <span
-        id="cartSubtotal"
-        class="text-[#101828] text-[14px] font-[500]">
-        ₦0.00
-      </span>
-    </div>
-
-    <!-- VIEW CART BUTTON -->
-    <div
-      class="flex flex-col w-full border-t border-[#EAECF0]
-             px-[24px] py-[20px] gap-[12px]">
-
-      <a href="/cart.html" class="block w-full">
-        <button
-          class="w-full h-[48px] bg-[#004EEB]
-                 text-white rounded-[8px]
-                 text-[14px] font-[500]">
-          View Cart
-        </button>
-      </a>
-    </div>
-
-    <div class="h-[16px] w-full"></div>
+    <span
+      id="cartItemCountText"
+      class="text-[#667085] text-[14px] font-[500]">
+      (00)
+    </span>
   </div>
+
+  <!-- ITEMS WRAPPER -->
+  <div
+    id="cartItemsWrapper"
+    class="flex flex-col w-full px-[24px] py-[16px]
+           gap-[16px] border-b border-[#EAECF0]
+           overflow-y-auto max-h-[240px]">
+  </div>
+
+  <!-- SUBTOTAL -->
+  <div
+    id="cartSubtotalSection"
+    class="hidden flex items-center justify-between w-full
+           border-b border-[#EAECF0]
+           px-[24px] py-[14px]">
+
+    <span class="text-[#475467] text-[14px]">
+      Sub-Total:
+    </span>
+
+    <span
+      id="cartSubtotal"
+      class="text-[#101828] text-[14px] font-[500]">
+      ₦0.00
+    </span>
+  </div>
+
+  <!-- VIEW CART BUTTON -->
+  <div
+    id="cartViewBtnSection"
+    class="hidden flex flex-col w-full
+           border-t border-[#EAECF0]
+           px-[24px] py-[14px]">
+
+    <a href="/cart.html" class="block w-full">
+      <button
+        class="w-full h-[44px] bg-[#004EEB]
+               text-white rounded-[8px]
+               text-[14px] font-[500]">
+        View Cart
+      </button>
+    </a>
+  </div>
+
+</div>
            </div>
 
           <span id="headerCartTotal" class="text-[#101828] text-[14px] font-[500]">₦0.00</span>
@@ -329,7 +333,7 @@
         <div id="authButtons" class="flex items-center gap-[12px]">
 
           <!-- LOGIN BUTTON -->
-          <a href="login.html">
+          <a href="/login">
             <button class="text-[#344054] text-[14px] font-[500] px-[14px] py-[10px] rounded-[8px] 
              hover:text-[#155EEF]">
               Log in
@@ -337,7 +341,7 @@
           </a>
 
           <!-- SIGNUP BUTTON -->
-          <a href="signUp.html">
+          <a href="/signup">
             <button class="bg-[#155EEF] text-white text-[14px] font-[500] px-[14px] py-[10px] 
              rounded-[8px] hover:bg-[#0047BA]">
               Sign up
@@ -445,7 +449,7 @@
     <div id="mobileAuthButtons"
       class="flex items-center gap-[12px] mt-[10px]">
 
-      <a href="login.html">
+      <a href="/login">
         <button
           class="text-[#344054] text-[14px] font-[500]
                  px-[14px] py-[10px] rounded-[8px]
@@ -454,7 +458,7 @@
         </button>
       </a>
 
-      <a href="signUp.html">
+      <a href="/signup">
         <button
           class="bg-[#155EEF] text-white text-[14px] font-[500]
                  px-[14px] py-[10px] rounded-[8px]
@@ -809,54 +813,56 @@
  
 
 
-  <!-- Social Proof Section -->
-  <section class="bg-[#F9FAFB] py-10 px-4 sm:px-6 md:px-8">
-    <div class="max-w-[1216px] mx-auto flex flex-col items-center gap-10">
+ <!-- Social Proof Section -->
+<section class="bg-[#F9FAFB] py-10 px-4 sm:px-6 md:px-8">
+  <!-- NOTICE: narrower inner width than section above -->
+  <div class="max-w-[1170px] mx-auto">
 
-      <!-- Logos Grid Wrapper -->
-      <div
-        class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-[16px] sm:gap-[20px] md:gap-[24px] place-items-center w-full">
+    <!-- Logos Grid -->
+    <div
+      class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6
+             gap-[12px]">
 
-        <!-- Logo Frame 1 -->
-        <div
-          class="bg-white border border-[#E5E7EB] rounded-[16px] w-[160px] sm:w-[170px] md:w-[186px] h-[160px] sm:h-[175px] md:h-[190px] flex items-center justify-center shadow-sm hover:shadow-md transition-shadow duration-300">
-          <img src="./assets/images/hp.png" alt="HP Logo"
-            class="w-[70px] sm:w-[75px] md:w-[80px] h-[70px] sm:h-[75px] md:h-[80px] object-contain rounded-full bg-[#D9D9D9]">
-        </div>
-
-      <div class="bg-white border border-[#E5E7EB] rounded-[16px] w-[160px] sm:w-[170px] md:w-[186px] h-[160px] sm:h-[175px] md:h-[190px] flex items-center justify-center shadow-sm hover:shadow-md transition-shadow duration-300">
-        <img src="./assets/images/adidas.png" alt="Adidas Logo"
-             class="w-[70px] sm:w-[75px] md:w-[80px] h-[70px] sm:h-[75px] md:h-[80px] object-contain rounded-full bg-[#D9D9D9]">
+      <!-- Logo Card -->
+      <div class="bg-white border border-[#E5E7EB] rounded-[14px]
+                  aspect-square flex items-center justify-center">
+        <img src="./assets/images/hp.png"
+             class="w-[56px] h-[56px] object-contain">
       </div>
 
-     
-      <div class="bg-white border border-[#E5E7EB] rounded-[16px] w-[160px] sm:w-[170px] md:w-[186px] h-[160px] sm:h-[175px] md:h-[190px] flex items-center justify-center shadow-sm hover:shadow-md transition-shadow duration-300">
-        <img src="./assets/images/samsung.png" alt="Samsung Logo"
-             class="w-[70px] sm:w-[75px] md:w-[80px] h-[70px] sm:h-[75px] md:h-[80px] object-contain rounded-full bg-[#D9D9D9]">
+      <div class="bg-white border border-[#E5E7EB] rounded-[14px]
+                  aspect-square flex items-center justify-center">
+        <img src="./assets/images/adidas.png"
+             class="w-[56px] h-[56px] object-contain">
       </div>
 
-     
-      <div class="bg-white border border-[#E5E7EB] rounded-[16px] w-[160px] sm:w-[170px] md:w-[186px] h-[160px] sm:h-[175px] md:h-[190px] flex items-center justify-center shadow-sm hover:shadow-md transition-shadow duration-300">
-        <img src="./assets/images/applelogo.png" alt="Apple Logo"
-             class="w-[70px] sm:w-[75px] md:w-[80px] h-[70px] sm:h-[75px] md:h-[80px] object-contain rounded-full bg-[#D9D9D9]">
+      <div class="bg-white border border-[#E5E7EB] rounded-[14px]
+                  aspect-square flex items-center justify-center">
+        <img src="./assets/images/samsung.png"
+             class="w-[56px] h-[56px] object-contain">
       </div>
 
-    
-      <div class="bg-white border border-[#E5E7EB] rounded-[16px] w-[160px] sm:w-[170px] md:w-[186px] h-[160px] sm:h-[175px] md:h-[190px] flex items-center justify-center shadow-sm hover:shadow-md transition-shadow duration-300">
-        <img src="./assets/images/blueband.png" alt="Faadaakaa Logo"
-             class="w-[70px] sm:w-[75px] md:w-[80px] h-[70px] sm:h-[75px] md:h-[80px] object-contain rounded-full bg-[#D9D9D9]">
+      <div class="bg-white border border-[#E5E7EB] rounded-[14px]
+                  aspect-square flex items-center justify-center">
+        <img src="./assets/images/applelogo.png"
+             class="w-[56px] h-[56px] object-contain">
       </div>
 
-      
-      <div class="bg-white border border-[#E5E7EB] rounded-[16px] w-[160px] sm:w-[170px] md:w-[186px] h-[160px] sm:h-[175px] md:h-[190px] flex items-center justify-center shadow-sm hover:shadow-md transition-shadow duration-300">
-        <img src="./assets/images/redmi.png" alt="Mi Logo"
-             class="w-[70px] sm:w-[75px] md:w-[80px] h-[70px] sm:h-[75px] md:h-[80px] object-contain rounded-full bg-[#D9D9D9]">
+      <div class="bg-white border border-[#E5E7EB] rounded-[14px]
+                  aspect-square flex items-center justify-center">
+        <img src="./assets/images/blueband.png"
+             class="w-[56px] h-[56px] object-contain">
       </div>
 
+      <div class="bg-white border border-[#E5E7EB] rounded-[14px]
+                  aspect-square flex items-center justify-center">
+        <img src="./assets/images/redmi.png"
+             class="w-[56px] h-[56px] object-contain">
       </div>
 
     </div>
-  </section>
+  </div>
+</section>
 
 
 

@@ -49,8 +49,110 @@ $(document).on("click", "#tab-logout, .logoutBTN, .logoutBtn", function (e) {
   localStorage.clear();
 
   // Hard redirect to homepage
-  window.location.href = "/index.html";
+  window.location.href = "/";
 });
+
+(function () {
+  const path = window.location.pathname;
+
+  // Only redirect if user somehow lands on raw account.html
+  if (path.endsWith("account.html")) {
+    history.replaceState({}, "", "/dashboard");
+    renderRoute("/dashboard");
+    return;
+  }
+
+  // Otherwise, respect the URL
+  renderRoute(path);
+})();
+// ================= ROUTE=================
+function renderRoute(pathname) {
+
+  // ================= DASHBOARD =================
+  if (pathname === "/dashboard") {
+    switchMainTab("account");
+    showRightSection(null);
+    return;
+  }
+
+  // ================= WALLET =================
+  if (pathname === "/mywallet") {
+    switchMainTab("wallet");
+    switchWalletPage("main");
+    showRightSection(null);
+    return;
+  }
+
+  if (pathname === "/mywallet/fund") {
+    switchMainTab("wallet");
+    switchWalletPage("fund");
+    showRightSection(null);
+    loadProfileAndRefreshCards();
+    return;
+  }
+
+  // ================= LOANS =================
+  if (pathname === "/loan-credit") {
+    switchMainTab("loans");
+    showRightSection(null);
+    return;
+  }
+
+  // ================= DELIVERY =================
+  if (pathname === "/addresses") {
+    switchMainTab("delivery");
+    showRightSection(null);
+    return;
+  }
+
+  // ================= ORDERS LIST =================
+  if (pathname === "/myorders") {
+    switchMainTab("orders");
+    showRightSection("#ordersContent");
+    return;
+  }
+
+  // ================= ORDER DETAILS =================
+  const orderMatch = pathname.match(/^\/myorders\/(\d+)$/);
+  if (orderMatch) {
+    switchMainTab("orders");
+    showRightSection("#orderDetailsContent");
+    loadOrderDetails(orderMatch[1]);
+    return;
+  }
+
+  // ================= CLEAR LOAN =================
+  const loanMatch = pathname.match(/^\/loan-settlement\/order\/(\d+)$/);
+  if (loanMatch) {
+    switchMainTab("orders");
+    showRightSection("#clearLoanContent");
+    loadClearLoan(loanMatch[1]);
+    return;
+  }
+
+  // ================= REPAYMENT =================
+  if (pathname.startsWith("/loan-settlement/repayment/")) {
+    switchMainTab("orders");
+    showRightSection("#clearLoanContent");
+    loadRepaymentPage(pathname.split("/").pop());
+    return;
+  }
+
+  // ================= FALLBACK =================
+  switchMainTab("account");
+  showRightSection(null);
+}
+
+function showRightSection(sectionId) {
+  // hide everything
+  $("#ordersContent, #orderDetailsContent, #clearLoanContent, #loanPaymentPage")
+    .addClass("hidden");
+
+  // show only what we want
+  if (sectionId) {
+    $(sectionId).removeClass("hidden");
+  }
+}
 // --------------------
 // GLOBAL USER STATE (API ONLY)
 // --------------------
@@ -873,21 +975,11 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 
-$("#menuAccount").on("click", function () {
-  switchMainTab("account");
-  $("#userMenu").addClass("hidden");
-});
-
-$("#menuWallet").on("click", function () {
-  switchMainTab("wallet");
-  $("#userMenu").addClass("hidden");
-});
-
-$("#menuOrders").on("click", function () {
-  switchMainTab("orders");
-  $("#userMenu").addClass("hidden");
-});
-
+$("#menuAccount").on("click", () => navigateTo("/dashboard"));
+$("#menuWallet").on("click", () => navigateTo("/mywallet"));
+$("#menuOrders").on("click", () => navigateTo("/myorders"));
+$("#menuLoans").on("click", () => navigateTo("/loan-credit"));
+$("#menuDelivery").on("click", () => navigateTo("/addresses"));
 
 // =====================================================
 // WALLET SECTION
@@ -1113,36 +1205,28 @@ function loadWalletCards() {
 /// ======================== WALLET FUNDING =============================
 // ============ SHOW FUND WALLET PAGE (URL-DRIVEN) =====================
 $("#fundWalletBtn").on("click", function () {
-  $("#walletMainPage").addClass("hidden");
-  $("#walletFundingPage").removeClass("hidden");
-
-  // Update URL
-  history.pushState({ page: "wallet-fund" }, "", "/account/wallet/fund");
+   navigateTo("/mywallet/fund")
 
   loadProfileAndRefreshCards();
 });
 
 
 $("#walletFundingBackBtn").on("click", function () {
-  $("#walletFundingPage").addClass("hidden");
-  $("#walletMainPage").removeClass("hidden");
-
-  // Update URL back to wallet main
-  history.pushState({ page: "wallet" }, "", "/account/wallet");
+  navigateTo("/mywallet")
 });
 
-function handleWalletFromURL() {
-  const path = window.location.pathname;
+// function handleWalletFromURL() {
+//   const path = window.location.pathname;
 
-  if (path === "/account/wallet/fund") {
-    $("#walletMainPage").addClass("hidden");
-    $("#walletFundingPage").removeClass("hidden");
-    loadProfileAndRefreshCards();
-  } else {
-    $("#walletFundingPage").addClass("hidden");
-    $("#walletMainPage").removeClass("hidden");
-  }
-}
+//   if (path === "/account/wallet/fund") {
+//     $("#walletMainPage").addClass("hidden");
+//     $("#walletFundingPage").removeClass("hidden");
+//     loadProfileAndRefreshCards();
+//   } else {
+//     $("#walletFundingPage").addClass("hidden");
+//     $("#walletMainPage").removeClass("hidden");
+//   }
+// }
 // ============ LOAD SAVED CARDS INTO FUND WALLET PAGE ============
 function renderFundingCards(cards) {
   const $list = $("#fundingCardsListPage");
@@ -1960,51 +2044,16 @@ function formatDate(dateStr) {
     year: "numeric"
   });
 }
-function hideAllRightSideSections() {
+// function hideAllRightSideSections() {
  
-  $("#ordersContent, #orderDetailsContent, #clearLoanContent, #loanPaymentPage")
-    .addClass("hidden");
-}
+//   $("#ordersContent, #orderDetailsContent, #clearLoanContent, #loanPaymentPage")
+//     .addClass("hidden");
+// }
+
 /* ==============================
    LOAD ORDERS
 ============================== */
-// =================ORDER ROUTE=================
-function renderRoute(pathname) {
-  hideAllRightSideSections();
 
-  // /account/orders
-  if (pathname === "/account/orders") {
-    $("#ordersContent").removeClass("hidden");
-    return;
-  }
-
-  // /account/orders/:id
-  const orderMatch = pathname.match(/^\/account\/orders\/(\d+)$/);
-  if (orderMatch) {
-    const orderId = orderMatch[1];
-    $("#orderDetailsContent").removeClass("hidden");
-    loadOrderDetails(orderId);
-    return;
-  }
-// /loan-settlement/order/:id
-const loanSettlementMatch = pathname.match(
-  /^\/loan-settlement\/order\/(\d+)$/
-);
-
-if (loanSettlementMatch) {
-  const orderId = loanSettlementMatch[1];
-  $("#clearLoanContent").removeClass("hidden");
-  loadClearLoan(orderId);
-  return;
-}
-
-if (pathname.startsWith("/loan-settlement/repayment/")) {
-  const repaymentId = pathname.split("/").pop();
-  $("#clearLoanContent").removeClass("hidden");
-  loadRepaymentPage(repaymentId);
-  return;
-}
-}
 
 window.onpopstate = function () {
   renderRoute(window.location.pathname);
@@ -2121,8 +2170,8 @@ function showEmptyOrders() {
 $(document).on("click", ".viewOrderBtn", function () {
   const orderId = $(this).data("id");
 
-  history.pushState({}, "", `/account/orders/${orderId}`);
-  renderRoute(window.location.pathname);
+  history.pushState({}, "", `/myorders/${orderId}`);
+  renderRoute(`/myorders/${orderId}`);
 });
 function loadOrderDetails(orderId) {
   const formData = new FormData();
@@ -2177,9 +2226,15 @@ if (order.payment_model === "instalment" && debtValue > 0) {
   // ================= ORDER PLACED =================
   $("#orderPlacedTime").text(formatDateTime(order.created_at));
 
+ 
+$("#orderStatusTag").text(order.status_string);
+$("#orderStatusTag").css("background-color", order.color);
+
   // ================= ITEM DETAILS =================
   $("#detailItemImage").attr("src", IMAGE_BASE + item.item_image);
-  $("#detailItemName").text(item.item_name);
+  $("#detailItemName")
+  .text(item.item_name)
+  .attr("href", `/item/${item.item_slug}`);
   $("#detailItemQtyRight").text(item.quantity);
   $("#detailItemPrice").text(formatPrice(item.item_amount));
 
@@ -2229,8 +2284,8 @@ function formatDateTime(dateStr) {
    BACK TO ORDERS
 ============================== */
 $("#backToOrdersBtn").on("click", function () {
-  history.pushState({}, "", "/account/orders");
-  renderRoute("/account/orders");
+  history.pushState({}, "", "/myorders");
+  renderRoute("/myorders");
 });
 
 /* ==============================
@@ -2655,8 +2710,8 @@ function hideClearLoanWaiting() {
 function redirectToOrderDetails(orderId) {
   setTimeout(() => {
     hideClearLoanOverlay();
-    history.pushState({}, "", `/account/orders/${orderId}`);
-    renderRoute(`/account/orders/${orderId}`);
+    history.pushState({}, "", `/myorders/${orderId}`);
+    renderRoute(`/myorders/${orderId}`);
   }, 2000);
 }
 function toPaystackAmount(value) {
@@ -2893,9 +2948,9 @@ function clearLoanWithExistingCard(cardId) {
         hideClearLoanWaiting();
 
         const orderId = clearLoanState.orderId;
-        history.pushState({}, "", `/account/orders/${orderId}`);
-        renderRoute(`/account/orders/${orderId}`);
-      }, 1500);
+        history.pushState({}, "", `/myorders/${orderId}`);
+        renderRoute(`/myorders/${orderId}`);
+      }, 5000);
     },
 
     error: function (xhr) {
@@ -2960,8 +3015,8 @@ hideClearLoanOverlay();
 // Show success modal
 showSuccessModal("Your payment was successful.", function () {
   const orderId = clearLoanState.orderId;
-  history.pushState({}, "", `/account/orders/${orderId}`);
-  renderRoute(`/account/orders/${orderId}`);
+  history.pushState({}, "", `/myorders/${orderId}`);
+  renderRoute(`/myorders/${orderId}`);
 });
     },
 
@@ -3433,7 +3488,7 @@ function payRepaymentWithExistingCard(cardId) {
         hideClearLoanOverlay();
         hideClearLoanWaiting();
         history.back();
-      }, 1500);
+      }, 5000);
     },
 
     error: function (xhr) {
@@ -3473,6 +3528,11 @@ function switchMainTab(tab) {
   // Highlight active tab
   $("#tab-" + tab).addClass("bg-[#EAECF0]");
 }
+
+function navigateTo(path) {
+  history.pushState({}, "", path);
+  renderRoute(path);
+}
 // =============================================
 // WALLET PAGE SWITCHER
 // ===========================================
@@ -3487,28 +3547,6 @@ function switchWalletPage(page) {
   if (page === "fund") {
     $("#walletFundingPage").removeClass("hidden");
   }
-}
-// =====================================================
-// GET TAB FROM URL
-// =====================================================
-function getTabFromURL() {
-  const path = window.location.pathname;
-// Loan settlement belongs to Orders tab
-  if (path.startsWith("/loan-settlement/")) {
-    return "orders";
-  }
-  // ORDERS (covers list, details, clear-loan)
-  if (path.startsWith("/account/orders")) return "orders";
-
-  // WALLET
-  if (path === "/account/wallet") return "wallet";
-  if (path === "/account/wallet/fund") return "wallet-fund";
-
-  // OTHER TABS
-  if (path === "/account/loans") return "loans";
-  if (path === "/account/delivery") return "delivery";
-
-  return "account";
 }
 
 // =====================================================
@@ -3530,6 +3568,7 @@ function switchAccountInnerTab(key) {
 $("[data-account-tab]").on("click", function () {
   switchAccountInnerTab($(this).data("account-tab"));
 });
+
 
 // =====================================================
 // ACCOUNT LOADER
@@ -3559,9 +3598,6 @@ function hideAccountLoader() {
   }
 }
 
-window.addEventListener("popstate", function () {
-  handleWalletFromURL();
-});
 
 document.querySelectorAll(".logoutBtn, #tab-logout").forEach((btn) => {
   btn.addEventListener("click", function (e) {
@@ -3574,8 +3610,36 @@ document.querySelectorAll(".logoutBtn, #tab-logout").forEach((btn) => {
     window.location.href = "/logout";
   });
 });
+// =======NAVIGATION=======
+function navigateTo(path) {
+  history.pushState({}, "", path);
+  renderRoute(path);
+}
 
+$("#tab-account").on("click", function (e) {
+  e.preventDefault();
+  navigateTo("/dashboard");
+});
 
+$("#tab-wallet").on("click", function (e) {
+  e.preventDefault();
+  navigateTo("/mywallet");
+});
+
+$("#tab-loans").on("click", function (e) {
+  e.preventDefault();
+  navigateTo("/loan-credit");
+});
+
+$("#tab-delivery").on("click", function (e) {
+  e.preventDefault();
+  navigateTo("/addresses");
+});
+
+$("#tab-orders").on("click", function (e) {
+  e.preventDefault();
+  navigateTo("/myorders");
+});
 // =====================================================
 // INIT
 // =====================================================
@@ -3584,34 +3648,9 @@ $(document).ready(function () {
 
   fetchCurrentUser();
 
-  const activeTab = getTabFromURL();
-
-  if (activeTab === "wallet-fund") {
-    // Show wallet tab
-    switchMainTab("wallet");
-
-    // Show funding page
-    $("#walletMainPage").addClass("hidden");
-    $("#walletFundingPage").removeClass("hidden");
-
-    //  THIS IS THE FIX
-    loadProfileAndRefreshCards();
-
-  } else if (activeTab === "wallet") {
-    switchMainTab("wallet");
-
-    $("#walletFundingPage").addClass("hidden");
-    $("#walletMainPage").removeClass("hidden");
-
-  } else {
-    switchMainTab(activeTab);
-  }
+  renderRoute(window.location.pathname);
 
   switchAccountInnerTab("profile");
 
   hideAccountLoader();
-  renderRoute(window.location.pathname);
-  window.onpopstate = function () {
-    renderRoute(window.location.pathname);
-  }
-});
+}); 

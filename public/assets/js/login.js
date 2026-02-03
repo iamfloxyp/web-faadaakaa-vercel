@@ -65,7 +65,7 @@ $("#loginBtn").on("click", function () {
           sessionStorage.removeItem("REDIRECT_AFTER_LOGIN");
           window.location.href = redirectUrl;
         } else {
-          window.location.href = "account.html";
+          window.location.href = "/dashboard";
         }
       }, 800);
     },
@@ -172,7 +172,7 @@ function showPhoneNotVerifiedModal(emailString) {
 
 $(document).on("click", "#cancelVerify", function (e) {
   e.preventDefault();
-  window.location.href = "/login.html";
+  window.location.href = "/dashboard";
 });
 
 $("#proceedVerify").on("click", function () {

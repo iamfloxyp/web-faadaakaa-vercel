@@ -106,7 +106,7 @@
 
 
         <!-- LOGO -->
-        <a href="index.html" id="logoContainer" class="flex items-center">
+        <a href="/" id="logoContainer" class="flex items-center">
           <img id="siteLogo" src="./assets/images/logo.png" alt="Faadaakaa Logo"
             class="w-[140px] h-[32px] sm:w-[160px] sm:h-[36px] lg:w-[190px] lg:h-[44px] object-contain" />
         </a>
@@ -196,7 +196,7 @@
   <!-- CART DROPDOWN -->
   <div
     id="cartDropdown"
-    class="hidden absolute left-[-75px] mt-2 w-[376px] h-[415px]
+    class="hidden absolute left-[-75px] mt-2 w-[376px] max-h-[380px]
            bg-white border border-[#EAECF0] rounded-[16px]
            shadow-[0px_8px_40px_rgba(0,0,0,0.12)]
            z-50 flex flex-col">
@@ -344,7 +344,7 @@
         <div id="authButtons" class="flex items-center gap-[12px]">
 
           <!-- LOGIN BUTTON -->
-          <a href="login.html">
+          <a href="/login">
             <button class="text-[#344054] text-[14px] font-[500] px-[14px] py-[10px] rounded-[8px] 
              hover:text-[#155EEF]">
               Log in
@@ -352,7 +352,7 @@
           </a>
 
           <!-- SIGNUP BUTTON -->
-          <a href="signUp.html">
+          <a href="/signup">
             <button class="bg-[#155EEF] text-white text-[14px] font-[500] px-[14px] py-[10px] 
              rounded-[8px] hover:bg-[#0047BA]">
               Sign up
@@ -455,7 +455,7 @@
     <div id="mobileAuthButtons"
       class="flex items-center gap-[12px] mt-[10px]">
 
-      <a href="login.html">
+      <a href="/login">
         <button
           class="text-[#344054] text-[14px] font-[500]
                  px-[14px] py-[10px] rounded-[8px]
@@ -464,7 +464,7 @@
         </button>
       </a>
 
-      <a href="signUp.html">
+      <a href="/signup">
         <button
           class="bg-[#155EEF] text-white text-[14px] font-[500]
                  px-[14px] py-[10px] rounded-[8px]
@@ -689,24 +689,24 @@
               </div>
 
 <!-- ================= DELIVERY ADDRESS ================= -->
-           <div id="deliveryAddressSection"
-     class="w-full flex flex-col bg-white rounded-[12px]
-            p-[16px] sm:p-[24px] gap-[24px]">
-
+<div
+  id="deliveryAddressSection"
+  class="w-full flex flex-col bg-white rounded-[12px]
+         p-[16px] sm:p-[24px] gap-[24px]"
+>
   <!-- HEADER -->
-  <h2 id="deliveryAddressHeader"
-      class="text-[#101828] font-semibold text-[18px] leading-[22px] tracking-[-0.03em]">
+  <h2
+    id="deliveryAddressHeader"
+    class="text-[#101828] font-semibold text-[18px] leading-[22px] tracking-[-0.03em]"
+  >
     Delivery Address
   </h2>
 
-  <!-- DYNAMIC ADDRESS OPTIONS -->
-  <div id="deliveryAddressOptions"
-       class="w-full flex flex-col sm:flex-row gap-[24px]">
+  <!-- DYNAMIC ADDRESS OPTIONS (ONE ADDRESS PER LINE) -->
+  <div id="deliveryAddressOptions" class="w-full flex flex-col gap-[16px]">
     <!-- JS will render addresses here -->
   </div>
-
-           </div>
-
+</div>
 
 
         </div>
@@ -716,14 +716,14 @@
 
 <!-- RIGHT COLUMN (PAYMENT SUMMARY) -->
 <div id="cartRight"
-     class="w-full md:w-[474px] flex flex-col bg-white">
+     class="w-full h-[770px] md:w-[474px] flex flex-col bg-white">
 
     <!-- ONE SINGLE OUTER CONTAINER -->
     <div id="fullPaymentBox"
          class="w-full bg-white rounded-[12px] border border-[#D0D5DD] overflow-hidden">
 
         <!-- ================= HEADER: TOTAL DUE NOW ================= -->
-        <div class="w-full h-[55px] bg-[#FAFAFA] border-b border-[#D0D5DD]
+        <div class="w-full h-[44px] bg-[#FAFAFA] border-b border-[#D0D5DD]
                     flex items-center justify-between px-[24px]">
 
             <p class="text-[#101828] text-[13px] font-semibold leading-[20px]">
@@ -736,24 +736,24 @@
         </div>
 
         <!-- ================= ROWS ================= -->
-        <div class="w-full h-[44px] flex items-center justify-between px-[24px]">
+        <div class="w-full h-[36px] flex items-center justify-between px-[24px]">
             <p class="text-[#535862] text-[11px]">Order Value</p>
             <p id="orderValueAmount" class="text-[#344054] text-[12px] font-medium text-right">
                 585,000.00 (40% of ₦1,557,270.00)
             </p>
         </div>
 
-        <div class="w-full h-[44px] flex items-center justify-between px-[24px]">
+        <div class="w-full h-[36px] flex items-center justify-between px-[24px]">
             <p class="text-[#535862] text-[11px]">Shipping Cost</p>
             <p id="shippingAmount" class="text-[#344054] text-[12px] font-medium">₦6,452.00</p>
         </div>
 
-        <div class="w-full h-[44px] flex items-center justify-between px-[24px]">
+        <div class="w-full h-[36px] flex items-center justify-between px-[24px]">
             <p class="text-[#535862] text-[12px]">Wallet Balance</p>
             <p id="walletRowAmount" class="text-[#344054] text-[12px] font-medium">₦241.88</p>
         </div>
 
-        <div class="w-full h-[44px] flex items-start justify-between px-[24px]">
+        <div class="w-full h-[36px] flex items-start justify-between px-[24px]">
             <p class="text-[#535862] text-[11px] leading-[15px]">
                 Credit Balance<br>(Max loan you can take)
             </p>
@@ -762,7 +762,7 @@
             </p>
         </div>
 
-        <div class="w-full h-[44px] flex items-center justify-between px-[24px]">
+        <div class="w-full h-[36px] flex items-center justify-between px-[24px]">
             <p class="text-[#535862] text-[11px]">Credit Status</p>
 
             <span id="creditStatusBadge" class="w-[44px] h-[18px] rounded-[4px]
@@ -773,7 +773,7 @@
         </div>
 
         <!-- ================= HEADER: PAYMENT TERMS ================= -->
-        <div class="w-full h-[55px] bg-[#FAFAFA] border-b border-[#D0D5DD]
+        <div class="w-full h-[36px] bg-[#FAFAFA] border-b border-[#D0D5DD]
                     flex items-center px-[24px]">
             <h3 class="text-[#101828] text-[13px] font-semibold leading-[20px]">
                 Payment Terms
@@ -781,7 +781,7 @@
         </div>
 
         <!-- ================= PAYMENT TERMS ROWS ================= -->
-<div class="w-full h-[44px] flex items-center justify-between px-[24px]">
+<div class="w-full h-[36px] flex items-center justify-between px-[24px]">
   <span class="text-[#535862] text-[11px]">Total Repayment (Loan)</span>
   <span
     id="totalLoanAmount"
@@ -805,7 +805,7 @@
 </div>
         <!-- ================= PAYMENT METHOD ================= -->
     <div id="paymentMethodHeader"
-     class="w-full h-[55px] bg-[#FAFAFA] border-b border-[#D0D5DD]
+     class="w-full h-[44px] bg-[#FAFAFA] border-b border-[#D0D5DD]
             flex items-center px-[24px]">
     <h3 class="text-[#101828] text-[13px] font-semibold leading-[20px]">
         Payment Method
@@ -813,34 +813,36 @@
    </div>
 
    <!-- === ROW 1: Bank Transfer === -->
+
 <div id="methodBankTransfer"
-     class="payment-method w-full h-[48px] flex items-center justify-between
+     class="payment-method w-full h-[44px] flex items-center justify-between
             px-[24px] border-b border-[#D0D5DD] cursor-pointer"
      data-method="bank">
 
   <div class="flex items-center gap-[12px]">
-    <input type="radio" name="paymentMethod" class="hidden" />
-
-    <span class="method-indicator w-[20px] h-[20px]
-                 rounded-full border border-[#D0D5DD]"></span>
+    <input
+      type="radio"
+      name="paymentMethod"
+      class="w-[16px] h-[16px] accent-[#155EEF] cursor-pointer"
+    />
 
     <p class="text-[#535862] text-[14px] leading-[22px]">
       Bank Transfer
     </p>
   </div>
 </div>
-
 <!-- === ROW 2: Wallet Balance === -->
 <div id="methodWallet"
-     class="payment-method w-full h-[48px] flex items-center justify-between
+     class="payment-method w-full h-[44px] flex items-center justify-between
             px-[24px] border-b border-[#D0D5DD] cursor-pointer"
      data-method="wallet">
 
   <div class="flex items-center gap-[12px]">
-    <input type="radio" name="paymentMethod" class="hidden" />
-
-    <span class="method-indicator w-[20px] h-[20px]
-                 rounded-full border border-[#D0D5DD]"></span>
+    <input
+      type="radio"
+      name="paymentMethod"
+      class="w-[16px] h-[16px] accent-[#155EEF] cursor-pointer"
+    />
 
     <p class="text-[#535862] text-[14px] leading-[22px]">
       Wallet Balance
@@ -858,7 +860,7 @@
 
   <!-- === ROW 4: Add New Card === -->
   <div id="addNewCard"
-     class="w-full h-[48px] flex items-center gap-[8px] px-[24px]">
+     class="w-full h-[44px] flex items-center gap-[8px] px-[24px]">
 
     <!-- <span class="text-[#004EEB] text-[18px] font-semibold">
         +
@@ -872,24 +874,39 @@
     </div>
     <!-- ================= AGREEMENT + CHECKOUT SECTION ================= -->
 <div id="agreementWrapper"
-     class="w-full md:w-[474px] h-[102px] flex flex-col gap-[24px] pt-[16px] border-b border-[#D0D5DD]">
+     class="w-full md:w-[474px] flex flex-col gap-[16px] pt-[16px] ">
 
-    <!-- AGREEMENT ROW -->
-    <div id="agreementRow"
-         class="w-full h-[22px] flex items-center gap-[8px]">
+  <div id="agreementRow" class="w-full flex items-start gap-[10px]">
 
-        <!-- CHECKBOX -->
-        <input id="agreeCheckbox"
-               type="checkbox"
-               class="w-[20px] h-[20px] border border-[#D0D5DD] rounded-[4px]
-                      appearance-none checked:bg-[#155EEF] checked:border-[#155EEF]" />
+    <!-- CHECKBOX -->
+    <input
+      id="agreeCheckbox"
+      type="checkbox"
+      class="mt-[2px] w-[20px] h-[20px]
+             border border-[#D0D5DD] rounded-[4px]
+             checked:border-[#155EEF]
+             cursor-pointer"
+    />
 
-        <!-- AGREEMENT TEXT -->
-        <label for="agreeCheckbox"
-               class="text-[#535862] text-[14px] leading-[22px] underline tracking-[-0.03em]">
-            I agree to FaaDaaKaa Credits & Loans Agreement
-        </label>
+    <!-- TEXT + LINK (NO LABEL WRAPPING LINK) -->
+    <div class="text-[#535862] text-[14px] leading-[22px]">
+      <span>I agree to </span>
+
+      <a
+        href="/terms.html"
+        target="_self"
+        rel="noopener"
+        id="termsLink"
+        class="font-[600] text-[15px] text-[#155EEF]
+               hover:text-[#004EEB]
+               focus:text-[#004EEB]
+               transition"
+      >
+        FaaDaaKaa Credits & Loans Agreement
+      </a>
     </div>
+
+  </div>
 </div>
 
 <!-- ================= CONFIRM & CHECKOUT BUTTON ================= -->
@@ -897,7 +914,7 @@
         class="w-full md:w-[474px] h-[48px] bg-[#155EEF] text-white
                font-medium text-[14px] leading-[22px] rounded-md
                px-[14px] py-[10px] border-2 border-[#155EEF]
-               shadow-[0_1px_2px_rgba(10,13,18,0.05),0_-2px_0_rgba(10,13,18,0.05)_inset]">
+               shadow-[0_1px_2px_rgba(10,13,18,0.05),0_-2px_0_rgba(10,13,18,0.05)_inset] mt-5">
     Confirm & Checkout
 </button>
 </div>
@@ -969,6 +986,147 @@
               px-[16px] py-[10px] rounded-md">
         Shop more
     </a>
+</div>
+
+<!-- ACCEPT LOAN AGREEMENT MODAL -->
+<div
+  id="acceptLoanAgreementModal"
+  class="fixed inset-0 z-[9999] hidden items-center justify-center bg-black/50"
+>
+  <div class="w-full max-w-[420px] rounded-[8px] bg-white p-[24px] text-center">
+
+    <div class="mx-auto mb-[12px] flex h-[48px] w-[48px] items-center justify-center rounded-full bg-red-100">
+      <span class="text-[22px] text-red-600">✕</span>
+    </div>
+
+    <h3 class="mb-[8px] text-[18px] font-semibold text-[#101828]">
+      Accept Loan Agreement
+    </h3>
+
+    <p class="mb-[20px] text-[14px] leading-[1.6] text-[#475467]">
+      To continue with this order, you must accept
+      <strong>FaaDaaKaa Credits & Loans Agreement</strong>.
+      Kindly accept the terms and retry your action.
+    </p>
+
+    <button
+      id="acceptLoanAgreementOkBtn"
+      class="w-full rounded-[6px] bg-[#1570EF] py-[10px] text-[14px] font-medium text-white"
+    >
+      OK
+    </button>
+
+  </div>
+</div>
+
+
+<div
+  id="checkoutInlineError"
+  class="hidden mt-[12px] flex items-start gap-[10px]
+         rounded-[10px] border border-red-300
+         bg-red-50 px-[14px] py-[12px]"
+>
+  <!-- ICON -->
+  <div
+    class="flex h-[20px] w-[20px] items-center justify-center
+           rounded-full bg-red-100 text-red-600 text-[14px] font-bold">
+    !
+  </div>
+
+  <!-- MESSAGE -->
+  <p class="text-[13px] leading-[18px] text-red-700 font-medium">
+    <!-- message injected by JS -->
+  </p>
+</div>
+
+<!-- RE-CONFIRM ORDER MODAL -->
+<div
+  id="reconfirmOrderModal"
+  class="fixed inset-0 z-[9999] hidden items-center justify-center bg-black/50"
+>
+  <div class="w-full max-w-[420px] rounded-[8px] bg-white p-[24px] text-center">
+
+    <h3 class="mb-[12px] text-[18px] font-semibold text-[#101828]">
+      Re-Confirm Order
+    </h3>
+
+    <p class="mb-[24px] text-[14px] leading-[1.6] text-[#475467]">
+      You are about to make this order. Please note that your wallet balance
+      is considered first regardless of your payment choice.
+      Do you wish to continue?
+    </p>
+
+    <div class="flex gap-[12px]">
+      <button
+        id="reconfirmOrderYesBtn"
+        class="flex-1 rounded-[6px] bg-[#1570EF] py-[10px] text-[14px] font-medium text-white"
+      >
+        Yes
+      </button>
+
+      <button
+        id="reconfirmOrderNoBtn"
+        class="flex-1 rounded-[6px] bg-[#D92D20] py-[10px] text-[14px] font-medium text-white"
+      >
+        No
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ORDER SUCCESS MODAL -->
+<div
+  id="orderSuccessModal"
+  class="fixed inset-0 z-[9999] hidden items-center justify-center bg-black/50"
+>
+  <div class="w-full max-w-[420px] rounded-[8px] bg-white p-[24px] text-center">
+
+    <div class="mx-auto mb-[12px] flex h-[48px] w-[48px] items-center justify-center rounded-full bg-green-100">
+      <span class="text-[22px] text-green-600">✓</span>
+    </div>
+
+    <h3 class="mb-[20px] text-[18px] font-semibold text-[#101828]">
+      Order successfully placed
+    </h3>
+
+    <button
+      id="orderSuccessOkBtn"
+      class="w-full rounded-[6px] bg-[#1570EF] py-[10px] text-[14px] font-medium text-white"
+    >
+      OK
+    </button>
+
+  </div>
+</div>
+
+<!-- GLOBAL FEEDBACK MODAL -->
+<div id="feedbackModal"
+     class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/50">
+
+  <div class="bg-white w-[360px] rounded-[12px] p-[20px] text-center">
+
+    <!-- ICON -->
+    <div id="feedbackIcon"
+         class="mx-auto mb-[12px] flex h-[48px] w-[48px] items-center justify-center rounded-full">
+    </div>
+
+    <!-- TITLE -->
+    <h3 id="feedbackTitle"
+        class="text-[16px] font-semibold text-[#101828] mb-[6px]">
+    </h3>
+
+    <!-- MESSAGE -->
+    <p id="feedbackMessage"
+       class="text-[14px] text-[#475467] mb-[16px]">
+    </p>
+
+    <!-- ACTION -->
+    <button id="feedbackBtn"
+            class=" rounded-[8px] py-[10px] text-[14px] font-medium text-white">
+      OK
+    </button>
+  </div>
 </div>
 
 <footer class="w-full bg-[#011845] text-white font-inter">

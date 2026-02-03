@@ -24,7 +24,7 @@ app.get("/category/:category_slug/:page", (req, res) => {
 // ==============================
 // PRODUCT DETAILS
 // ==============================
-app.get("/product/:slug", (req, res) => {
+app.get("/item/:slug", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "productdetails.html"));
 });
 
@@ -54,34 +54,39 @@ app.get("/verify/:email_string", (req, res) => {
 // ACCOUNT PAGE
 // ==============================
 
-app.get("/account", (req, res) => {
+// ==============================
+// DASHBOARD / ACCOUNT 
+// ==============================
+
+app.get("/dashboard", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "account.html"));
 });
 
-app.get("/account/wallet", (req, res) => {
+app.get("/mywallet", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "account.html"));
 });
 
-app.get("/account/wallet/fund", (req, res) => {
+app.get("/mywallet/fund", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "account.html"));
 });
 
-app.get("/account/loans", (req, res) => {
+app.get("/loan-credit", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "account.html"));
 });
 
-app.get("/account/delivery", (req, res) => {
+app.get("/addresses", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "account.html"));
 });
 
-app.get("/account/orders", (req, res) => {
+app.get("/myorders", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "account.html"));
 });
 
-app.get("/account/orders/:orderId", (req, res) => {
+app.get("/myorders/:orderId", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "account.html"));
 });
 
+// Loan settlement routes (still orders-related)
 app.get("/loan-settlement/order/:orderId", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "account.html"));
 });
@@ -89,7 +94,6 @@ app.get("/loan-settlement/order/:orderId", (req, res) => {
 app.get("/loan-settlement/repayment/:repaymentId", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "account.html"));
 });
-
 // START SERVER
 // ==============================
 app.listen(PORT, () => {

@@ -160,44 +160,42 @@ $(document).on("click", function () {
   $("#MobileUserMenu").addClass("hidden");
 });
 
-
-
-// Desktop navigation 
+// Desktop navigation
 $(document).on("click", "#menuAccount", function (e) {
   e.preventDefault();
   e.stopPropagation();
-  window.location.href = "/account";
+  window.location.href = "/dashboard";
 });
 
 $(document).on("click", "#menuWallet", function (e) {
   e.preventDefault();
   e.stopPropagation();
-  window.location.href = "/account/wallet";
+  window.location.href = "/mywallet";
 });
 
 $(document).on("click", "#menuOrders", function (e) {
   e.preventDefault();
   e.stopPropagation();
-  window.location.href = "/account/orders";
+  window.location.href = "/myorders";
 });
-// Mobile
 
+// Mobile navigation
 $(document).on("click", "#mobileMenuAccount", function (e) {
   e.preventDefault();
   e.stopPropagation();
-  window.location.href = "/account";
+  window.location.href = "/dashboard";
 });
 
 $(document).on("click", "#mobileMenuWallet", function (e) {
   e.preventDefault();
   e.stopPropagation();
-  window.location.href = "/account/wallet";
+  window.location.href = "/mywallet";
 });
 
 $(document).on("click", "#mobileMenuOrders", function (e) {
   e.preventDefault();
   e.stopPropagation();
-  window.location.href = "/account/orders";
+  window.location.href = "/myorders";
 });
 
 // =======================
@@ -253,7 +251,7 @@ function updateCartTooltip() {
 // Run immediately on page load
 updateCartTooltip();
 
-// ⭐ HOVER LOGIC (USE #cartContainer — NOT #cartWrapper)
+//  HOVER LOGIC (USE #cartContainer — NOT #cartWrapper)
 $("#cartContainer").hover(
     function () {
         updateCartTooltip();
@@ -413,22 +411,27 @@ $("#cartItemsWrapper").on("click", ".remove-cart-item", function (e) {
 // EMPTY CART STATE
 function renderEmptyCartState() {
   const emptyHtml = `
-    <div class="text-center py-[24px] text-[#667085] text-[14px]">
+    <div class="text-center py-[16px]
+                text-[#667085] text-[14px]">
       Your cart is empty
     </div>
   `;
 
+  // Desktop
   $("#cartItemsWrapper").html(emptyHtml);
+
+  // Mobile
   $("#mobileCartItemsWrapper").html(emptyHtml);
 
+  // Reset totals
   $("#cartSubtotal").text("₦0.00");
   $("#headerCartTotal").text("₦0.00");
   $("#mobileCartSubtotal").text("₦0.00");
   $("#mobileCartTotal").text("₦0.00");
 
-  // Disable View Cart
-  $("#cartTooltipViewBtn").addClass("hidden");
-  $("#mobileCartDropdown a[href='./cart.html']").addClass("hidden");
+  // Hide subtotal and view cart button
+  $("#cartSubtotalSection").addClass("hidden");
+  $("#cartViewBtnSection").addClass("hidden");
 }
  
 
@@ -488,6 +491,9 @@ function renderCartUI(cartItems) {
     $("#mobileCartDropdown").addClass("hidden");
     return;
   }
+  // Show subtotal and view cart when items exist
+$("#cartSubtotalSection").removeClass("hidden");
+$("#cartViewBtnSection").removeClass("hidden");
 
   // ===== TOOLTIP TEXT =====
   if (totalQty === 1) {

@@ -2,6 +2,15 @@
 // CART PAGE 
 // ===============================
 let CURRENT_CART_ITEMS = [];
+// ================= PAYMENT STATE (GLOBAL) =================
+const cartPaymentState = {
+  addressId: null,
+  selectedMethod: "wallet",   // wallet | bank | card
+  selectedCardId: null,
+  paymentType: "outright", // outright | installment
+  loanAgreementAccepted: false
+};
+
 // ================ HELPER: FORMAT MONEY ==================
 function formatMoney(amount = 0) {
   return `₦${Number(amount).toLocaleString()}`;
@@ -73,6 +82,8 @@ function forceClearCartHeaderUI() {
 }
 let CART_PROFILE = null;
 
+
+
 function loadCartPage() {
   const token = sessionStorage.getItem("AUTH_TOKEN");
 
@@ -111,6 +122,14 @@ function loadCartPage() {
             };
           })
         : [];
+        //  DETERMINE CART PAYMENT TYPE 
+const hasInstallment = cartItems.some(
+  item => Number(item.period || 0) > 0
+);
+
+cartPaymentState.paymentType = hasInstallment
+  ? "installment"
+  : "outright";
 
       renderHeaderCartFromProfile({
         ...CART_PROFILE,
@@ -132,7 +151,8 @@ function loadCartPage() {
       renderPaymentTerms(cartItems);
       renderPaymentMethodWallet(CART_PROFILE.wallet?.data);
       renderPaymentMethodCards(CART_PROFILE.payment_cards?.data);
-      initPaymentMethods()
+      initPaymentMethods();
+      setDefaultPaymentMethod();
       renderDeliveryAddresses(addresses);
       loadCartPaymentCards();
 
@@ -760,54 +780,54 @@ function buildScheduleRow(sn, amount, dateLabel) {
 
 // ==============RENDER ADDRESS=======================
 function renderDeliveryAddresses(addresses = []) {
-  
-  const section = document.getElementById("deliveryAddressSection");
-  const wrapper = document.getElementById("deliveryAddressOptions");
+  const $section = $("#deliveryAddressSection");
+  const $wrapper = $("#deliveryAddressOptions");
 
-  if (!wrapper || !section) return;
+  if (!$wrapper.length || !$section.length) return;
 
-  section.classList.remove("hidden");
-  wrapper.innerHTML = "";
+  $section.removeClass("hidden");
+  $wrapper.empty();
 
   if (!addresses.length) {
-    wrapper.innerHTML = `
+    $wrapper.html(`
       <div class="text-[#667085] text-[14px]">
         No delivery address found
       </div>
-    `;
-    console.warn("No addresses to render");
+    `);
     return;
   }
 
-  addresses.forEach(addr => {
-    const isActive = Number(addr.active) === 1;
-
-    wrapper.insertAdjacentHTML(
-      "beforeend",
-      `
-      <label class="delivery-option w-full sm:w-[343px] flex items-start gap-[16px]
-             border rounded-[12px] p-[16px] cursor-pointer
-             ${isActive ? "border-[#155EEF]" : "border-[#EAECF0]"}">
-
+  $.each(addresses, function (_, addr) {
+    $wrapper.append(`
+      <label
+        class="w-full grid grid-cols-[20px_1fr_1fr_2fr_1fr]
+               items-center gap-[12px]
+               border border-[#EAECF0] rounded-[12px]
+               px-[14px] py-[12px]
+               cursor-pointer">
         <input
           type="radio"
           name="deliveryOption"
-          class="w-[20px] h-[20px]"
-          ${isActive ? "checked" : ""}
+          class="w-[16px] h-[16px]"
           data-address-id="${addr.id}"
         />
-
-        <div class="flex flex-col gap-[8px]">
-          <p class="text-[#101828] text-[16px] font-medium">${addr.name}</p>
-          <p class="text-[#353C49] text-[14px]">${addr.mobile}</p>
-          <p class="text-[#535862] text-[14px]">
-            ${addr.address}, ${addr.state}
-          </p>
-        </div>
+        <span class="text-[#101828] font-medium truncate">${addr.name}</span>
+        <span class="text-[#353C49] truncate">${addr.mobile}</span>
+        <span class="text-[#535862] truncate">${addr.address}</span>
+        <span class="text-[#101828] font-medium text-right truncate">${addr.state}</span>
       </label>
-      `
-    );
+    `);
   });
+
+  // ✅ SELECT FIRST ADDRESS ONCE
+  const firstRadio = document.querySelector(
+    'input[name="deliveryOption"]'
+  );
+
+  if (firstRadio) {
+    firstRadio.checked = true;
+    cartPaymentState.addressId = firstRadio.dataset.addressId;
+  }
 }
 
 // ============== RENDER ADDRESS SELECTION ============
@@ -815,33 +835,10 @@ $(document).on("change", 'input[name="deliveryOption"]', function () {
   const addressId = this.dataset.addressId;
   if (!addressId) return;
 
-  const token = sessionStorage.getItem("AUTH_TOKEN");
-  if (!token) return;
+  //  THIS IS ALL CHECKOUT NEEDS
+  cartPaymentState.addressId = addressId;
 
-  const formData = new FormData();
-  formData.append("address_id", addressId);
-  formData.append("token", token);
-
-  fetch("https://api.faadaakaa.com/api/setdefaultaddress", {
-    method: "POST",
-    body: formData
-  })
-    .then(res => res.json())
-    .then(result => {
-      if (!result.status) {
-        toast("Failed to update delivery address", "error");
-        return;
-      }
-
-      toast("Delivery address updated", "success");
-
-      if (typeof window.refreshCartUI === "function") {
-        window.refreshCartUI();
-      }
-    })
-    .catch(() => {
-      toast("Network error updating address", "error");
-    });
+  
 });
 
 
@@ -993,29 +990,95 @@ function renderPaymentTerms(cartItems = []) {
 let SELECTED_PAYMENT_METHOD = null;
 
 function initPaymentMethods() {
-  const methods = document.querySelectorAll(".payment-method");
-
-  methods.forEach(method => {
+  document.querySelectorAll(".payment-method").forEach(method => {
     method.addEventListener("click", () => {
-      methods.forEach(m => {
+
+      document.querySelectorAll(".payment-method").forEach(m => {
         m.classList.remove("bg-[#F2F4F7]");
-        m.querySelector(".method-indicator")
-          .classList.remove("bg-[#155EEF]", "border-[#155EEF]");
-        m.querySelector(".method-indicator")
-          .classList.add("border-[#D0D5DD]");
+        const ind = m.querySelector(".method-indicator");
+        if (ind) {
+          ind.classList.remove("bg-[#155EEF]", "border-[#155EEF]");
+          ind.classList.add("border-[#D0D5DD]");
+        }
       });
 
-      const indicator = method.querySelector(".method-indicator");
-      indicator.classList.remove("border-[#D0D5DD]");
-      indicator.classList.add("bg-[#155EEF]", "border-[#155EEF]");
-
       method.classList.add("bg-[#F2F4F7]");
+      const indicator = method.querySelector(".method-indicator");
+      if (indicator) {
+        indicator.classList.add("bg-[#155EEF]", "border-[#155EEF]");
+      }
 
-      SELECTED_PAYMENT_METHOD = method.dataset.method;
+      cartPaymentState.selectedMethod = method.dataset.method || null;
+      cartPaymentState.selectedCardId =
+        method.dataset.payment_card_id || null;
     });
   });
 }
 
+function setDefaultPaymentMethod() {
+  const walletMethod = document.querySelector(
+    '.payment-method[data-method="wallet"]'
+  );
+
+  if (!walletMethod) return;
+
+  // 1. Check the radio input
+  const radio = walletMethod.querySelector('input[type="radio"]');
+  if (radio) {
+    radio.checked = true;
+  }
+
+  // 2. Set JS state
+  cartPaymentState.selectedMethod = "wallet";
+  cartPaymentState.selectedCardId = null;
+}
+
+// ================= DELIVERY ADDRESS SELECTION (MUST HAVE) =================
+
+// ============== ADDRESS SELECTION (CORRECT & FINAL) ============
+// $(document).on("change", 'input[name="deliveryOption"]', function () {
+//   const addressId = this.dataset.addressId;
+//   if (!addressId) return;
+
+  
+//   cartPaymentState.addressId = String(addressId);
+
+//   console.log("Selected delivery address:", cartPaymentState.addressId);
+// });
+$(document).on("click", ".address-row", function () {
+  const addressId = $(this).data("address_id");
+
+  if (!addressId) return;
+
+  // visually mark selected
+  $(".address-row").removeClass("bg-[#F2F4F7]");
+  $(this).addClass("bg-[#F2F4F7]");
+
+  // radio UI
+  $(".address-row input[type='radio']").prop("checked", false);
+  $(this).find("input[type='radio']").prop("checked", true);
+
+  // 🔑 THIS IS THE IMPORTANT PART
+  cartPaymentState.addressId = addressId;
+
+  console.log("Selected address:", addressId);
+});
+
+function setDefaultAddressUIAndState() {
+  const $first = $('input[name="deliveryAddress"]').first();
+  if (!$first.length) return;
+
+  // only set default if none is selected already
+  const $checked = $('input[name="deliveryAddress"]:checked');
+  if ($checked.length) {
+    cartPaymentState.addressId = String($checked.data("address-id") || $checked.val());
+    return;
+  }
+
+  $first.prop("checked", true).trigger("change");
+}
+
+setDefaultAddressUIAndState()
 function renderPaymentMethodWallet(walletData) {
   const el = document.getElementById("walletMethodAmount");
   if (!el || !walletData) return;
@@ -1075,38 +1138,40 @@ function renderPaymentMethodCards(cards = []) {
   }
 
   cards.forEach(card => {
-    const name = getCardDisplayName(card); // ✅ Mastercard/Visa/Verve if available
+    const name = getCardDisplayName(card); 
     const first6 = card.bin || "";
     const last4 = card.last4 || card.last_4 || "0000";
     const paymentCardId = card.id || card.payment_card_id || card.card_id || "";
 
     const cardHtml = `
-      <div
-        class="payment-method w-full h-[48px] flex items-center justify-between
-               px-[24px] border-b border-[#D0D5DD] cursor-pointer"
-        data-method="card"
-        data-payment_card_id="${paymentCardId}">
+  <div
+    class="payment-method w-full h-[48px] flex items-center justify-between
+           px-[24px] border-b border-[#D0D5DD] cursor-pointer"
+    data-method="card"
+    data-payment_card_id="${paymentCardId}">
 
-        <div class="flex items-center gap-[12px]">
-          <input type="radio" name="paymentMethod" class="hidden" />
-          <span class="method-indicator w-[20px] h-[20px]
-                       rounded-full border border-[#D0D5DD]"></span>
+    <div class="flex items-center gap-[12px]">
+      <input
+        type="radio"
+        name="paymentMethod"
+        class="w-[16px] h-[16px] accent-[#155EEF] cursor-pointer"
+      />
 
-          <p class="text-[#535862] text-[14px] leading-[22px]">
-            ${name}
-          </p>
-        </div>
+      <p class="text-[#535862] text-[14px] leading-[22px]">
+        ${name}
+      </p>
+    </div>
 
-        <span class="text-[#344054] text-[14px] font-medium">
-          ${first6}••••${last4}
-        </span>
-      </div>
-    `;
+    <span class="text-[#344054] text-[14px] font-medium">
+      ${first6}••••${last4}
+    </span>
+  </div>
+`;
 
     container.insertAdjacentHTML("beforeend", cardHtml);
   });
 
-  // ✅ rebind clicks so the dynamically added cards can be selected
+  //  rebind clicks so the dynamically added cards can be selected
   initPaymentMethods();
 }
 // =======ADD NEW CARD IN CART PAGE=====
@@ -1128,3 +1193,575 @@ if (typeof window.showErrorToast !== "function") {
     alert(msg);
   };
 }
+
+// ===LINK=======
+$(document).on("click", "#termsLink", function (e) {
+  e.stopPropagation(); 
+});
+
+
+// ================= CHECKOUT VALIDATION + FLOW =================
+
+// ================= INLINE ERROR HELPERS =================
+function showCheckoutInlineError(message) {
+  const wrapper = document.getElementById("checkoutInlineError");
+  if (!wrapper) return;
+
+  const textEl = wrapper.querySelector("p");
+  if (!textEl) return;
+
+  textEl.textContent = message;
+  wrapper.classList.remove("hidden");
+
+  setTimeout(() => {
+    wrapper.classList.add("hidden");
+    textEl.textContent = "";
+  }, 15000);
+}
+
+function clearCheckoutInlineError() {
+  const el = document.getElementById("checkoutInlineError");
+  if (!el) return;
+
+  el.classList.add("hidden");
+  el.textContent = "";
+}
+
+function showProcessingOverlay(message) {
+  const loader = document.getElementById("cartLoader");
+  if (!loader) return;
+
+  const textEl = loader.querySelector("p");
+  if (textEl) textEl.textContent = message || "Processing, please wait...";
+
+  loader.classList.remove("hidden");
+}
+
+function hideProcessingOverlay() {
+  const loader = document.getElementById("cartLoader");
+  if (!loader) return;
+
+  const textEl = loader.querySelector("p");
+  if (textEl) textEl.textContent = "";
+
+  loader.classList.add("hidden");
+}
+
+function setReconfirmButtonsDisabled(disabled) {
+  $("#reconfirmOrderYesBtn").prop("disabled", disabled);
+  $("#reconfirmOrderNoBtn").prop("disabled", disabled);
+
+  if (disabled) {
+    $("#reconfirmOrderYesBtn").addClass("opacity-60 cursor-not-allowed");
+    $("#reconfirmOrderNoBtn").addClass("opacity-60 cursor-not-allowed");
+  } else {
+    $("#reconfirmOrderYesBtn").removeClass("opacity-60 cursor-not-allowed");
+    $("#reconfirmOrderNoBtn").removeClass("opacity-60 cursor-not-allowed");
+  }
+}
+
+// ================= MODAL HELPERS =================
+function openModal($modal) {
+  $modal.removeClass("hidden").addClass("flex");
+}
+
+function closeModal($modal) {
+  $modal.addClass("hidden").removeClass("flex");
+}
+
+const $acceptLoanAgreementModal = $("#acceptLoanAgreementModal");
+const $reconfirmOrderModal = $("#reconfirmOrderModal");
+
+// ================= CONFIRM & CHECKOUT BUTTON =================
+$(document).on("click", "#confirmCheckoutBtn", function () {
+
+  clearCheckoutInlineError();
+
+  if (!cartPaymentState.addressId) {
+    showCheckoutInlineError(
+      "Delivery address not selected. Please choose an address."
+    );
+    return;
+  }
+
+  if (!cartPaymentState.selectedMethod) {
+    showCheckoutInlineError(
+      "Payment method not selected. Please choose how you want to pay."
+    );
+    return;
+  }
+
+  // AGREEMENT CHECK (ONLY WHEN NOT ACCEPTED)
+  if (
+    cartPaymentState.paymentType === "installment" &&
+    cartPaymentState.loanAgreementAccepted !== true
+  ) {
+    openModal($("#acceptLoanAgreementModal"));
+    return;
+  }
+
+  // ONLY IF AGREEMENT IS ACCEPTED
+  openModal($("#reconfirmOrderModal"));
+});
+
+
+// ================= ACCEPT LOAN AGREEMENT MODAL =================
+$(document).on("change", "#agreeCheckbox", function () {
+  cartPaymentState.loanAgreementAccepted = this.checked;
+});
+
+
+$(document).on("click", "#acceptLoanAgreementOkBtn", function () {
+  closeModal($("#acceptLoanAgreementModal"));
+});
+
+
+function resetLoanAgreement() {
+  cartPaymentState.loanAgreementAccepted = false;
+  $("#agreeCheckbox").prop("checked", false);
+}
+
+function showErrorModal(message, title = "Error") {
+  $("#feedbackIcon")
+    .removeClass()
+    .addClass("mx-auto mb-[12px] flex h-[48px] w-[48px] items-center justify-center rounded-full bg-red-100")
+    .html('<span class="text-red-600 text-[22px]">✕</span>');
+
+  $("#feedbackTitle").text(title);
+  $("#feedbackMessage").text(message);
+
+  $("#feedbackBtn")
+    .removeClass()
+    .addClass("w-full rounded-[8px] py-[10px] text-[14px] font-medium text-white bg-red-600")
+    .text("OK");
+
+  $("#feedbackModal").removeClass("hidden").addClass("flex");
+
+  $("#feedbackBtn").off("click").on("click", function () {
+    $("#feedbackModal").addClass("hidden").removeClass("flex");
+  });
+}
+// ================= RECONFIRM MODAL NO =================
+$(document).on("click", "#reconfirmOrderNoBtn", function () {
+  closeModal($reconfirmOrderModal);
+});
+
+function toReadableMessage(maybeMsg) {
+  if (!maybeMsg) return "Something went wrong.";
+  if (typeof maybeMsg === "string") return maybeMsg;
+
+  if (typeof maybeMsg === "object") {
+    return (
+      maybeMsg.message ||
+      maybeMsg.error ||
+      maybeMsg.msg ||
+      JSON.stringify(maybeMsg)
+    );
+  }
+  return String(maybeMsg);
+}
+
+const BASE_URL = "https://api.faadaakaa.com/api";
+
+function createOrderAjax(payload, onSuccess, onError) {
+  const token = sessionStorage.getItem("AUTH_TOKEN");
+  if (!token) {
+    onError?.("Session expired.");
+    return;
+  }
+
+  const fd = new FormData();
+  fd.append("token", token);
+
+  Object.keys(payload).forEach(key => {
+    if (payload[key] !== undefined && payload[key] !== null) {
+      fd.append(key, payload[key]);
+    }
+  });
+
+  $.ajax({
+    url: `${BASE_URL}/createorder`,
+    type: "POST",
+    data: fd,
+    processData: false,
+    contentType: false,
+
+    success: function (res) {
+      if (!res || res.status !== true) {
+        onError?.(toReadableMessage(res?.message || "Order failed."));
+        return;
+      }
+      onSuccess?.(res);
+    },
+
+    error: function (xhr) {
+      const msg =
+        xhr.responseJSON?.message ||
+        xhr.responseJSON?.error ||
+        xhr.responseText ||
+        "Bad request. Please check order payload.";
+
+      onError?.(toReadableMessage(msg));
+    }
+  });
+}
+
+
+function getTotalDueNowFromUI() {
+  const el = document.getElementById("totalDueSummary");
+  if (!el) return 0;
+
+  const text = (el.textContent || "").trim();
+
+  
+  const m = text.match(/₦\s*([\d,]+(?:\.\d{1,2})?)/);
+
+  if (!m || !m[1]) return 0;
+
+  const num = Number(m[1].replace(/,/g, ""));
+  return Number.isFinite(num) ? num : 0;
+} 
+
+function toPaystackAmount(value) {
+  const num = Number(value);
+  if (!Number.isFinite(num) || num <= 0) return null;
+
+  return Math.round(num * 100);
+}
+
+function startPaystackBankTransfer(amount, onSuccessRef, onClose) {
+  const email = CART_PROFILE?.email || CART_PROFILE?.user?.email;
+
+
+  const showErr = (msg) => {
+    if (typeof window.showErrorModal === "function") {
+      window.showErrorModal(msg, "Payment Unsuccessful");
+    } else {
+      alert(msg);
+    }
+  };
+
+  if (!email) {
+    showErr("User email not found.");
+    if (typeof onClose === "function") onClose();
+    return;
+  }
+
+  const paystackAmount = toPaystackAmount(amount);
+
+  if (!paystackAmount) {
+    showErr("Invalid payment amount.");
+    if (typeof onClose === "function") onClose();
+    return;
+  }
+
+  const handler = PaystackPop.setup({
+    key: PAYSTACK_API_KEY,
+    email: email,
+    amount: paystackAmount,
+    currency: "NGN",
+    channels: ["bank_transfer"],
+    callback: function (response) {
+      if (typeof onSuccessRef === "function") onSuccessRef(response.reference);
+    },
+    onClose: function () {
+      if (typeof onClose === "function") onClose();
+    }
+  });
+
+  handler.openIframe();
+}
+
+
+
+
+function fetchWalletBalance(done) {
+  const token = sessionStorage.getItem("AUTH_TOKEN");
+  if (!token) return done(0);
+
+  const fd = new FormData();
+  fd.append("token", token);
+
+  $.ajax({
+    url: `${BASE_URL}/loadprofile`,
+    type: "POST",
+    data: fd,
+    processData: false,
+    contentType: false,
+    success: function (res) {
+      const balance = Number(
+        res?.data?.wallet?.data?.wallet_balance ??
+        res?.data?.wallet_balance ??
+        0
+      );
+      done(Number.isFinite(balance) ? balance : 0);
+    },
+    error: function () {
+      done(0);
+    }
+  });
+}
+
+function confirmWalletFundingByTransferRef(payref, onDone, onFail) {
+  const token = sessionStorage.getItem("AUTH_TOKEN");
+  if (!token) {
+    if (typeof onFail === "function") onFail("Session expired.");
+    return;
+  }
+
+  fetchWalletBalance(function (oldBalance) {
+    const fd = new FormData();
+    fd.append("token", token);
+    fd.append("payref", payref);
+
+    $.ajax({
+      url: `${BASE_URL}/addfundbytransfer_trans_ref`,
+      type: "POST",
+      data: fd,
+      processData: false,
+      contentType: false,
+      success: function (res) {
+        if (!res || res.status !== true) {
+          if (typeof onFail === "function") onFail(res?.message || "Wallet funding failed.");
+          return;
+        }
+
+        pollUntilWalletUpdated(oldBalance, onDone, onFail);
+      },
+      error: function () {
+        if (typeof onFail === "function") onFail("Unable to confirm payment.");
+      }
+    });
+  });
+}
+
+function pollUntilWalletUpdated(oldBalance, onDone, onFail) {
+  let tries = 0;
+  const maxTries = 20;
+
+  const timer = setInterval(() => {
+    tries++;
+
+    fetchWalletBalance(function (newBalance) {
+      if (Number(newBalance) !== Number(oldBalance)) {
+        clearInterval(timer);
+        if (typeof onDone === "function") onDone(newBalance);
+        return;
+      }
+
+      if (tries >= maxTries) {
+        clearInterval(timer);
+        if (typeof onFail === "function") onFail("Wallet update delayed. Please try again.");
+      }
+    });
+  }, 1000);
+}
+
+
+function showOrderSuccessAndRedirect(orderId) {
+  $("#orderSuccessModal").removeClass("hidden").addClass("flex");
+
+  setTimeout(() => {
+    $("#orderSuccessModal").addClass("hidden").removeClass("flex");
+
+    if (orderId) {
+      window.location.href = `/myorders/${orderId}`;
+    } else {
+      window.location.href = `/myorders`;
+    }
+  }, 5000);
+}
+
+function extractOrderId(res) {
+  return (
+    res?.data?.order_id ||
+    res?.data?.orderId ||
+    res?.order_id ||
+    res?.orderId ||
+    null
+  );
+}
+
+
+
+// ======================
+// RE-CONFIRM ORDER (YES)
+// ======================
+$(document).on("click", "#reconfirmOrderYesBtn", function () {
+  closeModal($("#reconfirmOrderModal"));
+  setReconfirmButtonsDisabled(true);
+
+  const token = sessionStorage.getItem("AUTH_TOKEN");
+  if (!token) {
+    setReconfirmButtonsDisabled(false);
+    showErrorModal("Session expired.");
+    return;
+  }
+
+  const addressId = cartPaymentState.addressId;
+  const method = cartPaymentState.selectedMethod; // wallet | bank | card
+  const cardId = cartPaymentState.selectedCardId;
+
+  // ✅ ADDRESS MUST BE PRESENT (USER CAN CHANGE IT, BUT STATE MUST HAVE IT)
+  if (!addressId) {
+    setReconfirmButtonsDisabled(false);
+    showErrorModal("Delivery address not selected. Please choose an address.");
+    return;
+  }
+
+  const amountDue = getTotalDueNowFromUI();
+
+  // ======================
+  // WALLET PAYMENT
+  // ======================
+  if (method === "wallet") {
+    showProcessingOverlay("Placing order, please wait...");
+
+    createOrderAjax(
+      {
+        address_id: addressId,
+        payment_method: "wallet_balance"
+      },
+      function (res) {
+        hideProcessingOverlay();
+        setReconfirmButtonsDisabled(false);
+        showOrderSuccessAndRedirect(extractOrderId(res));
+      },
+      function (msg) {
+        hideProcessingOverlay();
+        setReconfirmButtonsDisabled(false);
+        showErrorModal(toReadableMessage(msg) || "Order failed.");
+      }
+    );
+
+    return;
+  }
+
+  // ======================
+  // BANK TRANSFER (PAYSTACK -> FUND WALLET -> CREATE ORDER)
+  // ======================
+  if (method === "bank") {
+    startPaystackBankTransfer(
+      amountDue,
+      function (payref) {
+        showProcessingOverlay("Confirming payment, please wait...");
+
+        confirmWalletFundingByTransferRef(
+          payref,
+          function () {
+            showProcessingOverlay("Placing order, please wait...");
+
+            createOrderAjax(
+              {
+                address_id: addressId,
+                payment_method: "wallet_balance"
+              },
+              function (res) {
+                hideProcessingOverlay();
+                setReconfirmButtonsDisabled(false);
+                showOrderSuccessAndRedirect(extractOrderId(res));
+              },
+              function (msg) {
+                hideProcessingOverlay();
+                setReconfirmButtonsDisabled(false);
+                showErrorModal(toReadableMessage(msg) || "Order failed.");
+              }
+            );
+          },
+          function (msg) {
+            hideProcessingOverlay();
+            setReconfirmButtonsDisabled(false);
+            showErrorModal(toReadableMessage(msg) || "Payment confirmation failed.");
+          }
+        );
+      },
+      function () {
+        setReconfirmButtonsDisabled(false);
+      }
+    );
+
+    return;
+  }
+
+  // ======================
+  // EXISTING CARD (FUND WALLET -> CREATE ORDER)
+  // ======================
+  if (method === "card") {
+    if (!cardId) {
+      setReconfirmButtonsDisabled(false);
+      showCheckoutInlineError("Please select a saved card.");
+      return;
+    }
+
+    if (!amountDue || amountDue <= 0) {
+      setReconfirmButtonsDisabled(false);
+      showErrorModal("Invalid payment amount.");
+      return;
+    }
+
+    showProcessingOverlay("Charging card, please wait...");
+
+    const fundFd = new FormData();
+    fundFd.append("token", token);
+    fundFd.append("amount", amountDue);
+    fundFd.append("payment_method_id", cardId);
+
+    $.ajax({
+      url: `${BASE_URL}/addfundby_exsting_card`,
+      type: "POST",
+      headers: {
+        Authorization: "Bearer " + token
+      },
+      data: fundFd,
+      processData: false,
+      contentType: false,
+
+      success: function (fundRes) {
+        if (!fundRes || fundRes.status !== true) {
+          hideProcessingOverlay();
+          setReconfirmButtonsDisabled(false);
+          showErrorModal(toReadableMessage(fundRes?.message) || "Unable to fund wallet.");
+          return;
+        }
+
+        showProcessingOverlay("Placing order, please wait...");
+
+        // ✅ IMPORTANT: createorder expects payment_method = paymentcard_id (based on your Postman)
+        createOrderAjax(
+          {
+            address_id: addressId,
+            payment_method: "paymentcard_id"
+          },
+          function (res) {
+            hideProcessingOverlay();
+            setReconfirmButtonsDisabled(false);
+            showOrderSuccessAndRedirect(extractOrderId(res));
+          },
+          function (msg) {
+            hideProcessingOverlay();
+            setReconfirmButtonsDisabled(false);
+            showErrorModal(toReadableMessage(msg) || "Order failed.");
+          }
+        );
+      },
+
+      error: function (xhr) {
+        hideProcessingOverlay();
+        setReconfirmButtonsDisabled(false);
+
+        const backendMsg =
+          xhr.responseJSON?.message ||
+          xhr.responseJSON?.error ||
+          xhr.responseText ||
+          "Payment was not successful.";
+
+        showErrorModal(toReadableMessage(backendMsg), "Payment Unsuccessful");
+      }
+    });
+
+    return;
+  }
+
+  setReconfirmButtonsDisabled(false);
+  showCheckoutInlineError("Please select a payment method.");
+});

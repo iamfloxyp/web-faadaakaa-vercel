@@ -800,11 +800,12 @@ function renderDeliveryAddresses(addresses = []) {
   $.each(addresses, function (_, addr) {
     $wrapper.append(`
       <label
-        class="w-full grid grid-cols-[20px_1fr_1fr_2fr_1fr]
-               items-center gap-[12px]
-               border border-[#EAECF0] rounded-[12px]
-               px-[14px] py-[12px]
-               cursor-pointer">
+        class="min-w-[320px] sm:w-full
+         grid grid-cols-[20px_1fr_1fr_2fr_1fr]
+         items-center gap-[12px]
+         border border-[#EAECF0] rounded-[12px]
+         px-[14px] py-[12px]
+         cursor-pointer flex-shrink-0">
         <input
           type="radio"
           name="deliveryOption"
@@ -1036,15 +1037,53 @@ function setDefaultPaymentMethod() {
 // ================= DELIVERY ADDRESS SELECTION (MUST HAVE) =================
 
 // ============== ADDRESS SELECTION (CORRECT & FINAL) ============
-// $(document).on("change", 'input[name="deliveryOption"]', function () {
-//   const addressId = this.dataset.addressId;
-//   if (!addressId) return;
+function refreshShippingForAddress(addressId) {
+  const token = sessionStorage.getItem("AUTH_TOKEN");
+  if (!token || !addressId) return;
 
-  
-//   cartPaymentState.addressId = String(addressId);
+  showCartLoader();
 
-//   console.log("Selected delivery address:", cartPaymentState.addressId);
-// });
+  const fd = new FormData();
+  fd.append("token", token);
+  fd.append("address_id", addressId);
+
+  fetch("https://api.faadaakaa.com/api/update-primary-address", {
+    method: "POST",
+    body: fd
+  })
+    .then(res => res.json())
+    .then(res => {
+      if (!res.status) {
+        toast("Unable to update shipping cost", "error");
+        return;
+      }
+
+      const shippingCost = Number(res.data.shipping_cost || 0);
+
+      // update only what matters
+      CART_PROFILE.financials = CART_PROFILE.financials || {};
+      CART_PROFILE.financials.data = [{
+        shipping_cost: shippingCost
+      }];
+
+      renderOrderAndDueNow(
+        CURRENT_CART_ITEMS,
+        CART_PROFILE.wallet?.data,
+        { shipping_cost: shippingCost }
+      );
+    })
+    .finally(() => {
+      hideCartLoader();
+    });
+}
+$(document).on("change", 'input[name="deliveryOption"]', function () {
+  const addressId = this.dataset.addressId;
+  if (!addressId) return;
+
+  cartPaymentState.addressId = addressId;
+
+  refreshShippingForAddress(addressId);
+});
 $(document).on("click", ".address-row", function () {
   const addressId = $(this).data("address_id");
 
@@ -1269,21 +1308,102 @@ function closeModal($modal) {
   $modal.addClass("hidden").removeClass("flex");
 }
 
-const $acceptLoanAgreementModal = $("#acceptLoanAgreementModal");
-const $reconfirmOrderModal = $("#reconfirmOrderModal");
+// ================= EMAIL VERIFICATION CHECK =================
+function handleCheckout(profileData) {
+  const emailVerified = Number(profileData.email_verified);
 
-// ================= CONFIRM & CHECKOUT BUTTON =================
-$(document).on("click", "#confirmCheckoutBtn", function () {
+  // Email NOT verified
+  if (emailVerified !== 1) {
+    showEmailNotVerifiedModal();
+    return false;
+  }
 
-  clearCheckoutInlineError();
+  return true
+}
 
-  if (!cartPaymentState.addressId) {
-    showCheckoutInlineError(
-      "Delivery address not selected. Please choose an address."
+// ================= MODAL HANDLERS =================
+function isEmailVerified(profileData) {
+  if (!profileData) return false;
+
+  if (profileData.email_verified !== undefined) {
+    return Number(profileData.email_verified) === 1;
+  }
+
+  return false;
+}
+
+function showEmailNotVerifiedModal() {
+  const modal = $("#emailNotVerifiedModal");
+  if (!modal.length) {
+    showErrorModal(
+      "Your email is not verified. Please add an email in your account settings.",
+      "Email Not Verified",
+      false
     );
     return;
   }
+  modal.removeClass("hidden").addClass("flex");
+}
 
+
+function openAddressModal() {
+  $("#addressRequiredModal").removeClass("hidden").addClass("flex");
+}
+
+function closeAddressModal() {
+  $("#addressRequiredModal").addClass("hidden").removeClass("flex");
+}
+
+function openEmailModal() {
+  $("#emailNotVerifiedModal").removeClass("hidden").addClass("flex");
+}
+
+function closeEmailModal() {
+  $("#emailNotVerifiedModal").addClass("hidden").removeClass("flex");
+}
+
+
+ // Address modal buttons
+$(document).on("click", "#addAddressBtn", function () {
+  window.location.href = "/addresses";
+});
+
+$(document).on("click", "#cancelAddressModalBtn", function () {
+  closeAddressModal();
+});
+
+// Email modal buttons
+$(document).on("click", "#addEmailBtn", function () {
+  window.location.href = "/dashboard?tab=email";
+});
+
+$(document).on("click", "#cancelEmailModalBtn", function () {
+  closeEmailModal();
+});
+
+const $acceptLoanAgreementModal = $("#acceptLoanAgreementModal");
+const $reconfirmOrderModal = $("#reconfirmOrderModal");
+
+
+// ================= CONFIRM & CHECKOUT BUTTON =================
+$(document).on("click", "#confirmCheckoutBtn", function (e) {
+  e.preventDefault();
+
+  clearCheckoutInlineError();
+
+  //  DELIVERY ADDRESS CHECK FIRST
+  if (!cartPaymentState.addressId) {
+    openAddressModal();
+    return;
+  }
+
+  //  EMAIL VERIFICATION CHECK
+  if (!isEmailVerified(CART_PROFILE)) {
+    openEmailModal();
+    return;
+  }
+
+  //  PAYMENT METHOD CHECK
   if (!cartPaymentState.selectedMethod) {
     showCheckoutInlineError(
       "Payment method not selected. Please choose how you want to pay."
@@ -1291,7 +1411,7 @@ $(document).on("click", "#confirmCheckoutBtn", function () {
     return;
   }
 
-  // AGREEMENT CHECK (ONLY WHEN NOT ACCEPTED)
+  //  INSTALLMENT AGREEMENT CHECK
   if (
     cartPaymentState.paymentType === "installment" &&
     cartPaymentState.loanAgreementAccepted !== true
@@ -1300,10 +1420,9 @@ $(document).on("click", "#confirmCheckoutBtn", function () {
     return;
   }
 
-  // ONLY IF AGREEMENT IS ACCEPTED
+  //  ALL GOOD
   openModal($("#reconfirmOrderModal"));
-});
-
+})
 
 // ================= ACCEPT LOAN AGREEMENT MODAL =================
 $(document).on("change", "#agreeCheckbox", function () {
@@ -1321,24 +1440,18 @@ function resetLoanAgreement() {
   $("#agreeCheckbox").prop("checked", false);
 }
 
-function showErrorModal(message, title = "Error") {
-  $("#feedbackIcon")
-    .removeClass()
-    .addClass("mx-auto mb-[12px] flex h-[48px] w-[48px] items-center justify-center rounded-full bg-red-100")
-    .html('<span class="text-red-600 text-[22px]">✕</span>');
+function showErrorModal(message, title = "Error", redirectToCart = true) {
+  $("#cartErrorTitle").text(title);
+  $("#cartErrorMessage").text(message);
 
-  $("#feedbackTitle").text(title);
-  $("#feedbackMessage").text(message);
+  $("#cartErrorModal").removeClass("hidden").addClass("flex");
 
-  $("#feedbackBtn")
-    .removeClass()
-    .addClass("w-full rounded-[8px] py-[10px] text-[14px] font-medium text-white bg-red-600")
-    .text("OK");
+  $("#cartErrorOkBtn").off("click").on("click", function () {
+    $("#cartErrorModal").addClass("hidden").removeClass("flex");
 
-  $("#feedbackModal").removeClass("hidden").addClass("flex");
-
-  $("#feedbackBtn").off("click").on("click", function () {
-    $("#feedbackModal").addClass("hidden").removeClass("flex");
+    if (redirectToCart) {
+      window.location.href = "/cart.html";
+    }
   });
 }
 // ================= RECONFIRM MODAL NO =================
@@ -1561,6 +1674,10 @@ function pollUntilWalletUpdated(oldBalance, onDone, onFail) {
 function showOrderSuccessAndRedirect(orderId) {
   $("#orderSuccessModal").removeClass("hidden").addClass("flex");
 
+  if(typeof window.refreshWalletState === "function"){
+    window.refreshWalletState();
+  }
+
   setTimeout(() => {
     $("#orderSuccessModal").addClass("hidden").removeClass("flex");
 
@@ -1581,8 +1698,64 @@ function extractOrderId(res) {
     null
   );
 }
+function stripHtml(html) {
+  return String(html || "").replace(/<[^>]*>?/gm, "");
+}
 
+function cleanBackendMessage(msg) {
+  return stripHtml(toReadableMessage(msg))
+    .replace(/\s+/g, " ")
+    .trim();
+}
+function showFeedbackModal({
+  title = "Notice",
+  message = "",
+  buttonText = "OK",
+  onClick = null,
+  type = "error" // error | success | info
+}) {
+  const $modal = $("#feedbackModal");
+  const $icon = $("#feedbackIcon");
+  const $title = $("#feedbackTitle");
+  const $message = $("#feedbackMessage");
+  const $btn = $("#feedbackBtn");
 
+  if (!$modal.length) {
+    alert(message);
+    return;
+  }
+
+  // Reset
+  $icon.removeClass().addClass("mx-auto mb-[12px] flex h-[48px] w-[48px] items-center justify-center rounded-full");
+
+  if (type === "success") {
+    $icon.addClass("bg-green-100 text-green-600").html("✓");
+    $btn.css("background", "#16A34A");
+  } else {
+    $icon.addClass("bg-red-100 text-red-600").html("!");
+    $btn.css("background", "#DC2626");
+  }
+
+  $title.text(title);
+  $message.text(message);
+  $btn
+  .text(buttonText)
+  .css({
+    background: type === "success" ? "#16A34A" : "#DC2626",
+    padding: "10px 24px",
+    borderRadius: "8px",
+    minWidth: "120px",
+    margin: "0 auto",
+    display: "block"
+  });
+
+  $btn.off("click").on("click", function () {
+    $modal.addClass("hidden").removeClass("flex");
+    if (typeof onClick === "function") onClick();
+  });
+
+  $modal.removeClass("hidden").addClass("flex");
+}
 
 // ======================
 // RE-CONFIRM ORDER (YES)
@@ -1594,7 +1767,11 @@ $(document).on("click", "#reconfirmOrderYesBtn", function () {
   const token = sessionStorage.getItem("AUTH_TOKEN");
   if (!token) {
     setReconfirmButtonsDisabled(false);
-    showErrorModal("Session expired.");
+    showFeedbackModal({
+      title: "Session Expired",
+      message: "Your session has expired. Please log in again.",
+      buttonText: "OK"
+    });
     return;
   }
 
@@ -1602,10 +1779,13 @@ $(document).on("click", "#reconfirmOrderYesBtn", function () {
   const method = cartPaymentState.selectedMethod; // wallet | bank | card
   const cardId = cartPaymentState.selectedCardId;
 
-  // ✅ ADDRESS MUST BE PRESENT (USER CAN CHANGE IT, BUT STATE MUST HAVE IT)
   if (!addressId) {
     setReconfirmButtonsDisabled(false);
-    showErrorModal("Delivery address not selected. Please choose an address.");
+    showFeedbackModal({
+      title: "Delivery Address Required",
+      message: "Please select a delivery address before checking out.",
+      buttonText: "OK"
+    });
     return;
   }
 
@@ -1630,7 +1810,12 @@ $(document).on("click", "#reconfirmOrderYesBtn", function () {
       function (msg) {
         hideProcessingOverlay();
         setReconfirmButtonsDisabled(false);
-        showErrorModal(toReadableMessage(msg) || "Order failed.");
+
+        showFeedbackModal({
+          title: "Payment Failed",
+          message: cleanBackendMessage(msg),
+          buttonText: "OK"
+        });
       }
     );
 
@@ -1638,7 +1823,7 @@ $(document).on("click", "#reconfirmOrderYesBtn", function () {
   }
 
   // ======================
-  // BANK TRANSFER (PAYSTACK -> FUND WALLET -> CREATE ORDER)
+  // BANK TRANSFER
   // ======================
   if (method === "bank") {
     startPaystackBankTransfer(
@@ -1664,14 +1849,24 @@ $(document).on("click", "#reconfirmOrderYesBtn", function () {
               function (msg) {
                 hideProcessingOverlay();
                 setReconfirmButtonsDisabled(false);
-                showErrorModal(toReadableMessage(msg) || "Order failed.");
+
+                showFeedbackModal({
+                  title: "Order Failed",
+                  message:cleanBackendMessage(msg),
+                  buttonText: "OK"
+                });
               }
             );
           },
           function (msg) {
             hideProcessingOverlay();
             setReconfirmButtonsDisabled(false);
-            showErrorModal(toReadableMessage(msg) || "Payment confirmation failed.");
+
+            showFeedbackModal({
+              title: "Payment Confirmation Failed",
+              message: cleanBackendMessage(msg),
+              buttonText: "OK"
+            });
           }
         );
       },
@@ -1684,7 +1879,7 @@ $(document).on("click", "#reconfirmOrderYesBtn", function () {
   }
 
   // ======================
-  // EXISTING CARD (FUND WALLET -> CREATE ORDER)
+  // CARD PAYMENT
   // ======================
   if (method === "card") {
     if (!cardId) {
@@ -1695,7 +1890,11 @@ $(document).on("click", "#reconfirmOrderYesBtn", function () {
 
     if (!amountDue || amountDue <= 0) {
       setReconfirmButtonsDisabled(false);
-      showErrorModal("Invalid payment amount.");
+      showFeedbackModal({
+        title: "Invalid Amount",
+        message: "Invalid payment amount.",
+        buttonText: "OK"
+      });
       return;
     }
 
@@ -1720,13 +1919,17 @@ $(document).on("click", "#reconfirmOrderYesBtn", function () {
         if (!fundRes || fundRes.status !== true) {
           hideProcessingOverlay();
           setReconfirmButtonsDisabled(false);
-          showErrorModal(toReadableMessage(fundRes?.message) || "Unable to fund wallet.");
+
+          showFeedbackModal({
+            title: "Wallet Funding Failed",
+            message: cleanBackendMessage(fundRes?.message),
+            buttonText: "OK"
+          });
           return;
         }
 
         showProcessingOverlay("Placing order, please wait...");
 
-        // ✅ IMPORTANT: createorder expects payment_method = paymentcard_id (based on your Postman)
         createOrderAjax(
           {
             address_id: addressId,
@@ -1740,7 +1943,12 @@ $(document).on("click", "#reconfirmOrderYesBtn", function () {
           function (msg) {
             hideProcessingOverlay();
             setReconfirmButtonsDisabled(false);
-            showErrorModal(toReadableMessage(msg) || "Order failed.");
+
+            showFeedbackModal({
+              title: "Order Failed",
+              message: cleanBackendMessage(msg),
+              buttonText: "OK"
+            });
           }
         );
       },
@@ -1755,7 +1963,11 @@ $(document).on("click", "#reconfirmOrderYesBtn", function () {
           xhr.responseText ||
           "Payment was not successful.";
 
-        showErrorModal(toReadableMessage(backendMsg), "Payment Unsuccessful");
+        showFeedbackModal({
+          title: "Payment Unsuccessful",
+          message: cleanBackendMessage(backendMsg),
+          buttonText: "OK"
+        });
       }
     });
 

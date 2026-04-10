@@ -158,6 +158,32 @@ function showRightSection(sectionId) {
 // --------------------
 // let API_USER = null;
 
+
+// ================= OPEN EMAIL TAB FROM URL FROM CART =================
+$(document).ready(function () {
+  const params = new URLSearchParams(window.location.search);
+  const tab = params.get("tab");
+
+  if (tab === "email") {
+    openAccountEmailTab();
+  }
+});
+
+function openAccountEmailTab() {
+  // Hide all account sections
+  $(".account-inner-section").addClass("hidden");
+
+  // Show email section
+  $('.account-inner-section[data-account-section="email"]').removeClass("hidden");
+
+  // Show step one only
+  $("#emailStepOne").removeClass("hidden");
+  $("#emailOtpWrap").addClass("hidden");
+
+  // Set current email
+  const currentEmail = userProfile.email || "Not set";
+  $("#currentEmailDisplay").text(currentEmail);
+}
 // --------------------
 // FORMAT HELPERS
 // --------------------
@@ -934,6 +960,7 @@ function mapApiUserToUI(user) {
   renderAddressesFromApi(user.addresses?.data || []);
   hydrateActiveDeliveryAddress(user.addresses?.data || []);
   renderLoanAndCreditFromApi(user);
+  updateCreditAssessment(user);
   renderNameVerificationBadge(user);
 renderEmailVerificationBadge(user);
 renderPhoneVerificationBadge(user);
@@ -1510,6 +1537,13 @@ function confirmWalletFunding(payref) {
           //  now show success (wallet already updated)
           showWalletSuccess("Wallet Funded", "Your wallet has been funded successfully.");
 
+          if (sessionStorage.getItem("BVN_CONTINUE_AFTER_FUNDING") === "yes") {
+    setTimeout(() => {
+      navigateTo("/loan-credit");
+      fetchLoanAndCreditUser();
+    }, 1200);
+  }
+
           //  auto close success modal after 1.2s
           setTimeout(() => {
             $("#walletSuccessModal").addClass("hidden");
@@ -1568,7 +1602,14 @@ function fundWalletWithExistingCard(amount, cardId) {
         "Wallet Funded",
         "Your wallet has been funded successfully."
       );
+      if (sessionStorage.getItem("BVN_CONTINUE_AFTER_FUNDING") === "yes") {
+    setTimeout(() => {
+      navigateTo("/loan-credit");
+      fetchLoanAndCreditUser();
+    }, 1200);
+  }
     },
+    
 
     error: function (xhr) {
       showErrorModal(
@@ -1629,12 +1670,16 @@ window.openAddNewCardFlow = function () {
 
 
 
+
+
 // =====================================================
 // LOANS + CREDIT (API)
-// This is the correct mapping for your response shape
 // =====================================================
+
+let latestLoanCreditUser = null;
+
 function formatNaira(value) {
-  return `₦${Number(value).toLocaleString("en-NG", {
+  return `₦${Number(value || 0).toLocaleString("en-NG", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   })}`;
@@ -1645,84 +1690,1410 @@ function toNumber(val) {
   return Number(String(val).replace(/,/g, ""));
 }
 
-function renderLoanAndCreditFromApi(user) {
+function normalize(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function hideAllLoanStates() {
+  $(
+    "#loanOrgFormSection, " +
+    "#loanOrgOtpSection, " +
+    "#loanOrgOnlySection, " +
+    "#loanPreBvnSection, " +
+    "#loanDashboardSection"
+  ).addClass("hidden");
+}
+
+function showLoanState(state) {
+  hideAllLoanStates();
+
+  $("#loanInfoBanner, #loanSectionTitle, #loanSectionDivider").removeClass("hidden");
+
+  if (state === "org-form") {
+    $("#loanOrgFormSection").removeClass("hidden");
+    return;
+  }
+
+  if (state === "org-otp") {
+    $("#loanOrgOtpSection").removeClass("hidden");
+    return;
+  }
+
+  if (state === "org-only") {
+    $("#loanOrgOnlySection").removeClass("hidden");
+    return;
+  }
+
+  if (state === "pre-bvn") {
+    $("#loanPreBvnSection").removeClass("hidden");
+    return;
+  }
+
+  if (state === "dashboard") {
+    $("#loanInfoBanner, #loanSectionTitle, #loanSectionDivider").addClass("hidden");
+    $("#loanDashboardSection").removeClass("hidden");
+    return;
+  }
+}
+
+function showLoanError(message) {
+  $("#loanErrorText").text(message);
+  $("#loanErrorModal").removeClass("hidden");
+}
+
+function closeLoanError() {
+  $("#loanErrorModal").addClass("hidden");
+}
+
+function startLoanBtnLoader($btn, $loader) {
+  $btn.prop("disabled", true);
+  $loader.removeClass("hidden");
+}
+
+function stopLoanBtnLoader($btn, $loader) {
+  $btn.prop("disabled", false);
+  $loader.addClass("hidden");
+}
+
+/* =====================================================
+   STANDALONE BVN PAGE HELPERS
+   ===================================================== */
+
+function openBvnPage() {
+  $("#loanCreditContent, #walletContent, #accountContent, #deliveryContent, #ordersContent, #orderDetailsContent, #loanPaymentPage")
+    .addClass("hidden");
+
+  $("#bvnContent").removeClass("hidden");
+}
+
+function returnToLoanPage() {
+  $("#bvnContent").addClass("hidden");
+  switchMainTab("loans");
+  $('#loanCreditContent').removeClass("hidden");
+  fetchLoanAndCreditUser();
+}
+
+function resetBvnUi() {
+  $("#bvnInput").val("");
+  $("#bvnOtpInput").val("");
+  $("#bvnOtpWrap").addClass("hidden");
+  $("#bvnError")
+    .addClass("hidden")
+    .removeClass("text-[#D92D20] text-[#067647]")
+    .text("");
+  $("#verifyBvnBtnText").text("Verify BVN");
+  $("#bvnFeeModal").addClass("hidden");
+  $("#bvnWalletFundingModal").addClass("hidden");
+  $("#bvnStandaloneSuccess").addClass("hidden").text("");
+}
+
+function showBvnSuccessBanner(message) {
+  let $banner = $("#bvnSuccessBanner");
+
+  if (!$banner.length) {
+    $("#loanCreditContent").prepend(`
+      <div id="bvnSuccessBanner"
+           class="w-full bg-[#ECFDF3] border border-[#ABEFC6] text-[#067647]
+                  text-[13px] p-[10px] rounded-[8px] mb-[12px] flex items-center gap-[8px]">
+        <i class="fa-solid fa-circle-check text-[#12B76A]"></i>
+        <span id="bvnSuccessBannerText"></span>
+      </div>
+    `);
+    $banner = $("#bvnSuccessBanner");
+  }
+
+  $("#bvnSuccessBannerText").text(message || "BVN verified successfully");
+  $banner.removeClass("hidden");
+
+  clearTimeout(window.__bvnBannerTimer);
+  window.__bvnBannerTimer = setTimeout(() => {
+    $banner.addClass("hidden");
+  }, 4000);
+}
+
+function markBvnContinuationPending() {
+  sessionStorage.setItem("BVN_CONTINUE_AFTER_FUNDING", "yes");
+}
+
+function clearBvnContinuationPending() {
+  sessionStorage.removeItem("BVN_CONTINUE_AFTER_FUNDING");
+}
+
+function goToWalletFundingForBvn() {
+  markBvnContinuationPending();
+  navigateTo("/mywallet/fund");
+  loadProfileAndRefreshCards();
+}
+
+/* =====================================================
+   BVN CHARGE HELPERS
+   ===================================================== */
+
+function getBvnChargeInfo(user) {
+  const walletBalance = Number(user?.wallet?.data?.wallet_balance || 0);
+  const activationLog = user?.bvn_bank_activation_log || {};
+
+  return {
+    walletBalance,
+    paidCharge: Number(activationLog?.paid_charge || 0),
+    bvnCount: Number(activationLog?.bvn_count || 0),
+    requiredCharge: 500
+  };
+}
+
+function requiresFreshBvnCharge(user) {
+  const { paidCharge, bvnCount } = getBvnChargeInfo(user);
+
+  if (paidCharge === 0) return true;
+  if (bvnCount >= 2) return true;
+
+  return false;
+}
+
+function shouldShowBvnFundingPrompt(user) {
+  const { walletBalance, requiredCharge } = getBvnChargeInfo(user);
+
+  if (!requiresFreshBvnCharge(user)) {
+    return false;
+  }
+
+  return walletBalance < requiredCharge;
+}
+
+/* =====================================================
+   LOAD PROFILE HELPERS
+   ===================================================== */
+
+function refreshLoanProfileSilently(done) {
+  const token = sessionStorage.getItem("AUTH_TOKEN");
+
+  if (!token) {
+    if (typeof done === "function") done(null);
+    return;
+  }
+
+  const form = new FormData();
+  form.append("token", token);
+
+  $.ajax({
+    url: "https://api.faadaakaa.com/api/loadprofile",
+    type: "POST",
+    processData: false,
+    contentType: false,
+    data: form,
+    success: function (response) {
+      let res = response;
+
+      if (typeof response === "string") {
+        try {
+          res = JSON.parse(response);
+        } catch (e) {
+          if (typeof done === "function") done(null);
+          return;
+        }
+      }
+
+      const user = res?.data || res?.user || res?.profile || null;
+
+      if (user) {
+        latestLoanCreditUser = user;
+        populateLoanCardsFromApi(user);
+      }
+
+      if (typeof done === "function") done(user);
+    },
+    error: function () {
+      if (typeof done === "function") done(null);
+    }
+  });
+}
+
+function fetchLoanAndCreditUser() {
+  const token = sessionStorage.getItem("AUTH_TOKEN");
+
+  if (!token) {
+    console.error("No auth token found");
+    hideAllLoanStates();
+    return;
+  }
+
+  const form = new FormData();
+  form.append("token", token);
+
+  $.ajax({
+    url: "https://api.faadaakaa.com/api/loadprofile",
+    method: "POST",
+    processData: false,
+    contentType: false,
+    data: form,
+
+    success: function (response) {
+      let res = response;
+
+      if (typeof response === "string") {
+        try {
+          res = JSON.parse(response);
+        } catch (err) {
+          console.error("Failed to parse loan user response:", err);
+          hideAllLoanStates();
+          return;
+        }
+      }
+
+      console.log("LOAN USER RESPONSE:", res);
+
+      if (!res || res.status !== true) {
+        console.error("Invalid loan user response");
+        hideAllLoanStates();
+        return;
+      }
+
+      const user = res.data || res.user || res.profile;
+
+      if (!user) {
+        console.error("No user payload found in response");
+        hideAllLoanStates();
+        return;
+      }
+
+      renderLoanAndCreditFromApi(user);
+
+      if (sessionStorage.getItem("BVN_CONTINUE_AFTER_FUNDING") === "yes") {
+        const stillNeedsFunding = shouldShowBvnFundingPrompt(user);
+
+        if (!stillNeedsFunding) {
+          clearBvnContinuationPending();
+          openBvnPage();
+
+          if (typeof window.showGreenToast === "function") {
+            showGreenToast("Wallet funded successfully. Continue your BVN verification.");
+          }
+        }
+      }
+    },
+
+    error: function (xhr) {
+      console.error("Fetch loan user error:", xhr.responseText || xhr);
+      hideAllLoanStates();
+    }
+  });
+}
+
+/* =====================================================
+   POPULATE LOAN CARDS
+   ===================================================== */
+
+function populateLoanCardsFromApi(user) {
   if (!user) return;
 
-  // ---------------------------
-  // IDENTITY VERIFICATION
-  // ---------------------------
+  const rawCommunity = user.community;
+  const community =
+    Array.isArray(rawCommunity) ? (rawCommunity[0] || {}) : (rawCommunity || {});
+  const wallet = user.wallet?.data || {};
+  const fin = user.financials?.data?.[0] || {};
+
+  const identityVerified =
+    normalize(user?.identity_verification_status) === "verified";
+
+  const bankLinkStatus = normalize(user?.has_linked_bank_account);
+
+  const hasBank =
+    bankLinkStatus === "yes" || bankLinkStatus === "in_progress";
+
+  const registeredName = identityVerified
+    ? (
+        user.verified_fullname?.trim() ||
+        community.registered_name?.trim() ||
+        user.registered_name?.trim() ||
+        `${user.first_name || ""} ${user.last_name || ""}`.trim() ||
+        "-"
+      )
+    : (
+        community.registered_name?.trim() ||
+        user.registered_name?.trim() ||
+        user.verified_fullname?.trim() ||
+        `${user.first_name || ""} ${user.last_name || ""}`.trim() ||
+        "-"
+      );
+
+  const communityName =
+    community.name ||
+    community.community_name ||
+    community.coorperative_name ||
+    community.cooperative_name ||
+    "-";
+
   const bvnMasked = user.identity_number
     ? `BVN | xxxxxxx${String(user.identity_number).slice(-4)}`
     : "BVN | Not Available";
 
+  $("#orgOnlyName, #preBvnOrgName, #loanOrgName").text(communityName);
+  $("#orgOnlyMemberName, #preBvnMemberName, #loanOrgMemberName").text(registeredName);
+
   $("#loanDashBvnMasked").text(bvnMasked);
+  $("#loanDashFullName").text(registeredName.toUpperCase());
 
-  const fullName = user.verified_fullname?.trim()
-    ? user.verified_fullname
-    : `${user.first_name || ""} ${user.last_name || ""}`.trim();
+  $("#dashCreditValue").text(formatNaira(wallet.credit_value || 0));
+  $("#dashAvailableCredit").text(formatNaira(wallet.credit_balance || 0));
 
-  $("#loanDashFullName").text(fullName.toUpperCase());
-  console.log("loanDashFullName:", fullName);
-  console.log('loanDashBvnMasked', bvnMasked);
-
-  // ---------------------------
-  // CREDIT (wallet)
-  // ---------------------------
-  const wallet = user.wallet?.data;
-
-  if (wallet) {
-    $("#dashCreditValue").text(formatNaira(wallet.credit_value));
-    $("#dashAvailableCredit").text(formatNaira(wallet.credit_balance));
-    $("#dashCreditStatus").text(wallet.credit_status.toUpperCase());
-  }
-
-  // ---------------------------
-  // BANK DETAILS
-  // ---------------------------
   $("#dashBankName").text(user.bank_name || "-");
   $("#dashBankAccount").text(user.bank_account_number || "-");
-  
 
-  if (user.has_linked_bank_account === "yes") {
+  if (hasBank) {
     $("#bankCheckIcon").removeClass("hidden");
+  } else {
+    $("#bankCheckIcon").addClass("hidden");
   }
 
-  // ---------------------------
-  // LOANS (financials)
-  // ---------------------------
-  const fin = user.financials?.data?.[0];
+  $("#dashTotalAccessed").text(formatNaira(toNumber(fin.total_accessed_loan)));
+  $("#dashTotalRepaid").text(formatNaira(toNumber(fin.total_repaid_loan)));
+  $("#dashUnsettled").text(formatNaira(toNumber(fin.unsettled_loan)));
 
-  if (fin) {
-    $("#dashTotalAccessed").text(
-      formatNaira(toNumber(fin.total_accessed_loan))
-    );
+  const $identityCard = $("#preBvnIdentityCard");
 
-    $("#dashTotalRepaid").text(
-      formatNaira(toNumber(fin.total_repaid_loan))
-    );
+  if ($identityCard.length) {
+    if (identityVerified) {
+      $identityCard.find("p").eq(1).html(`
+        <i class="fa-solid fa-circle-check text-green-600"></i>
+        <span class="font-medium text-green-600">Identity Verified</span>
+      `);
 
-    $("#dashUnsettled").text(
-      formatNaira(toNumber(fin.unsettled_loan))
-    );
+      $identityCard.find("p").eq(2).html(`
+        <i class="fa-solid fa-user text-[#000000]"></i>
+        <span>${registeredName}</span>
+      `);
+    } else {
+      $identityCard.find("p").eq(1).html(`
+        <i class="fa-solid fa-circle-exclamation text-[#D92D20]"></i>
+        <span class="font-medium">Identity Not Verified</span>
+      `);
+
+      $identityCard.find("p").eq(2).html(`
+        <i class="fa-solid fa-circle text-[6px] text-[#667085]"></i>
+        <span>Unverified user</span>
+      `);
+    }
   }
 
-  // ---------------------------
-  // VISIBILITY CONTROL
-  // ---------------------------
-  const verified =
-    String(user.identity_verification_status).toLowerCase() === "verified";
+  const creditStatus = normalize(wallet.credit_status);
 
-  const hasBank =
-    String(user.has_linked_bank_account).toLowerCase() === "yes";
-
-  if (verified && hasBank) {
-    $("#loanDashboardSection").removeClass("hidden");
-    $("#bvnFormSection, #bvnVerifiedSection").addClass("hidden");
+  if (hasBank && creditStatus === "active") {
+    $("#dashCreditStatus")
+      .removeClass("text-[#D92D20]")
+      .addClass("text-green-600")
+      .text("ACTIVE");
+  } else if (hasBank) {
+    $("#dashCreditStatus")
+      .removeClass("text-green-600")
+      .addClass("text-[#D92D20]")
+      .text(String(wallet.credit_status || "IN PROGRESS").toUpperCase());
+  } else {
+    $("#dashCreditStatus")
+      .removeClass("text-green-600")
+      .addClass("text-[#D92D20]")
+      .text("NO BANK ACCOUNT LINKED");
   }
 }
 
+/* =====================================================
+   RESOLVE FLOW STATE
+   ===================================================== */
 
-// =====================================================
+function resolveLoanFlowState(user) {
+  const rawCommunity = user?.community;
+
+  const hasCommunity = Array.isArray(rawCommunity)
+    ? rawCommunity.length > 0
+    : !!rawCommunity &&
+      typeof rawCommunity === "object" &&
+      Object.keys(rawCommunity).length > 0;
+
+  const community = Array.isArray(rawCommunity)
+    ? (rawCommunity[0] || null)
+    : rawCommunity;
+
+  const flag = normalize(community?.order_treatment_flag);
+
+  const identityCheck = normalize(
+    community?.is_identity_credit_check ??
+    community?.allow_identity_credit_check
+  );
+
+  const identityVerified =
+    normalize(user?.identity_verification_status) === "verified";
+
+  const bankLinkStatus = normalize(user?.has_linked_bank_account);
+
+  const hasBank =
+    bankLinkStatus === "yes" || bankLinkStatus === "in_progress";
+
+  const creditActive =
+    normalize(user?.wallet?.data?.credit_status) === "active";
+
+  console.log("STATE CHECK:", {
+    hasCommunity,
+    identityVerified,
+    hasBank,
+    creditActive,
+    flag,
+    identityCheck,
+    bankLinkStatus
+  });
+
+  if (hasCommunity && identityVerified && hasBank && creditActive) {
+    return "dashboard";
+  }
+
+  if (!hasCommunity) {
+    return "org-form";
+  }
+
+  if (flag === "purchase_request" && identityCheck === "no") {
+    return "org-only";
+  }
+
+  if (hasCommunity && identityVerified) {
+    return "pre-bvn";
+  }
+
+  if (identityCheck === "yes" && !identityVerified) {
+    return "pre-bvn";
+  }
+
+  return "org-only";
+}
+
+function renderLoanAndCreditFromApi(user) {
+  console.log("ACTIVE LOAN USER DATA:", {
+  has_linked_bank_account: user?.has_linked_bank_account,
+  bank_name: user?.bank_name,
+  bank_account_number: user?.bank_account_number,
+  credit_value: user?.wallet?.data?.credit_value,
+  credit_status: user?.wallet?.data?.credit_status,
+  identity_verification_status: user?.identity_verification_status
+});
+  if (!user) {
+    console.warn("No user payload found");
+    hideAllLoanStates();
+    return;
+  }
+
+  latestLoanCreditUser = user;
+  populateLoanCardsFromApi(user);
+  updateCreditAssessment(user);
+
+  const state = resolveLoanFlowState(user);
+  console.log("LOAN / CREDIT USER:", user);
+  console.log("LOAN / CREDIT STATE:", state);
+
+  showLoanState(state);
+}
+
+/* =====================================================
+   LOAD ALL COOPERATIVES
+   ===================================================== */
+
+function loadAllCooperatives() {
+  const token = sessionStorage.getItem("AUTH_TOKEN");
+
+  if (!token) {
+    console.error("No auth token found");
+    return;
+  }
+
+  const form = new FormData();
+  form.append("token", token);
+
+  $.ajax({
+    url: "https://api.faadaakaa.com/api/load_all_coorperatives_at_once",
+    method: "POST",
+    timeout: 0,
+    processData: false,
+    mimeType: "multipart/form-data",
+    contentType: false,
+    data: form,
+    success: function (response) {
+      let res = response;
+
+      if (typeof response === "string") {
+        try {
+          res = JSON.parse(response);
+        } catch (err) {
+          console.error("Failed to parse cooperatives response:", err);
+          return;
+        }
+      }
+
+      console.log("COOPERATIVES RESPONSE:", res);
+
+      if (!res || res.status !== true || !Array.isArray(res.data)) {
+        console.error("Invalid cooperatives response");
+        return;
+      }
+
+      populateOrganizationDropdown(res.data);
+    },
+    error: function (xhr) {
+      console.error("Load cooperatives error:", xhr.responseText || xhr);
+    }
+  });
+}
+
+function populateOrganizationDropdown(list) {
+  const $select = $("#orgSelectInput");
+
+  $select.empty();
+  $select.append(`<option value="">Select your Organization/Community</option>`);
+
+  $.each(list, function (i, item) {
+    $select.append(`
+      <option value="${item.coorperative_id}" data-name="${item.name}">
+        ${item.name}
+      </option>
+    `);
+  });
+}
+
+/* =====================================================
+   ORGANIZATION VALIDATION
+   ===================================================== */
+
+$(document).on("click", "#validateOrgBtn", function () {
+  const $btn = $("#validateOrgBtn");
+  const $loader = $("#validateOrgBtnLoader");
+
+  const token = sessionStorage.getItem("AUTH_TOKEN");
+  const selectedId = $("#orgSelectInput").val();
+  const selectedName = $("#orgSelectInput option:selected").data("name");
+  const phone = $("#orgPhoneInput").val().trim();
+
+  if (!token) {
+    showLoanError("Session expired. Please log in again.");
+    return;
+  }
+
+  if (!selectedId) {
+    showLoanError("Please select a valid organization");
+    return;
+  }
+
+  if (!phone || phone.length !== 11) {
+    showLoanError("Enter a valid 11-digit phone number");
+    return;
+  }
+
+  startLoanBtnLoader($btn, $loader);
+
+  const form = new FormData();
+  form.append("token", token);
+  form.append("cooperative_id", selectedId);
+  form.append("phone", phone);
+
+  $.ajax({
+    url: "https://api.faadaakaa.com/api/initiate_membership_validation",
+    method: "POST",
+    processData: false,
+    contentType: false,
+    data: form,
+
+    success: function (response) {
+      let res = response;
+
+      if (typeof response === "string") {
+        try {
+          res = JSON.parse(response);
+        } catch (e) {
+          stopLoanBtnLoader($btn, $loader);
+          showLoanError("Invalid server response");
+          return;
+        }
+      }
+
+      stopLoanBtnLoader($btn, $loader);
+      console.log("INITIATE MEMBERSHIP RESPONSE:", res);
+
+      if (!res || res.status !== true) {
+        showLoanError(res?.message || "Unable to validate membership");
+        return;
+      }
+
+      $("#orgLockedInput").val(selectedName);
+      $("#phoneLockedInput").val(phone);
+
+      if (typeof window.showGreenToast === "function") {
+        showGreenToast(res?.message || "We have sent verification codes to your phone number");
+      }
+
+      if ($("#orgSuccessMsg").length) {
+        $("#orgSuccessMsg")
+          .removeClass("hidden")
+          .text(res?.message || "Verification code sent to your phone number (WhatsApp & SMS)");
+      }
+
+      showLoanState("org-otp");
+    },
+
+    error: function (xhr) {
+      stopLoanBtnLoader($btn, $loader);
+
+      const msg =
+        xhr.responseJSON?.message ||
+        xhr.responseJSON?.error ||
+        xhr.responseText ||
+        "Unable to validate membership";
+
+      showLoanError(msg);
+    }
+  });
+});
+
+/* =====================================================
+   ADD COMMUNITY MEMBERSHIP
+   ===================================================== */
+
+$(document).on("click", "#submitOrgOtpBtn", function () {
+  const $btn = $("#submitOrgOtpBtn");
+  const $loader = $("#submitOrgOtpBtnLoader");
+
+  const token = sessionStorage.getItem("AUTH_TOKEN");
+  const otp = $("#orgOtpInput").val().trim();
+
+  if (!token) {
+    showLoanError("Session expired. Please log in again.");
+    return;
+  }
+
+  if (!otp || otp.length !== 6) {
+    showLoanError("Please enter a valid 6 digit verification code");
+    return;
+  }
+
+  startLoanBtnLoader($btn, $loader);
+
+  const form = new FormData();
+  form.append("token", token);
+  form.append("phone_code", otp);
+
+  $.ajax({
+    url: "https://api.faadaakaa.com/api/add_community_membership",
+    method: "POST",
+    processData: false,
+    contentType: false,
+    data: form,
+
+    success: function (response) {
+      let res = response;
+
+      if (typeof response === "string") {
+        try {
+          res = JSON.parse(response);
+        } catch (e) {
+          stopLoanBtnLoader($btn, $loader);
+          showLoanError("Invalid server response");
+          return;
+        }
+      }
+
+      stopLoanBtnLoader($btn, $loader);
+      console.log("ADD COMMUNITY MEMBERSHIP RESPONSE:", res);
+
+      if (!res || res.status !== true) {
+        showLoanError(res?.message || "Unable to add community membership");
+        return;
+      }
+
+      if (typeof window.showGreenToast === "function") {
+        showGreenToast(res?.message || "Community membership added successfully");
+      }
+
+      fetchLoanAndCreditUser();
+    },
+
+    error: function (xhr) {
+      stopLoanBtnLoader($btn, $loader);
+
+      const msg =
+        xhr.responseJSON?.message ||
+        xhr.responseJSON?.error ||
+        xhr.responseText ||
+        "Unable to add community membership";
+
+      showLoanError(msg);
+    }
+  });
+});
+
+/* =====================================================
+   GO TO STANDALONE BVN PAGE
+   ===================================================== */
+
+$(document).on("click", "#goToBvnBtn, .goToBvnBtn", function (e) {
+  e.preventDefault();
+  e.stopPropagation();
+
+  resetBvnUi();
+  openBvnPage();
+});
+
+/* =====================================================
+   VERIFY BVN BUTTON
+   ===================================================== */
+
+$(document).on("click", "#verifyBvnBtn", function (e) {
+  e.preventDefault();
+  e.stopPropagation();
+
+  const $btn = $("#verifyBvnBtn");
+  const $loader = $("#verifyBvnBtnLoader");
+  const $error = $("#bvnError");
+
+  const token = sessionStorage.getItem("AUTH_TOKEN");
+  const bvn = $("#bvnInput").val().trim();
+  const otpVisible = !$("#bvnOtpWrap").hasClass("hidden");
+  const otp = $("#bvnOtpInput").val().trim();
+
+  $error
+    .addClass("hidden")
+    .removeClass("text-[#D92D20] text-[#067647]")
+    .text("");
+
+  function handleFinalVerifySuccess(res) {
+    stopLoanBtnLoader($btn, $loader);
+
+    $error
+      .addClass("hidden")
+      .removeClass("text-[#D92D20] text-[#067647]")
+      .text("");
+
+    $("#bvnStandaloneSuccess")
+      .removeClass("hidden")
+      .text(res?.message || "BVN verified successfully");
+
+    if (typeof window.showGreenToast === "function") {
+      showGreenToast(res?.message || "BVN verified successfully");
+    }
+
+    setTimeout(function () {
+      $("#bvnStandaloneSuccess").addClass("hidden");
+      returnToLoanPage();
+    }, 3000);
+  }
+
+  if (!token) {
+    showLoanError("Session expired. Please log in again.");
+    return;
+  }
+
+  if (!otpVisible) {
+    if (!bvn || bvn.length !== 11) {
+      $error
+        .removeClass("hidden")
+        .addClass("text-[#D92D20]")
+        .text("Enter a valid 11-digit BVN.");
+      return;
+    }
+
+    if (!latestLoanCreditUser) {
+      showLoanError("Unable to load your profile. Please refresh and try again.");
+      return;
+    }
+
+    if (shouldShowBvnFundingPrompt(latestLoanCreditUser)) {
+      $("#bvnWalletFundingModal").removeClass("hidden");
+      return;
+    }
+
+    if (requiresFreshBvnCharge(latestLoanCreditUser)) {
+      $("#bvnFeeModal").removeClass("hidden");
+      return;
+    }
+
+    $("#bvnConfirmYes").trigger("click");
+    return;
+  }
+
+  if (!otp || otp.length !== 6) {
+    $error
+      .removeClass("hidden")
+      .addClass("text-[#D92D20]")
+      .text("Enter a valid 6-digit OTP.");
+    return;
+  }
+
+  startLoanBtnLoader($btn, $loader);
+
+  const form = new FormData();
+  form.append("token", token);
+  form.append("otp", otp);
+
+  $.ajax({
+    url: "https://api.faadaakaa.com/api/verify_bvn_v2",
+    type: "POST",
+    processData: false,
+    contentType: false,
+    data: form,
+
+    success: function (response) {
+      const res = parseApiPayload(response);
+
+      if (!looksLikeVerifySuccess(res)) {
+        stopLoanBtnLoader($btn, $loader);
+
+        $error
+          .removeClass("hidden")
+          .addClass("text-[#D92D20]")
+          .text(res?.message || "Unable to verify BVN.");
+        return;
+      }
+
+      handleFinalVerifySuccess(res);
+    },
+
+    error: function (xhr) {
+      const res = parseXhrPayload(xhr);
+
+      if (looksLikeVerifySuccess(res)) {
+        handleFinalVerifySuccess(res);
+        return;
+      }
+
+      stopLoanBtnLoader($btn, $loader);
+
+      $error
+        .removeClass("hidden")
+        .addClass("text-[#D92D20]")
+        .text(
+          res?.message ||
+          xhr.responseText ||
+          "Unable to verify BVN."
+        );
+    }
+  });
+});
+
+function parseApiPayload(payload) {
+  if (!payload) return null;
+
+  if (typeof payload === "string") {
+    try {
+      return JSON.parse(payload);
+    } catch (e) {
+      return { status: false, message: payload };
+    }
+  }
+
+  return payload;
+}
+
+function parseXhrPayload(xhr) {
+  return parseApiPayload(
+    xhr?.responseJSON ||
+    xhr?.responseText ||
+    null
+  );
+}
+
+function looksLikeVerifySuccess(res) {
+  const msg = String(res?.message || "").toLowerCase();
+
+  return (
+    res?.status === true ||
+    msg.includes("verified successfully") ||
+    msg.includes("verification successful") ||
+    msg.includes("bvn verified") ||
+    msg.includes("bvn verification successful")
+  );
+}
+
+function looksLikeInitiateSuccess(res) {
+  const msg = String(res?.message || "").toLowerCase();
+  return res?.status === true || msg.includes("otp") || msg.includes("sent") || msg.includes("initiated");
+}
+
+function waitForChargeRefresh(walletBefore, done, attempt = 0) {
+  refreshLoanProfileSilently(function (updatedUser) {
+    const walletAfter = Number(
+      updatedUser?.wallet?.data?.wallet_balance || walletBefore
+    );
+
+    const paidCharge = Number(
+      updatedUser?.bvn_bank_activation_log?.paid_charge || 0
+    );
+
+    console.log("waitForChargeRefresh attempt:", attempt);
+    console.log("walletBefore:", walletBefore);
+    console.log("walletAfter:", walletAfter);
+    console.log("paidCharge:", paidCharge);
+    console.log("updatedUser:", updatedUser);
+
+    if (walletAfter < walletBefore || paidCharge > 0) {
+      done(updatedUser);
+      return;
+    }
+
+    if (attempt >= 10) {
+      done(updatedUser);
+      return;
+    }
+
+    setTimeout(function () {
+      waitForChargeRefresh(walletBefore, done, attempt + 1);
+    }, 1000);
+  });
+}
+/* =====================================================
+   BVN WALLET FUNDING MODAL
+   ===================================================== */
+
+$(document).on("click", "#bvnFundWalletNo", function (e) {
+  e.preventDefault();
+  e.stopPropagation();
+  $("#bvnWalletFundingModal").addClass("hidden");
+});
+
+$(document).on("click", "#bvnConfirmYes", function (e) {
+  e.preventDefault();
+  e.stopPropagation();
+
+  $("#bvnFeeModal").addClass("hidden");
+
+  const $btn = $("#verifyBvnBtn");
+  const $loader = $("#verifyBvnBtnLoader");
+  const $error = $("#bvnError");
+
+  const token = sessionStorage.getItem("AUTH_TOKEN");
+  const bvn = $("#bvnInput").val().trim();
+
+  const chargeWasRequired = latestLoanCreditUser
+    ? requiresFreshBvnCharge(latestLoanCreditUser)
+    : false;
+
+  const walletBefore = Number(
+    latestLoanCreditUser?.wallet?.data?.wallet_balance || 0
+  );
+
+  $error
+    .addClass("hidden")
+    .removeClass("text-[#D92D20] text-[#067647]")
+    .text("");
+
+  if (!token) {
+    showLoanError("Session expired. Please log in again.");
+    return;
+  }
+
+  if (!bvn || bvn.length !== 11) {
+    $error
+      .removeClass("hidden")
+      .addClass("text-[#D92D20]")
+      .text("Enter a valid 11-digit BVN.");
+    return;
+  }
+
+  startLoanBtnLoader($btn, $loader);
+
+  const form = new FormData();
+  form.append("token", token);
+  form.append("bvn", bvn);
+
+  $.ajax({
+    url: "https://api.faadaakaa.com/api/initiate_bvn_verify_v2",
+    type: "POST",
+    processData: false,
+    contentType: false,
+    data: form,
+
+    success: function (response) {
+      const res = parseApiPayload(response);
+
+      if (!looksLikeInitiateSuccess(res)) {
+        stopLoanBtnLoader($btn, $loader);
+
+        $error
+          .removeClass("hidden")
+          .addClass("text-[#D92D20]")
+          .text(res?.message || "Unable to initiate BVN verification.");
+        return;
+      }
+
+      waitForChargeRefresh(walletBefore, function (updatedUser) {
+        stopLoanBtnLoader($btn, $loader);
+
+        const walletAfter = Number(
+          updatedUser?.wallet?.data?.wallet_balance || walletBefore
+        );
+
+        const deducted = walletBefore - walletAfter;
+
+        if (chargeWasRequired && deducted < 500) {
+          console.log("walletBefore:", walletBefore);
+          console.log("walletAfter:", walletAfter);
+          console.log("updatedUser:", updatedUser);
+
+          $error
+            .removeClass("hidden")
+            .addClass("text-[#D92D20]")
+            .text("Wallet deduction has not reflected yet. Please wait a moment and try again.");
+          return;
+        }
+
+        if (typeof updateWalletBalanceEverywhere === "function") {
+          updateWalletBalanceEverywhere(walletAfter);
+        }
+
+        latestLoanCreditUser = updatedUser || latestLoanCreditUser;
+
+        $("#bvnOtpWrap").removeClass("hidden");
+        $("#verifyBvnBtnText").text("Submit OTP");
+
+        let successMessage = res?.message || "OTP sent successfully";
+
+        if (chargeWasRequired && deducted >= 500) {
+          successMessage = "₦500 has been deducted and a code has been sent to your number.";
+        }
+
+        $error
+          .addClass("hidden")
+          .removeClass("text-[#D92D20] text-[#067647]")
+          .text("");
+
+        $("#bvnStandaloneSuccess")
+          .removeClass("hidden")
+          .text(successMessage);
+
+        if (typeof window.showGreenToast === "function") {
+          showGreenToast(successMessage);
+        }
+      });
+    },
+
+    error: function (xhr) {
+      stopLoanBtnLoader($btn, $loader);
+
+      const res = parseXhrPayload(xhr);
+
+      $error
+        .removeClass("hidden")
+        .addClass("text-[#D92D20]")
+        .text(
+          res?.message ||
+          xhr.responseText ||
+          "Unable to initiate BVN verification."
+        );
+    }
+  });
+});
+
+/* =====================================================
+   BVN FEE MODAL
+   ===================================================== */
+
+$(document).on("click", "#bvnConfirmNo", function (e) {
+  e.preventDefault();
+  e.stopPropagation();
+  $("#bvnFeeModal").addClass("hidden");
+});
+
+
+
+/* =====================================================
+   CLOSE LOAN ERROR MODAL
+   ===================================================== */
+
+$(document).on("click", "#closeLoanErrorBtn", function (e) {
+  e.preventDefault();
+  e.stopPropagation();
+  closeLoanError();
+});
+
+/* =====================================================
+   CREDIT ASSESSMENT RENDERING AND HELPERS
+   ===================================================== */
+
+function updateCreditAssessment(user) {
+  if (!user) return;
+
+  const identityVerified =
+    String(user?.identity_verification_status || "").toLowerCase() === "verified";
+
+  const bankLinkState =
+    String(user?.has_linked_bank_account || "").toLowerCase();
+
+  const wallet = user?.wallet?.data || {};
+  const creditStatus =
+    String(wallet?.credit_status || "").toLowerCase();
+  const creditValue = wallet?.credit_value || "0.00";
+
+  const bankName = user?.bank_name || "-";
+  const accountNumber = user?.bank_account_number || "-";
+
+  const relinkCount = Number(
+    user?.bank_linking_count ||
+    user?.mono_link_count ||
+    user?.bank_link_count ||
+    0
+  );
+
+  const MAX_RELINK = 2;
+
+  const $status = $("#creditStatusText");
+  const $value = $("#creditValueText");
+  const $btnWrap = $("#preLinkBankWrap, #prevlinkBankBtnWrap, #preBvnLinkBankWrap").first();
+  const $btn = $("#preBvnLinkBankBtn, #prevBvnLinkBankBtn").first();
+
+  if (!$status.length || !$value.length || !$btn.length) {
+    console.log("Credit assessment elements not found");
+    return;
+  }
+
+  $btnWrap.removeClass("hidden");
+  $btn.show();
+
+  // 1. Identity not verified, keep original default design
+  if (!identityVerified) {
+    $status.html(`
+      <i class="fa-solid fa-circle text-[8px] mr-[4px] text-[#D92D20]"></i>
+      No Bank Account Linked
+    `);
+
+    $value.html(`
+      Credit Value:
+      <span class="font-medium">Not Set</span>
+    `);
+
+    $btn
+      .text("Verify your identity first")
+      .prop("disabled", true)
+      .removeClass("text-[#1570EF] underline hidden")
+      .addClass("text-[#667085] cursor-default");
+
+    return;
+  }
+
+  // 2. Bank not linked, keep original default design
+  if (bankLinkState === "no" || !bankLinkState) {
+    $status.html(`
+      <i class="fa-solid fa-circle text-[8px] mr-[4px] text-[#D92D20]"></i>
+      No Bank Account Linked
+    `);
+
+    $value.html(`
+      Credit Value:
+      <span class="font-medium">Not Set</span>
+    `);
+
+    $btn
+      .text("Link Bank Account")
+      .prop("disabled", false)
+      .removeClass("text-[#667085] cursor-default hidden")
+      .addClass("text-[#1570EF] underline");
+
+    return;
+  }
+
+  // 3. Bank linking in progress
+  if (bankLinkState === "in_progress") {
+    $status.html(`
+      ${bankName} | ${accountNumber}
+    `);
+
+    $value.html(`
+      Credit Value:
+      <span class="font-medium">${formatNaira(creditValue)}</span>
+      <br>
+      <span class="text-yellow-600 font-medium">
+        <i class="fa-solid fa-circle text-[8px] mr-[4px]"></i>
+        Credit Status: IN PROGRESS
+      </span>
+    `);
+
+    if (relinkCount >= MAX_RELINK) {
+      $btn
+        .text("Relink limit reached")
+        .prop("disabled", true)
+        .removeClass("text-[#1570EF] underline hidden")
+        .addClass("text-[#667085] cursor-default");
+    } else {
+      $btn
+        .text("Re-link Bank Account")
+        .prop("disabled", false)
+        .removeClass("text-[#667085] cursor-default hidden")
+        .addClass("text-[#1570EF] underline");
+    }
+
+    return;
+  }
+
+  // 4. Bank linked, use credit status
+  if (bankLinkState === "yes") {
+    $status.html(`
+      ${bankName} | ${accountNumber}
+    `);
+
+    if (creditStatus === "active") {
+      $value.html(`
+        Credit Value:
+        <span class="font-medium">${formatNaira(creditValue)}</span>
+        <br>
+        <span class="text-green-600 font-medium">
+          <i class="fa-solid fa-circle-check mr-[4px]"></i>
+          Credit Status: ACTIVE
+        </span>
+      `);
+    } else {
+      $value.html(`
+        Credit Value:
+        <span class="font-medium">${formatNaira(creditValue)}</span>
+        <br>
+        <span class="text-yellow-600 font-medium">
+          <i class="fa-solid fa-circle text-[8px] mr-[4px]"></i>
+          Credit Status: ${creditStatus ? creditStatus.toUpperCase() : "PENDING"}
+        </span>
+      `);
+    }
+
+    if (relinkCount >= MAX_RELINK) {
+      $btn
+        .text("Relink limit reached")
+        .prop("disabled", true)
+        .removeClass("text-[#1570EF] underline hidden")
+        .addClass("text-[#667085] cursor-default");
+    } else {
+      $btn
+        .text("Re-link Bank Account")
+        .prop("disabled", false)
+        .removeClass("text-[#667085] cursor-default hidden")
+        .addClass("text-[#1570EF] underline");
+    }
+
+    return;
+  }
+}
+
+function connectViaOptionsMono() {
+  console.log("connectViaOptionsMono fired");
+
+  if (typeof Connect === "undefined") {
+    console.error("Mono Connect script is not loaded");
+    showErrorToast("Mono is not available yet. Please refresh and try again.");
+    return;
+  }
+
+  const config = {
+    key: "live_pk_Hv2IjBRA1e18d7qzC1qk",
+
+    onSuccess: function (response) {
+      console.log("MONO RESPONSE:", response);
+
+      const monoCode = response?.code;
+      if (!monoCode) {
+        showErrorToast("Mono did not return a valid code.");
+        return;
+      }
+
+      linkBankAction(monoCode);
+    },
+
+    onClose: function () {
+      console.log("Mono closed");
+    }
+  };
+
+  const connect = new Connect(config);
+  connect.setup();
+  connect.open();
+}
+function linkBankAction(monoCode) {
+  const token = sessionStorage.getItem("AUTH_TOKEN");
+
+  if (!token) {
+    showErrorToast("Session expired");
+    return;
+  }
+
+  const form = new FormData();
+  form.append("token", token);
+  form.append("mono_customer_code", monoCode);
+
+  $.ajax({
+    url: "https://api.faadaakaa.com/api/startmonobanklinkingv2",
+    type: "POST",
+    processData: false,
+    contentType: false,
+    data: form,
+
+    success: function (res) {
+      console.log("BANK LINK API RESPONSE:", res);
+
+      if (!res || res.status !== true) {
+        showErrorToast(res?.message || "Bank linking failed");
+        return;
+      }
+
+      showGreenToast(res?.message || "Bank linked successfully");
+
+      // force temporary UI state immediately
+      const tempUser = {
+        ...(latestLoanCreditUser || {}),
+        has_linked_bank_account: "yes",
+        bank_name:
+          latestLoanCreditUser?.bank_name ||
+          "Linked Bank",
+        bank_account_number:
+          latestLoanCreditUser?.bank_account_number ||
+          "Pending",
+        wallet: {
+          ...(latestLoanCreditUser?.wallet || {}),
+          data: {
+            ...(latestLoanCreditUser?.wallet?.data || {}),
+            credit_status:
+              latestLoanCreditUser?.wallet?.data?.credit_status || "in_progress"
+          }
+        }
+      };
+
+      latestLoanCreditUser = tempUser;
+      renderLoanAndCreditFromApi(tempUser);
+
+      // then refresh from backend after small delay
+      setTimeout(function () {
+        fetchLoanAndCreditUser();
+      }, 2500);
+    },
+
+    error: function (xhr) {
+      console.log("BANK LINK API ERROR:", xhr);
+      console.log("BANK LINK API ERROR RESPONSE:", xhr.responseText);
+
+      showErrorToast(
+        xhr.responseJSON?.message ||
+        xhr.responseText ||
+        "Unable to link bank"
+      );
+    }
+  });
+}
+
+$(document).on("click", "#preBvnLinkBankBtn, #prevBvnLinkBankBtn", function (e) {
+  e.preventDefault();
+  e.stopPropagation();
+
+  console.log("BANK BUTTON CLICKED");
+
+  if ($(this).prop("disabled")) return;
+
+  connectViaOptionsMono();
+});
+/* =====================================================
+   INIT
+   ===================================================== */
+
+$(function () {
+  loadAllCooperatives();
+  fetchLoanAndCreditUser();
+});
+
+
 // ADDRESSES (API)
 // =====================================================
 
@@ -1864,16 +3235,22 @@ $(document).on("click", ".delete-address-btn", function () {
     return;
   }
 
-  // 🔥 IMMEDIATE UI REMOVAL (Optimistic UI)
   const $card = $(`.address-card[data-address-id="${addressId}"]`);
+  const backupHtml = $card.prop("outerHTML");
+
+  // Optimistic UI
   $card.slideUp(200, function () {
     $(this).remove();
   });
 
+  console.log("Deleting address with ID:", addressId);
+  console.log("DELETE TOKEN:", token);
+
   fetch("https://api.faadaakaa.com/api/delete_address", {
     method: "DELETE",
     headers: {
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + token
     },
     body: JSON.stringify({
       token: token,
@@ -1884,26 +3261,16 @@ $(document).on("click", ".delete-address-btn", function () {
     .then(json => {
       if (!json.status) {
         showGreenToast(json.message || "Failed to delete address.", "error");
-
-        // 🔄 Rollback UI if backend fails
-        fetchDeliveryAddresses();
+        $("#savedAddressesContainer").append(backupHtml);
         return;
       }
 
       showGreenToast("Address deleted successfully.", "success");
-
-      // Optional background sync
-      if (typeof fetchDeliveryAddresses === "function") {
-        fetchDeliveryAddresses();
-      }
     })
     .catch(err => {
       console.error("Delete address error", err);
-
       showGreenToast("Something went wrong. Restoring address.", "error");
-
-      // 🔄 Rollback UI on error
-      fetchDeliveryAddresses();
+      $("#savedAddressesContainer").append(backupHtml);
     });
 });
 
@@ -2202,39 +3569,38 @@ function populateOrderDetails(apiData) {
   const order = apiData.order_details[0];
   const item = apiData.order_items[0];
 
+  console.log("DELIVERY PHONE AT RENDER:", order.delivery_phone);
+  console.log("DELIVERY ADDRESS AT RENDER:", order.address);
+
   // ================= ORDER META =================
   $("#detailOrderId").text(`#${order.id}`);
   $("#detailOrderDate").text(formatDateTime(order.created_at));
   $("#detailOrderValue").text(formatPrice(order.order_amount));
-  // USE DEBT, NOT LOAN
-const debtValue = Number(apiData?.debt?.[0]?.debt || 0);
 
-// Outstanding text
-$("#detailOutstanding").text(
-  debtValue > 0 ? formatPrice(debtValue) : "Paid"
-);
+  const debtValue = Number(apiData?.debt?.[0]?.debt || 0);
 
-// Show or hide Clear Loan button correctly
-if (order.payment_model === "instalment" && debtValue > 0) {
-  $("#clearLoanBtn").removeClass("hidden");
-  $("#repaymentSection").removeClass("hidden");
-} else {
-  $("#clearLoanBtn").addClass("hidden");
-  $("#repaymentSection").removeClass("hidden");
-}
+  $("#detailOutstanding").text(
+    debtValue > 0 ? formatPrice(debtValue) : "Paid"
+  );
+
+  if (order.payment_model === "instalment" && debtValue > 0) {
+    $("#clearLoanBtn").removeClass("hidden");
+    $("#repaymentSection").removeClass("hidden");
+  } else {
+    $("#clearLoanBtn").addClass("hidden");
+    $("#repaymentSection").removeClass("hidden");
+  }
 
   // ================= ORDER PLACED =================
   $("#orderPlacedTime").text(formatDateTime(order.created_at));
-
- 
-$("#orderStatusTag").text(order.status_string);
-$("#orderStatusTag").css("background-color", order.color);
+  $("#orderStatusTag").text(order.status_string);
+  $("#orderStatusTag").css("background-color", order.color);
 
   // ================= ITEM DETAILS =================
   $("#detailItemImage").attr("src", IMAGE_BASE + item.item_image);
   $("#detailItemName")
-  .text(item.item_name)
-  .attr("href", `/item/${item.item_slug}`);
+    .text(item.item_name)
+    .attr("href", `/item/${item.item_slug}`);
   $("#detailItemQtyRight").text(item.quantity);
   $("#detailItemPrice").text(formatPrice(item.item_amount));
 
@@ -2244,24 +3610,38 @@ $("#orderStatusTag").css("background-color", order.color);
   $("#detailMethod").text(order.payment_method);
   $("#detailType").text(order.payment_model);
 
-  // ================= DELIVERY (EXTRACT EVERYTHING FROM ADDRESS) =================
-if (order.address) {
-  const lines = order.address
-    .replace(/<br\s*\/?>/gi, "\n")
-    .split("\n")
-    .map(l => l.replace(/,/g, "").trim())
-    .filter(Boolean);
+  // ================= DELIVERY DETAILS =================
 
-  $("#deliveryName").text(lines[0] || "");
-  $("#deliveryPhone").text(lines[1] || "");
-  $("#deliveryAddress").text(lines[2] || "");
-  $("#deliveryState").text(lines[3] || "");
-}
-$("#deliveryCost").text(
-  order.delivery_cost
-    ? `${formatPrice(order.delivery_cost)} (paid at checkout)`
-    : "₦0.00"
-);
+  // Name
+  $("#deliveryName").text(order.delivery_name ?? "");
+
+  // Phone
+  $("#delivery_Phone").text(order.delivery_phone ?? "");
+
+  // Address + State
+  if (order.address && typeof order.address === "string") {
+    const parts = order.address
+      .replace(/<br\s*\/?>/gi, "|")
+      .split("|")
+      .map(p => p.trim())
+      .filter(Boolean);
+
+    const address = parts[0] || "";
+    const state = parts[1] || "";
+
+    $("#delivery_Address").text(address.replace(/,\s*$/, ""));
+    $("#deliveryState").text(state);
+  } else {
+    $("#delivery_Address").text("");
+    $("#deliveryState").text("");
+  }
+
+  // Delivery cost
+  $("#deliveryCost").text(
+    order.delivery_cost
+      ? `${formatPrice(order.delivery_cost)} (paid at checkout)`
+      : "₦0.00"
+  );
 }
 
 
@@ -3509,9 +4889,12 @@ function payRepaymentWithExistingCard(cardId) {
 // =====================================================
 // MAIN TAB SWITCHER (URL DRIVEN)
 // =====================================================
+// =====================================================
+// MAIN TAB SWITCHER (URL DRIVEN)
+// =====================================================
 function switchMainTab(tab) {
   // Hide all sections
-  $("#accountContent,#walletContent,#loanCreditContent,#deliveryContent,#ordersContent,#orderDetailsContent,#loanPaymentPage")
+  $("#accountContent,#walletContent,#loanCreditContent,#bvnContent,#deliveryContent,#ordersContent,#orderDetailsContent,#loanPaymentPage")
     .addClass("hidden");
 
   // Reset tab styles
@@ -3522,11 +4905,19 @@ function switchMainTab(tab) {
   if (tab === "account") $("#accountContent").removeClass("hidden");
   if (tab === "wallet") $("#walletContent").removeClass("hidden");
   if (tab === "loans") $("#loanCreditContent").removeClass("hidden");
+  if (tab === "bvn") $("#bvnContent").removeClass("hidden");
   if (tab === "delivery") $("#deliveryContent").removeClass("hidden");
   if (tab === "orders") $("#ordersContent").removeClass("hidden");
 
   // Highlight active tab
-  $("#tab-" + tab).addClass("bg-[#EAECF0]");
+  if (tab !== "bvn") {
+    $("#tab-" + tab).addClass("bg-[#EAECF0]");
+  }
+}
+
+function navigateTo(path) {
+  history.pushState({}, "", path);
+  renderRoute(path);
 }
 
 function navigateTo(path) {
@@ -3654,3 +5045,29 @@ $(document).ready(function () {
 
   hideAccountLoader();
 }); 
+
+function openAccountSection(sectionName) {
+  $(".account-inner-section").addClass("hidden");
+  $(`.account-inner-section[data-account-section="${sectionName}"]`)
+    .removeClass("hidden");
+}
+
+
+$(document).ready(function () {
+  const params = new URLSearchParams(window.location.search);
+  const tab = params.get("tab");
+
+  if (tab === "email") {
+    switchMainTab("account");
+
+    openAccountSection("email");
+
+    // ensure correct email step UI
+    $("#emailStepOne").removeClass("hidden");
+    $("#emailOtpWrap").addClass("hidden");
+  }
+
+  if (tab === "address") {
+    switchMainTab("delivery");
+  }
+});

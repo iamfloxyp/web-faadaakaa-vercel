@@ -143,3 +143,34 @@ function confirmAddCard(payref) {
     }
   });
 }
+
+window.refreshWalletState = function () {
+  const token = sessionStorage.getItem("AUTH_TOKEN");
+  if (!token) return;
+
+  const fd = new FormData();
+  fd.append("token", token);
+
+  fetch("https://api.faadaakaa.com/api/loadprofile", {
+    method: "POST",
+    body: fd
+  })
+    .then(res => res.json())
+    .then(res => {
+      if (!res?.status || !res?.data) return;
+
+      const wallet =
+        Number(res?.data?.wallet?.data?.wallet_balance) || 0;
+
+      const formatted = `₦${wallet.toLocaleString()}`;
+
+      // ✅ HEADER
+      $("#walletBalance").text(formatted);
+      $("#mobileWalletBalance").text(formatted);
+
+      // ✅ WALLET PAGE (if visible)
+      $("#walletAvailableBalance").text(formatted);
+      $("#walletBalanceText").text(formatted);
+    })
+    .catch(() => {});
+};

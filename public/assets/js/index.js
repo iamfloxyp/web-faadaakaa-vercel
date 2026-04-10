@@ -748,6 +748,53 @@ $(document).ready(function () {
 });
 
 
+// =========LOAD TOP PRODUCTS===================
+const TOP_PRODUCTS_API =
+  "https://api.faadaakaa.com/api/loadproductbycat/electronics/1";
+
+function imgUrl(item) {
+  if (item.images && item.images[0]?.path) {
+    return `https://fdk1.nyc3.digitaloceanspaces.com/fdk_bucket/${item.images[0].path}`;
+  }
+  return "./assets/images/placeholder.png";
+}
+
+function price(v) {
+  return `₦${Number(v).toLocaleString()}`;
+}
+
+function monthly(v) {
+  return `₦${Math.round(Number(v) / 12).toLocaleString()}/month`;
+}
+
+function populateTopProducts(products) {
+  products.slice(0, 4).forEach((item, index) => {
+    const $card = $(`[data-top="${index}"]`);
+    if (!$card.length) return;
+
+    const selling = item.selling_price || item.price || 0;
+
+    $card.attr("href", `/item/${item.slug}`);
+    $card.find("[data-img]").attr("src", imgUrl(item));
+    $card.find("[data-name]").text(item.name);
+    $card.find("[data-price]").text(price(selling));
+    $card.find("[data-monthly]").text(monthly(selling));
+  });
+}
+
+$(function () {
+  $.get(TOP_PRODUCTS_API)
+    .done(function (res) {
+      if (res.status && Array.isArray(res.data)) {
+        populateTopProducts(res.data);
+      }
+    })
+    .fail(function (err) {
+      console.error("Top products load failed", err);
+    });
+});
+
+
 function updateActiveDot() {
   $(".dot").each(function (i) {
     if (i === currentSlide) {
@@ -780,6 +827,9 @@ function updateActiveDot() {
       }
   
     });
+
+
+    
 // ---------- RENDER PRODUCT PRICE/MONTH COMPONENT ----------
 function renderProductPrice(price) {
   const numericPrice = Number(price || 0);

@@ -702,8 +702,15 @@
     Delivery Address
   </h2>
 
-  <!-- DYNAMIC ADDRESS OPTIONS (ONE ADDRESS PER LINE) -->
-  <div id="deliveryAddressOptions" class="w-full flex flex-col gap-[16px]">
+  <!-- DYNAMIC ADDRESS OPTIONS (SCROLLABLE ON SMALL SCREENS) -->
+  <div
+    id="deliveryAddressOptions"
+    class="w-full flex gap-[16px]
+         overflow-x-auto overflow-y-hidden
+         flex-nowrap
+         sm:flex-col sm:overflow-visible
+         scroll-smooth touch-pan-x"
+  >
     <!-- JS will render addresses here -->
   </div>
 </div>
@@ -1128,7 +1135,56 @@
     </button>
   </div>
 </div>
+<!-- DELIVERY ADDRESS REQUIRED MODAL -->
+<div id="addressRequiredModal"
+     class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/50">
 
+  <div class="bg-white w-[360px] rounded-[12px] p-[20px] text-center">
+    <h3 class="text-[16px] font-semibold mb-[8px]">
+      Delivery Address Required
+    </h3>
+
+    <p class="text-[14px] text-[#475467] mb-[16px]">
+      You have not added a delivery address. Please add one before checking out.
+    </p>
+
+    <button id="addAddressBtn"
+            class="w-full bg-[#1570EF] text-white rounded-[8px] py-[10px] mb-[8px]">
+      Add Address
+    </button>
+
+    <button id="cancelAddressModalBtn"
+            class="w-full bg-[#F2F4F7] text-[#344054] rounded-[8px] py-[10px]">
+      Cancel
+    </button>
+  </div>
+</div>
+
+
+<!-- EMAIL NOT VERIFIED MODAL -->
+<div id="emailNotVerifiedModal"
+     class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/50">
+
+  <div class="bg-white w-[360px] rounded-[12px] p-[20px] text-center">
+    <h3 class="text-[16px] font-semibold mb-[8px]">
+      Email Not Verified
+    </h3>
+
+    <p class="text-[14px] text-[#475467] mb-[16px]">
+      Your email address is not verified. Please add and verify your email before checking out.
+    </p>
+
+    <button id="addEmailBtn"
+            class="w-full bg-[#1570EF] text-white rounded-[8px] py-[10px] mb-[8px]">
+      Add Email
+    </button>
+
+    <button id="cancelEmailModalBtn"
+            class="w-full bg-[#F2F4F7] text-[#344054] rounded-[8px] py-[10px]">
+      Cancel
+    </button>
+  </div>
+</div>
 <footer class="w-full bg-[#011845] text-white font-inter">
 
   <!-- =============== UPPER FOOTER (blue gradient band) =============== -->

@@ -1997,9 +1997,6 @@ function populateLoanCardsFromApi(user) {
 
   const bankLinkStatus = normalize(user?.has_linked_bank_account);
 
-  const hasBank =
-    bankLinkStatus === "yes" || bankLinkStatus === "in_progress";
-
   const registeredName = identityVerified
     ? (
         user.verified_fullname?.trim() ||
@@ -2030,20 +2027,17 @@ function populateLoanCardsFromApi(user) {
   $("#orgOnlyName, #preBvnOrgName, #loanOrgName").text(communityName);
   $("#orgOnlyMemberName, #preBvnMemberName, #loanOrgMemberName").text(registeredName);
 
-  $("#loanDashBvnMasked").text(bvnMasked);
+  $("#loanDashBvnMasked")
+  .text(bvnMasked)
+  .removeClass("text-[#000000]")
+  .addClass("text-green-600");
   $("#loanDashFullName").text(registeredName.toUpperCase());
 
   $("#dashCreditValue").text(formatNaira(wallet.credit_value || 0));
   $("#dashAvailableCredit").text(formatNaira(wallet.credit_balance || 0));
 
-  $("#dashBankName").text(user.bank_name || "-");
-  $("#dashBankAccount").text(user.bank_account_number || "-");
-
-  if (hasBank) {
-    $("#bankCheckIcon").removeClass("hidden");
-  } else {
-    $("#bankCheckIcon").addClass("hidden");
-  }
+  $("#dashBankName").text(user.bank_name || "Not Set");
+  $("#dashBankAccount").text(user.bank_account_number || "Not Set");
 
   $("#dashTotalAccessed").text(formatNaira(toNumber(fin.total_accessed_loan)));
   $("#dashTotalRepaid").text(formatNaira(toNumber(fin.total_repaid_loan)));
@@ -2075,23 +2069,101 @@ function populateLoanCardsFromApi(user) {
     }
   }
 
-  const creditStatus = normalize(wallet.credit_status);
+  const creditValue = wallet?.credit_value || "0.00";
 
-  if (hasBank && creditStatus === "active") {
+  // FULL DASHBOARD CREDIT ASSESSMENT
+  $("#dashCreditBankLine").html(`
+    ${user.bank_name || "Not Set"} | ${user.bank_account_number || "Not Set"}
+    <i id="bankCheckIcon" class="fa-solid fa-circle-check text-green-600 ml-2 hidden"></i>
+  `);
+
+  if (bankLinkStatus === "yes") {
+    $("#bankCheckIcon").removeClass("hidden");
+
+    // bank name + account green
+    $("#dashCreditBankLine")
+      .removeClass("text-[#D92D20] text-[#344054] text-yellow-600")
+      .addClass("text-green-600");
+
+    // credit value label black, value black
+    $("#dashCreditValueLine")
+      .removeClass("text-[#D92D20] text-green-600 text-yellow-600")
+      .addClass("text-[#344054]");
+    $("#dashCreditValue")
+      .removeClass("text-green-600 text-[#D92D20] text-yellow-600")
+      .addClass("text-[#1B1D27]")
+      .text(formatNaira(creditValue));
+
+    // credit status label black, value green
+    $("#dashCreditStatusLine")
+      .removeClass("text-[#D92D20] text-green-600 text-yellow-600")
+      .addClass("text-[#344054]");
     $("#dashCreditStatus")
-      .removeClass("text-[#D92D20]")
+      .removeClass("text-[#D92D20] text-yellow-600")
       .addClass("text-green-600")
       .text("ACTIVE");
-  } else if (hasBank) {
+
+    $("#linkBankBtn")
+      .text("Re-link Bank Account")
+      .removeClass("text-[#667085] cursor-default")
+      .addClass("text-[#1570EF] underline");
+  }
+  else if (bankLinkStatus === "in_progress") {
+    $("#bankCheckIcon").addClass("hidden");
+
+    $("#dashCreditBankLine")
+      .removeClass("text-[#D92D20] text-green-600 text-yellow-600")
+      .addClass("text-[#344054]");
+
+    $("#dashCreditValueLine")
+      .removeClass("text-green-600 text-[#D92D20] text-yellow-600")
+      .addClass("text-[#344054]");
+    $("#dashCreditValue")
+      .removeClass("text-green-600 text-[#D92D20]")
+      .addClass("text-[#1B1D27]")
+      .text("Not Set");
+
+    $("#dashCreditStatusLine")
+      .removeClass("text-[#D92D20] text-green-600")
+      .addClass("text-[#344054]");
     $("#dashCreditStatus")
-      .removeClass("text-green-600")
-      .addClass("text-[#D92D20]")
-      .text(String(wallet.credit_status || "IN PROGRESS").toUpperCase());
-  } else {
+      .removeClass("text-green-600 text-[#D92D20]")
+      .addClass("text-yellow-600")
+      .text("PENDING");
+
+    $("#linkBankBtn")
+      .text("Re-link Bank Account")
+      .removeClass("text-[#667085] cursor-default")
+      .addClass("text-[#1570EF] underline");
+  }
+  else {
+    $("#bankCheckIcon").addClass("hidden");
+
+    $("#dashCreditBankLine")
+      .removeClass("text-green-600 text-yellow-600")
+      .addClass("text-[#344054]")
+      .html(`Not Set`);
+
+    $("#dashCreditValueLine")
+      .removeClass("text-green-600 text-[#D92D20] text-yellow-600")
+      .addClass("text-[#344054]");
+    $("#dashCreditValue")
+      .removeClass("text-green-600 text-[#D92D20] text-yellow-600")
+      .addClass("text-[#1B1D27]")
+      .text("Not Set");
+
+    $("#dashCreditStatusLine")
+      .removeClass("text-green-600 text-yellow-600")
+      .addClass("text-[#344054]");
     $("#dashCreditStatus")
-      .removeClass("text-green-600")
+      .removeClass("text-green-600 text-yellow-600")
       .addClass("text-[#D92D20]")
-      .text("NO BANK ACCOUNT LINKED");
+      .text("No Bank Account Linked");
+
+    $("#linkBankBtn")
+      .text("Link Bank Account")
+      .removeClass("text-[#667085] cursor-default")
+      .addClass("text-[#1570EF] underline");
   }
 }
 
@@ -2122,40 +2194,38 @@ function resolveLoanFlowState(user) {
   const identityVerified =
     normalize(user?.identity_verification_status) === "verified";
 
-  const bankLinkStatus = normalize(user?.has_linked_bank_account);
-
-  const hasBank =
-    bankLinkStatus === "yes" || bankLinkStatus === "in_progress";
-
-  const creditActive =
-    normalize(user?.wallet?.data?.credit_status) === "active";
+  const bankLinkStatus =
+    normalize(user?.has_linked_bank_account);
 
   console.log("STATE CHECK:", {
     hasCommunity,
     identityVerified,
-    hasBank,
-    creditActive,
+    bankLinkStatus,
     flag,
-    identityCheck,
-    bankLinkStatus
+    identityCheck
   });
 
-  if (hasCommunity && identityVerified && hasBank && creditActive) {
+  // FULL DASHBOARD
+  if (hasCommunity && identityVerified && bankLinkStatus === "yes") {
     return "dashboard";
   }
 
+  // NO COMMUNITY
   if (!hasCommunity) {
     return "org-form";
   }
 
+  // COMMUNITY ONLY
   if (flag === "purchase_request" && identityCheck === "no") {
     return "org-only";
   }
 
+  // VERIFIED BUT BANK NOT FULLY LINKED YET
   if (hasCommunity && identityVerified) {
     return "pre-bvn";
   }
 
+  // IDENTITY CHECK REQUIRED
   if (identityCheck === "yes" && !identityVerified) {
     return "pre-bvn";
   }
@@ -2816,18 +2886,17 @@ function updateCreditAssessment(user) {
   const identityVerified =
     String(user?.identity_verification_status || "").toLowerCase() === "verified";
 
-  const bankLinkState =
-    String(user?.has_linked_bank_account || "").toLowerCase();
+  const bankLinkStatus =
+    String(user?.has_linked_bank_account || "").trim().toLowerCase();
 
   const wallet = user?.wallet?.data || {};
-  const creditStatus =
-    String(wallet?.credit_status || "").toLowerCase();
   const creditValue = wallet?.credit_value || "0.00";
 
   const bankName = user?.bank_name || "-";
   const accountNumber = user?.bank_account_number || "-";
 
   const relinkCount = Number(
+    user?.bvn_bank_activation_log?.bank_linking_count ||
     user?.bank_linking_count ||
     user?.mono_link_count ||
     user?.bank_link_count ||
@@ -2849,11 +2918,13 @@ function updateCreditAssessment(user) {
   $btnWrap.removeClass("hidden");
   $btn.show();
 
-  // 1. Identity not verified, keep original default design
+  // 1. Identity not verified, keep default
   if (!identityVerified) {
     $status.html(`
-      <i class="fa-solid fa-circle text-[8px] mr-[4px] text-[#D92D20]"></i>
-      No Bank Account Linked
+      <span class="text-[#D92D20]">
+        <i class="fa-solid fa-circle text-[8px] mr-[4px]"></i>
+        No Bank Account Linked
+      </span>
     `);
 
     $value.html(`
@@ -2864,17 +2935,19 @@ function updateCreditAssessment(user) {
     $btn
       .text("Verify your identity first")
       .prop("disabled", true)
-      .removeClass("text-[#1570EF] underline hidden")
+      .removeClass("text-[#1570EF] underline text-green-600")
       .addClass("text-[#667085] cursor-default");
 
     return;
   }
 
-  // 2. Bank not linked, keep original default design
-  if (bankLinkState === "no" || !bankLinkState) {
+  // 2. BANK STATUS = NO
+  if (bankLinkStatus === "no" || !bankLinkStatus) {
     $status.html(`
-      <i class="fa-solid fa-circle text-[8px] mr-[4px] text-[#D92D20]"></i>
-      No Bank Account Linked
+      <span class="text-[#D92D20]">
+        <i class="fa-solid fa-circle text-[8px] mr-[4px]"></i>
+        No Bank Account Linked
+      </span>
     `);
 
     $value.html(`
@@ -2885,89 +2958,95 @@ function updateCreditAssessment(user) {
     $btn
       .text("Link Bank Account")
       .prop("disabled", false)
-      .removeClass("text-[#667085] cursor-default hidden")
+      .removeClass("text-[#667085] cursor-default text-green-600")
       .addClass("text-[#1570EF] underline");
 
     return;
   }
 
-  // 3. Bank linking in progress
-  if (bankLinkState === "in_progress") {
+  // 3. BANK STATUS = IN PROGRESS
+  if (bankLinkStatus === "in_progress") {
+    $("#creditValueText").hide();
     $status.html(`
-      ${bankName} | ${accountNumber}
-    `);
-
-    $value.html(`
-      Credit Value:
-      <span class="font-medium">${formatNaira(creditValue)}</span>
-      <br>
-      <span class="text-yellow-600 font-medium">
-        <i class="fa-solid fa-circle text-[8px] mr-[4px]"></i>
-        Credit Status: IN PROGRESS
-      </span>
-    `);
-
-    if (relinkCount >= MAX_RELINK) {
-      $btn
-        .text("Relink limit reached")
-        .prop("disabled", true)
-        .removeClass("text-[#1570EF] underline hidden")
-        .addClass("text-[#667085] cursor-default");
-    } else {
-      $btn
-        .text("Re-link Bank Account")
-        .prop("disabled", false)
-        .removeClass("text-[#667085] cursor-default hidden")
-        .addClass("text-[#1570EF] underline");
-    }
-
-    return;
-  }
-
-  // 4. Bank linked, use credit status
-  if (bankLinkState === "yes") {
-    $status.html(`
-      ${bankName} | ${accountNumber}
-    `);
-
-    if (creditStatus === "active") {
-      $value.html(`
-        Credit Value:
-        <span class="font-medium">${formatNaira(creditValue)}</span>
-        <br>
-        <span class="text-green-600 font-medium">
-          <i class="fa-solid fa-circle-check mr-[4px]"></i>
-          Credit Status: ACTIVE
+      <div class="flex flex-col gap-[6px]">
+        <span class="text-[#344054] font-medium">
+          ${bankName} | ${accountNumber}
         </span>
-      `);
-    } else {
-      $value.html(`
-        Credit Value:
-        <span class="font-medium">${formatNaira(creditValue)}</span>
-        <br>
+
         <span class="text-yellow-600 font-medium">
           <i class="fa-solid fa-circle text-[8px] mr-[4px]"></i>
-          Credit Status: ${creditStatus ? creditStatus.toUpperCase() : "PENDING"}
+          Bank Linking in Progress
         </span>
-      `);
-    }
+
+        <span class="text-[#B54708] font-medium">
+          Credit Status: PENDING
+        </span>
+      </div>
+    `);
+
+    // $value.html(`
+    //   Credit Value:
+    //   <span class="font-medium">Not Set</span>
+    // `);
 
     if (relinkCount >= MAX_RELINK) {
       $btn
         .text("Relink limit reached")
         .prop("disabled", true)
-        .removeClass("text-[#1570EF] underline hidden")
+        .removeClass("text-[#1570EF] underline text-green-600")
         .addClass("text-[#667085] cursor-default");
     } else {
       $btn
         .text("Re-link Bank Account")
         .prop("disabled", false)
-        .removeClass("text-[#667085] cursor-default hidden")
+        .removeClass("text-[#667085] cursor-default text-green-600")
         .addClass("text-[#1570EF] underline");
     }
 
     return;
   }
+
+ 
+ // 4. BANK STATUS = YES
+if (bankLinkStatus === "yes") {
+  $("#creditValueText").show();
+
+  $status.html(`
+    <div class="flex flex-col gap-[6px]">
+      <span class="text-green-600 font-medium">
+        ${bankName} | ${accountNumber}
+      </span>
+
+      <span class="text-[#101828]">
+        Credit Value:
+        <span class="font-medium">${formatNaira(creditValue)}</span>
+      </span>
+
+      <span class="text-green-600 font-medium">
+        <i class="fa-solid fa-circle-check mr-[4px]"></i>
+        Credit Status: ACTIVE
+      </span>
+    </div>
+  `);
+
+  $value.html(``);
+
+  if (relinkCount >= MAX_RELINK) {
+    $btn
+      .text("Relink limit reached")
+      .prop("disabled", true)
+      .removeClass("text-[#1570EF] underline text-green-600")
+      .addClass("text-[#667085] cursor-default");
+  } else {
+    $btn
+      .text("Re-link Bank Account")
+      .prop("disabled", false)
+      .removeClass("text-[#667085] cursor-default")
+      .addClass("text-[#1570EF] underline");
+  }
+
+  return;
+}
 }
 
 function connectViaOptionsMono() {

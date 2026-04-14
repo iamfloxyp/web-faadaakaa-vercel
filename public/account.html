@@ -622,6 +622,7 @@
              bg-[#15803D] text-white text-[11px] font-medium
              rounded-l-full whitespace-nowrap">
       <span class="w-[6px] h-[6px] rounded-full bg-white"></span>
+      <i class="fa-solid fa-circle-check text-white text-12px"></i>
       Identity Verified
     </span>
   </a>
@@ -1395,7 +1396,6 @@
 
           
         <!-- ========== TAB: LOANS & CREDITS ========== -->
-<!-- ========== TAB: LOANS & CREDITS ========== -->
 <div id="loanCreditContent"
      class="hidden w-full rounded-[12px] bg-white p-[24px]">
 
@@ -1420,44 +1420,44 @@
   <!-- ===================================================== -->
   <!-- STATE 1: ORGANIZATION VALIDATION FORM -->
   <!-- ===================================================== -->
- <div id="loanOrgFormSection" class="hidden flex flex-col gap-[12px] w-full">
+  <div id="loanOrgFormSection" class="hidden flex flex-col gap-[12px] w-full">
 
-  <p class="text-[14px] text-[#344054]">
-    Validate Partner Your Organization Membership
-  </p>
+    <p class="text-[14px] text-[#344054]">
+      Validate Partner Your Organization Membership
+    </p>
 
-  <div class="flex flex-col gap-[6px]">
-    <label class="text-[13px] font-medium text-[#414651]">
-      organization
-      <span class="text-[#667085] text-[12px] italic">* Select the community you belong to</span>
-    </label>
+    <div class="flex flex-col gap-[6px]">
+      <label class="text-[13px] font-medium text-[#414651]">
+        organization
+        <span class="text-[#667085] text-[12px] italic">* Select the community you belong to</span>
+      </label>
 
-    <select id="orgSelectInput"
-            class="w-full h-[44px] border border-[#D0D5DD] rounded-[8px] px-[12px] outline-none focus:ring-2 focus:ring-[#1570EF] text-[14px] text-[#344054]">
-      <option value="">Loading organizations...</option>
-    </select>
+      <select id="orgSelectInput"
+              class="w-full h-[44px] border border-[#D0D5DD] rounded-[8px] px-[12px] outline-none focus:ring-2 focus:ring-[#1570EF] text-[14px] text-[#344054]">
+        <option value="">Loading organizations...</option>
+      </select>
+    </div>
+
+    <div class="flex flex-col gap-[6px]">
+      <label class="text-[13px] font-medium text-[#414651]">
+        Phone Number
+        <span class="text-[#667085] text-[12px] italic">* Provide the phone number linked to your selected community above</span>
+      </label>
+
+      <input id="orgPhoneInput"
+             type="text"
+             class="w-full h-[44px] border border-[#D0D5DD] rounded-[8px] px-[12px] outline-none focus:ring-2 focus:ring-[#1570EF]"
+             placeholder="Add 11-digit phone number">
+    </div>
+
+    <div class="flex justify-end">
+      <button id="validateOrgBtn"
+              class="w-[140px] h-[40px] bg-[#1570EF] text-white rounded-[8px] text-[14px] font-medium flex items-center justify-center gap-[8px]">
+        <span>Validate</span>
+        <span id="validateOrgBtnLoader" class="btn-spinner hidden"></span>
+      </button>
+    </div>
   </div>
-
-  <div class="flex flex-col gap-[6px]">
-    <label class="text-[13px] font-medium text-[#414651]">
-      Phone Number
-      <span class="text-[#667085] text-[12px] italic">* Provide the phone number linked to your selected community above</span>
-    </label>
-
-    <input id="orgPhoneInput"
-           type="text"
-           class="w-full h-[44px] border border-[#D0D5DD] rounded-[8px] px-[12px] outline-none focus:ring-2 focus:ring-[#1570EF]"
-           placeholder="Add 11-digit phone number">
-  </div>
-
-  <div class="flex justify-end">
-    <button id="validateOrgBtn"
-            class="w-[140px] h-[40px] bg-[#1570EF] text-white rounded-[8px] text-[14px] font-medium flex items-center justify-center gap-[8px]">
-      <span>Validate</span>
-      <span id="validateOrgBtnLoader" class="btn-spinner hidden"></span>
-    </button>
-  </div>
-</div>
 
   <!-- ===================================================== -->
   <!-- STATE 2: ORGANIZATION OTP FORM -->
@@ -1518,7 +1518,6 @@
   <!-- STATE 3: ORGANIZATION ONLY CARD -->
   <!-- ===================================================== -->
   <div id="loanOrgOnlySection" class="hidden w-full">
-
     <div class="grid grid-cols-1 md:grid-cols-3 gap-[20px]">
       <div class="flex flex-col">
         <p class="font-semibold text-[16px] text-[#1B1D27] mb-[8px]">
@@ -1542,7 +1541,6 @@
         </div>
       </div>
     </div>
-
   </div>
 
   <!-- ===================================================== -->
@@ -1596,8 +1594,8 @@
             <span>Unverified user</span>
           </p>
 
-          <div class="mt-auto pt-[18px]">
-            <button class="goToBvnBtn text-[12px] text-[#1570EF] underline font-medium">
+          <div class="mt-auto pt-[12px] border-t border-[#EAECF0]">
+            <button class="goToBvnBtn text-[15px] text-[#1570EF] font-semibold underline text-right">
               Verify your identity
             </button>
           </div>
@@ -1615,9 +1613,9 @@
             <i class="fa-solid fa-building-columns text-[#000000] text-[18px]"></i>
           </div>
 
-          <p class="text-[14px] text-[#D92D20] font-medium" id="creditStatusText" >
+          <p class="text-[14px] text-[#D92D20] font-medium" id="creditStatusText">
             <i class="fa-solid fa-circle text-[8px] ml-[4px] text-[#D92D20]"></i>
-             No Bank Account Linked 
+            No Bank Account Linked
           </p>
 
           <p class="text-[14px] mt-[10px] text-[#344054]" id="creditValueText">
@@ -1625,8 +1623,8 @@
             <span class="font-medium">Not Set</span>
           </p>
 
-          <div class="mt-auto pt-[18px]" id="prevlinkBankBtnWrap">
-            <button class="text-[12px] text-[#667085] font-medium cursor-default" id="prevBvnLinkBankBtn">
+          <div class="mt-auto pt-[12px] border-t border-[#EAECF0]" id="prevlinkBankBtnWrap">
+            <button class="text-[15px] text-[#1570EF] font-semibold underline text-right" id="prevBvnLinkBankBtn">
               Verify your identity first
             </button>
           </div>
@@ -1645,206 +1643,179 @@
 
   </div>
 
-  
-
   <!-- ===================================================== -->
   <!-- FINAL LOAN DASHBOARD -->
   <!-- ===================================================== -->
   <div id="loanDashboardSection" class="hidden w-full">
 
-    
-   <!-- SUCCESS FEEDBACK MESSAGE -->
-<div id="orgSuccessMsg"
-     class="hidden w-full bg-[#ECFDF3] border border-[#ABEFC6] text-[#067647] text-[13px] p-[10px] rounded-[8px] mb-[12px]">
-  ✔ Verification code sent to your phone number (WhatsApp & SMS)
-</div>
-
-<!-- FIRST ROW -->
-<div class="grid grid-cols-1 md:grid-cols-3 gap-[20px]">
-
-  <!-- Organization Membership -->
-  <div class="flex flex-col h-290px">
-    <p class="font-semibold text-[16px] text-[#1B1D27] mb-[8px]">
-      Organization Membership
-    </p>
-
-    <div class="border border-[#EAECF0] rounded-[12px] p-[20px] bg-white h-full min-h-[180px] flex flex-col justify-start">
-      <div class="flex items-center gap-[10px] mb-[12px]">
-        <i class="fa-solid fa-people-group text-[#000000] text-[18px]"></i>
-      </div>
-
-      <p class="text-[14px] flex items-center gap-2">
-        <i class="fa-solid fa-circle-check text-green-600"></i>
-        <span id="loanOrgName" class="font-medium text-green-600">Lagos Water Cooperative</span>
-      </p>
-
-      <p class="text-[14px] flex items-center gap-2 mt-[10px]">
-        <i class="fa-solid fa-user text-[#000000]"></i>
-        <span id="loanOrgMemberName" class="font-medium text-[#1B1D27]">Niyi Salaudeen</span>
-      </p>
+    <div id="orgSuccessMsg"
+         class="hidden w-full bg-[#ECFDF3] border border-[#ABEFC6] text-[#067647] text-[13px] p-[10px] rounded-[8px] mb-[12px]">
+      ✔ Verification code sent to your phone number (WhatsApp & SMS)
     </div>
-  </div>
 
-  <!-- Identity Verification -->
-  <div class="flex flex-col  h-290px">
-    <p class="font-semibold text-[16px] text-[#1B1D27] mb-[8px]">
-      Identity Verification
-    </p>
+    <!-- FIRST ROW -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-[20px]">
 
-    <div class="border border-[#EAECF0] rounded-[12px] p-[20px] bg-white h-full min-h-[180px] flex flex-col justify-start">
-      <div class="flex items-center gap-[10px] mb-[12px]">
-        <i class="fa-solid fa-user text-[#000000] text-[18px]"></i>
-      </div>
-
-      <p class="text-[14px] flex items-center gap-2">
-        <i class="fa-solid fa-id-card text-[#000000]"></i>
-        <span id="loanDashBvnMasked" class="font-medium text-green-600">
-          BVN | xxxxxxxx5000
-        </span>
-      </p>
-
-      <p class="text-[14px] flex items-center gap-2 mt-[10px]">
-        <i class="fa-solid fa-user text-[#000000]"></i>
-        <span id="loanDashFullName" class="font-medium uppercase text-black-600">
-          Oluwafemi Ebenezer Adeyemi
-        </span>
-      </p>
-
-      <p class="text-[14px] mt-[10px] flex items-center gap-2">
-        <i class="fa-solid fa-calendar-check text-[#000000]"></i>
-        <span>Date of Birth: Verified</span>
-      </p>
-
-      <div class="w-full border-3px border-[#EAECF0] mb-[10px]"></div>
-      <div class="mt-auto pt-[12px] border-t border-[#EAECF0]">
-        <button class="goToBvnBtn text-[15px] text-[#1570EF] font-semibold underline text-right">
-          Verify your identity
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Credit Assessment -->
-  <div class="flex flex-col  h-290px">
-    <p class="font-semibold text-[16px] text-[#1B1D27] mb-[8px]">
-      Credit Assessment
-    </p>
-
-    <div class="border border-[#EAECF0] rounded-[12px] p-[20px] bg-white h-full min-h-[180px] flex flex-col justify-start">
-      <div class="flex items-center gap-[10px] mb-[12px]">
-        <i class="fa-solid fa-building-columns text-[#000000] text-[18px]"></i>
-      </div>
-
-      <p class="text-[14px]">
-        Bank Name:
-        <span id="dashBankName" class="font-medium text-green-600">Not Set</span>
-      </p>
-
-      <p class="text-[14px] mt-[6px]">
-        Bank Account:
-        <span id="dashBankAccount" class="font-medium text-green-600">Not Set</span>
-        <i id="bankCheckIcon" class="fa-solid fa-check text-green-600 ml-2 hidden"></i>
-      </p>
-
-      <p class="text-[14px] mt-[10px]">
-        Credit Value:
-        <span id="dashCreditValue" class="font-medium text-black-600">Not Set</span>
-      </p>
-
-      <p class="text-[14px] mt-[10px]">
-        Credit Status:
-        <span id="dashCreditStatus" class="font-medium text-[#D92D20]">No Bank Account Linked</span>
-      </p>
-
-      <div class="w-full border-3px border-[#EAECF0] mb-[10px]"></div>
-
-      <div class="mt-auto pt-[12px] border-t border-[#EAECF0]">
-        <button id="linkBankBtn"
-                class="text-[15px] text-[#1570EF] font-semibold underline text-right">
-          Link Bank Account
-        </button>
-      </div>
-    </div>
-  </div>
-
-</div>
-
- 
-
-
-  <!-- SECOND ROW -->
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-[20px] mt-[20px]">
-
-       <!-- Available Credit -->
-    <div class="flex flex-col">
-
-      <p class="font-semibold text-[16px] text-[#1B1D27] mb-[8px]">
-       Available Credit (Available Loan)
-      </p>
-
-      <div class="border border-[#EAECF0] rounded-[12px] p-[20px] bg-white h-full min-h-[180px] flex flex-col justify-start">
-
-        <div class="flex items-center gap-[10px] mb-[12px]">
-          <i class="fa-solid fa-wallet text-[#000000] text-[18px]"></i>
-        </div>
-
-        <p class="text-[14px]">
-          Available Credit:
-          <span id="dashAvailableCredit" class="font-medium text-green-600">₦0.00</span>
+      <!-- Organization Membership -->
+      <div class="flex flex-col h-290px">
+        <p class="font-semibold text-[16px] text-[#1B1D27] mb-[8px]">
+          Organization Membership
         </p>
 
+        <div class="border border-[#EAECF0] rounded-[12px] p-[20px] bg-white h-full min-h-[180px] flex flex-col justify-start">
+          <div class="flex items-center gap-[10px] mb-[12px]">
+            <i class="fa-solid fa-people-group text-[#000000] text-[18px]"></i>
+          </div>
+
+          <p class="text-[14px] flex items-center gap-2">
+            <i class="fa-solid fa-circle-check text-green-600"></i>
+            <span id="loanOrgName" class="font-medium text-green-600">Lagos Water Cooperative</span>
+          </p>
+
+          <p class="text-[14px] flex items-center gap-2 mt-[10px]">
+            <i class="fa-solid fa-user text-[#000000]"></i>
+            <span id="loanOrgMemberName" class="font-medium text-[#1B1D27]">Niyi Salaudeen</span>
+          </p>
+        </div>
       </div>
+
+      <!-- Identity Verification -->
+      <div class="flex flex-col h-290px">
+        <p class="font-semibold text-[16px] text-[#1B1D27] mb-[8px]">
+          Identity Verification
+        </p>
+
+        <div class="border border-[#EAECF0] rounded-[12px] p-[20px] bg-white h-full min-h-[180px] flex flex-col justify-start">
+          <div class="flex items-center gap-[10px] mb-[12px]">
+            <i class="fa-solid fa-user text-[#000000] text-[18px]"></i>
+          </div>
+
+          <p class="text-[14px] flex items-center gap-2">
+            <i class="fa-solid fa-id-card text-green-600"></i>
+            <span id="loanDashBvnMasked" class="font-medium text-green-600">
+              BVN | xxxxxxxx5000
+            </span>
+          </p>
+
+          <p class="text-[14px] flex items-center gap-2 mt-[10px]">
+            <i class="fa-solid fa-user text-[#000000]"></i>
+            <span id="loanDashFullName" class="font-medium uppercase text-black-600">
+              Oluwafemi Ebenezer Adeyemi
+            </span>
+          </p>
+
+          <p class="text-[14px] mt-[10px] flex items-center gap-2">
+            <i class="fa-solid fa-calendar-check text-[#000000]"></i>
+            <span>Date of Birth: Verified</span>
+          </p>
+
+          <div class="mt-auto pt-[12px] border-t border-[#EAECF0]">
+            <button class="goToBvnBtn text-[15px] text-[#1570EF] font-semibold underline text-right">
+              Verify your identity
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Credit Assessment -->
+      <div class="flex flex-col h-290px">
+        <p class="font-semibold text-[16px] text-[#1B1D27] mb-[8px]">
+          Credit Assessment
+        </p>
+
+        <div class="border border-[#EAECF0] rounded-[12px] p-[20px] bg-white h-full min-h-[180px] flex flex-col justify-start">
+          <div class="flex items-center gap-[10px] mb-[12px]">
+            <i class="fa-solid fa-building-columns text-[#000000] text-[18px]"></i>
+          </div>
+
+          <p id="dashCreditBankLine" class="text-[14px] font-medium text-[#344054]">
+  Providus Bank | 6500886357
+  <i id="bankCheckIcon" class="fa-solid fa-circle-check text-green-600 ml-2 hidden"></i>
+</p>
+
+<p id="dashCreditValueLine" class="text-[14px] mt-[10px] text-[#344054]">
+  Credit Value:
+  <span id="dashCreditValue" class="font-medium text-[#1B1D27]">Not Set</span>
+</p>
+
+<p id="dashCreditStatusLine" class="text-[14px] mt-[10px]">
+  Credit Status:
+  <span id="dashCreditStatus" class="font-medium text-[#D92D20]">No Bank Account Linked</span>
+</p>
+
+          <div class="mt-auto pt-[12px] border-t border-[#EAECF0]">
+            <button id="linkBankBtn"
+                    class="text-[15px] text-[#1570EF] font-semibold underline text-right">
+              Link Bank Account
+            </button>
+          </div>
+        </div>
+      </div>
+
     </div>
 
-    <!-- Total Repaid Loan -->
-    <div class="flex flex-col">
+    <!-- SECOND ROW -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-[20px] mt-[20px]">
 
-      <p class="font-semibold text-[16px] text-[#1B1D27] mb-[8px]">
-        Total Repaid Loan
+      <div class="flex flex-col">
+        <p class="font-semibold text-[16px] text-[#1B1D27] mb-[8px]">
+          Available Credit (Available Loan)
+        </p>
+
+        <div class="border border-[#EAECF0] rounded-[12px] p-[20px] bg-white h-full min-h-[180px] flex flex-col justify-start">
+          <div class="flex items-center gap-[10px] mb-[12px]">
+            <i class="fa-solid fa-wallet text-[#000000] text-[18px]"></i>
+          </div>
+
+          <p class="text-[14px]">
+            Available Credit:
+            <span id="dashAvailableCredit" class="font-medium text-green-600">₦0.00</span>
+          </p>
+        </div>
+      </div>
+
+      <div class="flex flex-col">
+        <p class="font-semibold text-[16px] text-[#1B1D27] mb-[8px]">
+          Total Repaid Loan
+        </p>
+
+        <div class="border border-[#EAECF0] rounded-[12px] p-[20px] bg-white h-full min-h-[180px] flex flex-col justify-start">
+          <i class="fa-solid fa-tag text-[#000000] text-[18px] mb-[12px]"></i>
+          <p id="dashTotalRepaid" class="text-[14px] font-medium text-green-600">₦0.00</p>
+        </div>
+      </div>
+
+      <div class="flex flex-col">
+        <p class="font-semibold text-[16px] text-[#1B1D27] mb-[8px]">
+          Total Loan Accessed
+        </p>
+
+        <div class="border border-[#EAECF0] rounded-[12px] p-[20px] bg-white h-full min-h-[180px] flex flex-col justify-start">
+          <i class="fa-solid fa-sack-dollar text-[#000000] text-[18px] mb-[12px]"></i>
+          <p id="dashTotalAccessed" class="text-[14px] font-medium text-green-600">₦0.00</p>
+        </div>
+      </div>
+
+      <div class="flex flex-col">
+        <p class="font-semibold text-[16px] text-[#1B1D27] mb-[8px]">
+          Total Unsettled Loan
+        </p>
+
+        <div class="border border-[#EAECF0] rounded-[12px] p-[20px] bg-white h-full min-h-[180px] flex flex-col justify-start">
+          <i class="fa-solid fa-ban text-[#000000] text-[18px] mb-[12px]"></i>
+          <p id="dashUnsettled" class="text-[14px] font-medium text-red-600">₦0.00</p>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="w-full bg-[#EEF2FF] text-[#344054] p-[10px] rounded-[8px] flex items-center justify-center gap-[10px] border border-[#C7D7FE] mt-[20px]">
+      <i class="fa-regular fa-circle-question text-[#1570EF] text-[16px]"></i>
+      <p class="text-[13px] text-center">
+        Having challenge verifying your identity and linking your bank for credit assessment? Contact us:
+        <span class="font-medium">support@faadaakaa.com</span>
       </p>
-
-      <div class="border border-[#EAECF0] rounded-[12px] p-[20px] bg-white h-full min-h-[180px] flex flex-col justify-start">
-
-        <i class="fa-solid fa-tag text-[#000000] text-[18px] mb-[12px]"></i>
-
-        <p id="dashTotalRepaid" class="text-[14px] font-medium text-green-600">₦0.00</p>
-
-      </div>
     </div>
-
-    <!-- Total Loan Accessed -->
-    <div class="flex flex-col">
-
-      <p class="font-semibold text-[16px] text-[#1B1D27] mb-[8px]">
-        Total Loan Accessed
-      </p>
-
-      <div class="border border-[#EAECF0] rounded-[12px] p-[20px] bg-white h-full min-h-[180px] flex flex-col justify-start">
-
-        <i class="fa-solid fa-sack-dollar text-[#000000] text-[18px] mb-[12px]"></i>
-
-        <p id="dashTotalAccessed" class="text-[14px] font-medium text-green-600">₦0.00</p>
-
-      </div>
-    </div>
-
-    <!-- Total Unsettled Loan -->
-    <div class="flex flex-col">
-
-      <p class="font-semibold text-[16px] text-[#1B1D27] mb-[8px]">
-        Total Unsettled Loan
-      </p>
-
-      <div class="border border-[#EAECF0] rounded-[12px] p-[20px] bg-white h-full min-h-[180px] flex flex-col justify-start">
-
-        <i class="fa-solid fa-ban text-[#000000] text-[18px] mb-[12px]"></i>
-
-        <p id="dashUnsettled" class="text-[14px] font-medium text-red-600">₦0.00</p>
-
-      </div>
-    </div>
-
-  </div>
 
   </div>
 </div>
@@ -1875,14 +1846,13 @@
   </div>
 </div>
 
-<!-- bvn -->
-  
+<!-- BVN -->
 <div id="bvnContent" class="hidden w-full rounded-[12px] bg-white p-[24px]">
   <div id="bvnStandaloneSuccess"
        class="hidden w-full bg-[#ECFDF3] border border-[#ABEFC6] text-[#067647] text-[13px] p-[10px] rounded-[8px] mb-[12px]">
     BVN verified successfully
   </div>
-  <!-- BLUE INFO BANNER -->
+
   <div id="bvnInfoBanner"
        class="w-full bg-[#ced5f2] rounded-[8px] p-[16px] flex gap-[12px] items-start mb-[24px]">
     <div class="w-[24px] h-[24px] flex items-center justify-center mt-[2px] bg-[#0c30bf] rounded-full">
@@ -1895,7 +1865,6 @@
       </span>
     </p>
   </div>
-  
 
   <label class="text-[14px] font-semibold text-[#1B1D27]">
     Identity Verification
@@ -1926,9 +1895,8 @@
     </button>
   </div>
 </div>
-<!-- ===================================================== -->
+
 <!-- 500 NAIRA CONFIRMATION MODAL -->
-<!-- ===================================================== -->
 <div id="bvnFeeModal"
      class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-[9999]">
 
@@ -1962,9 +1930,7 @@
   </div>
 </div>
 
-<!-- ===================================================== -->
 <!-- BVN WALLET FUNDING MODAL -->
-<!-- ===================================================== -->
 <div id="bvnWalletFundingModal"
      class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-[9999]">
 
@@ -1995,7 +1961,6 @@
     </div>
   </div>
 </div>
-
           <!-- ========== TAB: DELIVERY ADDRESSES (HIDDEN INITIALLY) ========== -->
 <div id="deliveryContent"
      class="relative z-index-[1000] w-full border border-[#EAECF0]
@@ -2779,10 +2744,10 @@
     <div class="mx-auto w-full max-w-[1216px] px-6 py-12 
                 flex flex-col md:flex-row items-center justify-between gap-10">
 
-      <!-- Copyright Text -->
-      <p class="text-[#D0D5DD] text-[16px] leading-[24px] text-center md:text-left">
-        ©️ 2025 Faadaakaa. All rights reserved.
-      </p>
+              <!-- Copyright Text -->
+        <p class="text-[#D0D5DD] text-[16px] leading-[24px] text-center md:text-left">
+  ©️ <span id="currentYear"></span> Faadaakaa. All rights reserved.
+</p>
 
       <!-- Social Icons (Images as clickable links) -->
       <div class="flex items-center gap-[24px]">

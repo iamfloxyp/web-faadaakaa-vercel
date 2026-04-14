@@ -1256,4 +1256,5 @@ $(document).on("click", ".logoutBtn", function (e) {
   // Force redirect to homepage
   window.location.href = "/index.html";
 });
-
+// Footer year auto-update
+$("#currentYear").text(new Date().getFullYear());

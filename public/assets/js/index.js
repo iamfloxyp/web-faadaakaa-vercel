@@ -936,7 +936,7 @@ function loadProductsForCategory(slug, gridId) {
           : "https://via.placeholder.com/300";
 
         const card = `
-          <a href="/product/${item.slug}"
+          <a href="/item/${item.slug}"
              class="bg-white border border-[#EAECF0] rounded-[14px]
                     flex flex-col h-[340px]
                     hover:shadow-md transition">

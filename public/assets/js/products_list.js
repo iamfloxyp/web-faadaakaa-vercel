@@ -1,7 +1,7 @@
 /* ============================================================
    PRODUCT LIST PAGE (DYNAMIC – ALL CATEGORIES)
    ============================================================ */
-
+console.log("Products List JS loaded");
 /* ===============================
    READ URL SAFELY
    Expected: /category/:slug/:page
@@ -120,7 +120,7 @@ function renderProducts(products) {
   $grid.empty();
 
   products.forEach(item => {
-    let imageURL = "./assets/images/placeholder.png";
+    let imageURL = "/assets/images/placeholder.png";
 
     if (
       Array.isArray(item.images) &&
@@ -136,7 +136,7 @@ function renderProducts(products) {
 
     const card = `
       <a href="/item/${item.slug}"
-         class="bg-white border border-[#EAECF0] rounded-[14px]
+         class="w-full bg-white border border-[#EAECF0] rounded-[14px]
                 flex flex-col h-[340px]
                 hover:shadow-md transition">
 
@@ -198,8 +198,12 @@ function hideProductListLoader() {
    INIT
    =============================== */
 $(document).ready(function () {
- showProductListLoader();
-  loadCategoryTitle();
-  loadProducts();
- 
+  showProductListLoader();
+
+  Promise.all([
+    loadCategoryTitle(),
+    loadProducts()
+  ]).finally(() => {
+    hideProductListLoader();
+  });
 });

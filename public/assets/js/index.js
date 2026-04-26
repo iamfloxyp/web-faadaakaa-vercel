@@ -872,7 +872,7 @@ function loadLandingCategoriesWithProducts() {
 
         const sectionHTML = `
           <section class="bg-[#F7F7F7] py-8 px-4 sm:px-6 md:px-8">
-            <div class="max-w-[1216px] mx-auto flex flex-col gap-[20px]">
+            <div class="max-w-[1440px] mx-auto flex flex-col gap-[20px]">
 
               <div class="flex justify-between items-center">
                 <div class="flex items-center">
@@ -1132,7 +1132,39 @@ function loadCategoriesFromAPI() {
     })
     .catch(err => console.log("Category load error:", err));
 }
+//===================== CATEGORIES SLIDER==========================
+let categoryScrollAmount = 0;
 
+$(document).on("click", "#catNext", function () {
+  const slider = document.getElementById("categorySlider");
+  const track = document.getElementById("categoryTrack");
+
+  if (!slider || !track) return;
+
+  const maxScroll = track.scrollWidth - slider.clientWidth;
+
+  categoryScrollAmount += 220;
+
+  if (categoryScrollAmount > maxScroll) {
+    categoryScrollAmount = maxScroll;
+  }
+
+  track.style.transform = `translateX(-${categoryScrollAmount}px)`;
+});
+
+$(document).on("click", "#catPrev", function () {
+  const track = document.getElementById("categoryTrack");
+
+  if (!track) return;
+
+  categoryScrollAmount -= 220;
+
+  if (categoryScrollAmount < 0) {
+    categoryScrollAmount = 0;
+  }
+
+  track.style.transform = `translateX(-${categoryScrollAmount}px)`;
+});
 
 });
 window.toast = window.toast || function (msg, type) {
@@ -1143,7 +1175,7 @@ window.toast = window.toast || function (msg, type) {
 // =======================
 function forceLogout() {
   sessionStorage.removeItem("AUTH_TOKEN");
-  window.location.href = "index.html";
+  window.location.href = "/";
 }
 let indexLoaderStartTime = 0;
 

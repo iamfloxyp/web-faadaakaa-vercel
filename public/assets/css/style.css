@@ -3739,3 +3739,11 @@ select {
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+body.account-loading > *:not(#accountPageLoader) {
+  visibility: hidden;
+}
+
+body.account-loading #accountPageLoader {
+  visibility: visible;
+}

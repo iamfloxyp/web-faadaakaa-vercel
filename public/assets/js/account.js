@@ -3490,11 +3490,6 @@ function formatDate(dateStr) {
     year: "numeric"
   });
 }
-// function hideAllRightSideSections() {
- 
-//   $("#ordersContent, #orderDetailsContent, #clearLoanContent, #loanPaymentPage")
-//     .addClass("hidden");
-// }
 
 /* ==============================
    LOAD ORDERS
@@ -5047,8 +5042,9 @@ let accountLoaderStart = 0;
 
 function showAccountLoader() {
   accountLoaderStart = Date.now();
+
+  $("body").addClass("account-loading");
   $("#accountPageLoader").removeClass("hidden");
-  $("#accountPageContent").addClass("hidden");
 }
 
 function hideAccountLoader() {
@@ -5058,7 +5054,7 @@ function hideAccountLoader() {
 
   const done = () => {
     $("#accountPageLoader").addClass("hidden");
-    $("#accountPageContent").removeClass("hidden");
+    $("body").removeClass("account-loading");
   };
 
   if (remaining > 0) {
@@ -5110,6 +5106,8 @@ $("#tab-orders").on("click", function (e) {
   e.preventDefault();
   navigateTo("/myorders");
 });
+
+// =====================================================
 // =====================================================
 // INIT
 // =====================================================
@@ -5122,8 +5120,10 @@ $(document).ready(function () {
 
   switchAccountInnerTab("profile");
 
-  hideAccountLoader();
-}); 
+  setTimeout(function () {
+    hideAccountLoader();
+  }, 1200);
+});
 
 function openAccountSection(sectionName) {
   $(".account-inner-section").addClass("hidden");

@@ -12,12 +12,15 @@
   <script src="https://cdn.tailwindcss.com"></script>
   
 </head>
+
+<body data-active-tab="<%= activeTab %>">
+
 <!-- ===============================
      ACCOUNT PAGE LOADER
 =============================== -->
 <div
   id="accountPageLoader"
-  class="fixed inset-0 z-[9999] bg-white flex items-center justify-center hidden">
+  class="fixed inset-0 z-[9999] bg-white flex items-center justify-center ">
 
   <svg
     class="animate-spin w-8 h-8 text-[#004EEB]"
@@ -38,9 +41,6 @@
   </svg>
 
 </div>
-<body data-active-tab="<%= activeTab %>">
-
-
 <!--  TOP HEADER SECTION -->
 <header id="topHeader" class="w-full border-b border-[#D9E4F2]">
   <!-- DESKTOP VIEW (unchanged) -->

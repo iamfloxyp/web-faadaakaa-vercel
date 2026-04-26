@@ -5111,18 +5111,20 @@ $("#tab-orders").on("click", function (e) {
 // =====================================================
 // INIT
 // =====================================================
-$(document).ready(function () {
+$(document).ready(async function () {
   showAccountLoader();
 
-  fetchCurrentUser();
+  try {
+    await fetchCurrentUser();
 
-  renderRoute(window.location.pathname);
+    renderRoute(window.location.pathname);
 
-  switchAccountInnerTab("profile");
-
-  setTimeout(function () {
+    switchAccountInnerTab("profile");
+  } catch (error) {
+    console.error("Account page loading error:", error);
+  } finally {
     hideAccountLoader();
-  }, 1200);
+  }
 });
 
 function openAccountSection(sectionName) {

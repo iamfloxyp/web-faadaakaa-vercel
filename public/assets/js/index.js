@@ -6,7 +6,38 @@ showIndexLoader();
     initCategorySlider();
 
     loadCartFromProfile();
+    
+// BRAND NAME AND COLOR ICON
+const brandIconColors = ["#0f5e51", "#e71897", "#ba1313", "#482cd3", "#ff6a00"];
 
+function shuffleArrayColors(colors) {
+  const newColors = [...colors];
+
+  for (let i = newColors.length - 1; i > 0; i--) {
+    const randomIndex = Math.floor(Math.random() * (i + 1));
+    [newColors[i], newColors[randomIndex]] = [newColors[randomIndex], newColors[i]];
+  }
+
+  return newColors;
+}
+
+function renderBrandLogo(item, color) {
+  const brand = item.brand_name || item.brand || "";
+
+  if (!brand) return "";
+
+  return `
+    <div class="h-[28px] flex items-center px-[12px] pt-[8px]">
+      <span class="flex items-center gap-[4px]
+                   text-[14px] font-semibold text-[#344054]
+                   bg-white/80 px-[6px] py-[2px]
+                   rounded-[4px]">
+        <i class="fa-solid fa-square text-[10px]" style="color: ${color};"></i>
+        ${brand}
+      </span>
+    </div>
+  `;
+}
 
 // =======================
 // AUTH HELPERS
@@ -666,15 +697,17 @@ function renderHeroSlides(categories) {
   categories.forEach(cat => {
     const imageURL = SLIDER_BASE + cat.slider_image;
 
-    const slide = `
-      <div class="heroSlide min-w-full h-[220px] sm:h-[320px] lg:h-[520px] cursor-pointer"
-           onclick="window.location='/category/${cat.slug}/1'">
+  const slide = `
+  <div 
+    class="min-w-full h-[220px] sm:h-[320px] lg:h-[520px]
+           cursor-pointer rounded-[12px] overflow-hidden"
+    onclick="window.location='/category/${cat.slug}/1'">
 
-        <img src="${imageURL}"
-             class="w-full h-full object-contain rounded-[12px]"
-             alt="${cat.name}">
-      </div>
-    `;
+    <img src="${imageURL}"
+         class="heroslider w-full h-full object-cover rounded-[12px]"
+         alt="${cat.name}">
+  </div>
+`;
 
     $track.append(slide);
   });
@@ -837,12 +870,13 @@ function renderProductPrice(price) {
 
   return `
     <div class="flex flex-col mt-3">
-      <span class="text-[14px] font-bold text-[#101828]">
-        ₦${numericPrice.toLocaleString()}
+      
+      <span class="text-[14px] font-bold text-[#EF4444]">
+        ₦${monthly.toLocaleString()}/month
       </span>
 
-      <span class="text-[13px] font-medium text-[#004EEB]">
-        ₦${monthly.toLocaleString()} / month
+      <span class="text-[12px] font-medium text-[#101828]">
+        ₦${numericPrice.toLocaleString()}
       </span>
     </div>
   `;
@@ -866,25 +900,27 @@ function loadLandingCategoriesWithProducts() {
       const categories = result.data.filter(cat => cat.is_active === 1);
       const $container = $("#landingCategories");
       $container.empty();
-
+      const brandIconColors = ["#0f5e51", "#e71897", "#ba1313", "#482cd3", "#ff6a00"];
       categories.forEach(cat => {
+        const categorySideColors = shuffleArrayColors(brandIconColors);
+        const categoryLineColor=categorySideColors[0]
         const sectionId = `grid-${cat.slug}`;
 
         const sectionHTML = `
-          <section class="bg-[#F7F7F7] py-8 px-4 sm:px-6 md:px-8">
-            <div class="max-w-[1440px] mx-auto flex flex-col gap-[20px]">
+          <section class="bg-[#F7F7F7] py-0 px-4 sm:px-6 md:px-8">
+            <div class="max-w-[1440px] mx-auto flex flex-col gap-[10px]">
 
               <div class="flex justify-between items-center">
                 <div class="flex items-center">
                   <span class="inline-block w-[4px] h-[24px] rounded-sm mr-[12px]"
-                        style="background: linear-gradient(180deg, #F97316, #EF4444);"></span>
-                  <h2 class="text-xl sm:text-2xl font-semibold text-[#101828]">
+                        style="background: ${categoryLineColor};"></span>
+                  <h2 class="text-xl sm:text-2xl font-semibold text-[#101828] mt-[4px]">
                     ${cat.name}
                   </h2>
                 </div>
 
                 <a href="/category/${cat.slug}/1"
-                   class="text-[14px] font-medium text-[#004EEB] hover:underline">
+                   class="text-[14px] font-medium text-[#000080] hover:underline">
                   View All
                 </a>
               </div>
@@ -900,7 +936,8 @@ function loadLandingCategoriesWithProducts() {
         `;
 
         $container.append(sectionHTML);
-        loadProductsForCategory(cat.slug, sectionId);
+       const categoryColors = shuffleArrayColors(brandIconColors);
+        loadProductsForCategory(cat.slug, sectionId,categoryColors,categoryLineColor);
       });
     })
     .catch(err => console.error("Landing category error:", err));
@@ -909,17 +946,42 @@ function loadLandingCategoriesWithProducts() {
 // ==========================
 // LOAD PRODUCTS BY CATEGORY
 // ==========================
-function loadProductsForCategory(slug, gridId) {
+function loadProductsForCategory(slug, gridId, categoryColors) {
+  const $grid = $("#" + gridId);
+  const PLACEHOLDER_IMAGE = "https://placehold.net/400x400.png";
+
+  // show loader for this category row
+  $grid.html(`
+    <div class="col-span-full flex items-center justify-center py-[40px]">
+      <div class="w-[36px] h-[36px] border-4 border-[#E5E7EB] border-t-[#000080] rounded-full animate-spin"></div>
+    </div>
+  `);
+
   fetch(`${PRODUCT_API_BASE}/${slug}/1`)
     .then(res => res.json())
     .then(result => {
-      if (!result.status || !Array.isArray(result.data)) return;
+      if (!result.status || !Array.isArray(result.data)) {
+        $grid.html(`
+          <div class="col-span-full text-center text-[14px] text-[#667085] py-[30px]">
+            No products found.
+          </div>
+        `);
+        return;
+      }
 
-      const products = shuffleArray(result.data).slice(0, 6);
-      const $grid = $("#" + gridId);
+      const products = result.data.slice(0, 6);
       $grid.empty();
 
-      products.forEach(item => {
+      let colorIndex = 0;
+
+      products.forEach((item) => {
+        const color = categoryColors[colorIndex];
+
+        colorIndex++;
+        if (colorIndex >= categoryColors.length) {
+          colorIndex = 0;
+        }
+
         let imagePath = null;
 
         if (Array.isArray(item.images) && item.images.length > 0) {
@@ -929,49 +991,75 @@ function loadProductsForCategory(slug, gridId) {
         }
 
         const price = Number(item.selling_price || item.price || 0);
-        const monthly = Math.round(price / 12);
+
+        const maxLength = 72;
+        const productName =
+          item.name.length > maxLength
+            ? item.name.substring(0, maxLength) + "..."
+            : item.name;
 
         const image = imagePath
           ? IMAGE_BASE + imagePath
-          : "https://via.placeholder.com/300";
+          : PLACEHOLDER_IMAGE;
 
         const card = `
           <a href="/item/${item.slug}"
-             class="bg-white border border-[#EAECF0] rounded-[14px]
-                    flex flex-col h-[340px]
-                    hover:shadow-md transition">
+             class="bg-white border border-[#EAECF0] rounded-[14px] 
+                    flex flex-col h-[340px] pt-[10px]
+                    hover:shadow-md transition overflow-hidden">
 
-            <!-- IMAGE -->
+            ${renderBrandLogo(item, color)}
+
             <div class="flex items-center justify-center
-                        bg-[#fff] h-[170px]
-                        rounded-t-[14px]">
-              <img src="${image}"
+                        bg-[#fff] h-[150px] rounded-t-[14px]">
+
+              <img src="${PLACEHOLDER_IMAGE}"
+                   data-src="${image}"
                    alt="${item.name}"
-                   class="w-[120px] h-[120px] object-contain">
+                   class="product-img w-[135px] h-[135px] object-contain">
             </div>
 
-            <!-- DIVIDER -->
             <div class="w-full h-[1px] bg-[#EAECF0]"></div>
 
-            <!-- CONTENT -->
-            <div class="flex flex-col justify-between p-[12px] flex-1">
-
-              <h3 class="text-[13px] font-semibold text-[#101828]
-                         leading-[18px]">
-                ${item.name}
+            <div class="flex flex-col p-[12px] flex-1">
+              <h3 class="text-[13px] font-semibold text-[#101828] leading-[18px] line-clamp-2">
+                ${productName}
               </h3>
 
-            <!-- PRICE -->
-            ${renderProductPrice(price)}
+              <div class="w-[25%] h-[1px] bg-[#EAECF0] rounded-full mt-[16px] mb-[10px]"></div>
 
+              ${renderProductPrice(price)}
             </div>
           </a>
         `;
 
         $grid.append(card);
+
+        // Load real image after placeholder has rendered
+        const $img = $grid.find("img.product-img").last();
+        const realSrc = $img.attr("data-src");
+
+        const realImage = new Image();
+        realImage.src = realSrc;
+
+        realImage.onload = function () {
+          $img.attr("src", realSrc);
+        };
+
+        realImage.onerror = function () {
+          $img.attr("src", PLACEHOLDER_IMAGE);
+        };
       });
     })
-    .catch(err => console.error(`Product error (${slug}):`, err));
+    .catch(err => {
+      console.error(`Product error (${slug}):`, err);
+
+      $grid.html(`
+        <div class="col-span-full text-center text-[14px] text-[#667085] py-[30px]">
+          Unable to load products.
+        </div>
+      `);
+    });
 }
 
 // ==========================
@@ -1167,6 +1255,8 @@ $(document).on("click", "#catPrev", function () {
 });
 
 });
+
+
 window.toast = window.toast || function (msg, type) {
   console.log(`[${type || "info"}] ${msg}`);
 };
@@ -1286,7 +1376,7 @@ $(document).on("click", ".logoutBtn", function (e) {
   // document.cookie = "token=; Max-Age=0; path=/";
 
   // Force redirect to homepage
-  window.location.href = "/index.html";
+  window.location.href = "/";
 });
 // Footer year auto-update
 $("#currentYear").text(new Date().getFullYear());

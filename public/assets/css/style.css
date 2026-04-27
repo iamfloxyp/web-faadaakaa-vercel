@@ -3747,3 +3747,7 @@ body.account-loading > *:not(#accountPageLoader) {
 body.account-loading #accountPageLoader {
   visibility: visible;
 }
+
+.heroslider{
+  border-radius: 12px;
+}

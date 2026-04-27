@@ -2,7 +2,7 @@
 
   function forceLogout() {
     sessionStorage.removeItem("AUTH_TOKEN");
-    window.location.href = "/index.html";
+    window.location.href = "/";
   }
 
   document.addEventListener("click", function (e) {

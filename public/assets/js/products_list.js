@@ -36,6 +36,10 @@ function loadCategoryTitle() {
       if (category) {
         $("#categoryTitle").text(category.name);
         document.title = `${category.name} - Faadaakaa`;
+        const titleLineColors = ["#0f5e51", "#e71897", "#ba1313", "#482cd3", "#ff6a00"];
+      const shuffledColors = shuffleArrayColors(titleLineColors);
+
+$("#categoryTitleLine").css("background", shuffledColors[0]);
       }
     })
     .catch(err => {
@@ -115,12 +119,68 @@ function loadProducts() {
 /* ===============================
    RENDER PRODUCTS
    =============================== */
+const brandIconColors = ["#0f5e51", "#e71897", "#ba1313", "#482cd3", "#ff6a00"];
+
+function shuffleArrayColors(colors) {
+  const newColors = [...colors];
+
+  for (let i = newColors.length - 1; i > 0; i--) {
+    const randomIndex = Math.floor(Math.random() * (i + 1));
+    [newColors[i], newColors[randomIndex]] = [newColors[randomIndex], newColors[i]];
+  }
+
+  return newColors;
+}
+
+function renderBrandLogo(item, color) {
+  const brand = item.brand_name || item.brand || "";
+
+  if (!brand) return "";
+
+  return `
+    <div class="h-[28px] flex items-center px-[12px] pt-[8px]">
+      <span class="flex items-center gap-[4px]
+                   text-[14px] font-semibold text-[#344054]
+                   bg-white/80 px-[6px] py-[2px]
+                   rounded-[4px]">
+        <i class="fa-solid fa-square text-[10px]" style="color: ${color};"></i>
+        ${brand}
+      </span>
+    </div>
+  `;
+}
+
+const titleLineColors = ["#0f5e51", "#e71897", "#ba1313", "#482cd3", "#ff6a00"];
+
+function shuffleArrayColors(colors) {
+  const newColors = [...colors];
+
+  for (let i = newColors.length - 1; i > 0; i--) {
+    const randomIndex = Math.floor(Math.random() * (i + 1));
+    [newColors[i], newColors[randomIndex]] = [newColors[randomIndex], newColors[i]];
+  }
+
+  return newColors;
+}
+
 function renderProducts(products) {
   const $grid = $("#productListGrid");
+  const PLACEHOLDER_IMAGE = "https://placehold.net/400x400.png";
+  const productColors = shuffleArrayColors(brandIconColors);
+
   $grid.empty();
 
+  let colorIndex = 0;
+
   products.forEach(item => {
-    let imageURL = "/assets/images/placeholder.png";
+    const color = productColors[colorIndex];
+
+    colorIndex++;
+    if (colorIndex >= productColors.length) {
+      colorIndex = 0;
+    }
+
+    let imageURL = PLACEHOLDER_IMAGE;
 
     if (
       Array.isArray(item.images) &&
@@ -134,36 +194,48 @@ function renderProducts(products) {
     const price = Number(item.selling_price || item.price || 0);
     const monthly = Math.round(price / 12);
 
+    const maxLength = 72;
+    const productName =
+      item.name.length > maxLength
+        ? item.name.substring(0, maxLength) + "..."
+        : item.name;
+
     const card = `
       <a href="/item/${item.slug}"
          class="w-full bg-white border border-[#EAECF0] rounded-[14px]
                 flex flex-col h-[340px]
-                hover:shadow-md transition">
+                hover:shadow-md transition overflow-hidden">
 
-        <div class="flex items-center justify-center bg-[#fff] h-[170px]
+        ${renderBrandLogo(item, color)}
+
+        <div class="flex items-center justify-center bg-[#fff] h-[150px]
                     rounded-t-[14px]">
           <img
-            src="${imageURL}"
+            src="${PLACEHOLDER_IMAGE}"
+            data-src="${imageURL}"
             alt="${item.name}"
-            class="w-[120px] h-[120px] object-contain"
+            class="product-list-img w-[135px] h-[135px] object-contain"
             loading="lazy"
           >
         </div>
 
         <div class="w-full h-[1px] bg-[#EAECF0]"></div>
 
-        <div class="flex flex-col justify-between p-[12px] flex-1">
+        <div class="flex flex-col p-[12px] flex-1">
           <h3 class="text-[13px] font-semibold text-[#101828]
-                     leading-[18px]">
-            ${item.name}
+                     leading-[18px] line-clamp-2">
+            ${productName}
           </h3>
 
-          <div class="mt-[8px] flex flex-col gap-[4px]">
-            <span class="text-[13px] font-semibold text-[#101828]">
-              ₦${price.toLocaleString()}
+          <div class="w-[25%] h-[1px] bg-[#EAECF0] rounded-full mt-[16px] mb-[10px]"></div>
+
+          <div class="flex flex-col mt-3">
+            <span class="text-[14px] font-bold text-[#EF4444]">
+              ₦${monthly.toLocaleString()}/month
             </span>
-            <span class="text-[12px] font-medium text-[#004EEB]">
-              ₦${monthly.toLocaleString()} / month
+
+            <span class="text-[12px] font-medium text-[#101828]">
+              ₦${price.toLocaleString()}
             </span>
           </div>
         </div>
@@ -171,6 +243,20 @@ function renderProducts(products) {
     `;
 
     $grid.append(card);
+
+    const $img = $grid.find("img.product-list-img").last();
+    const realSrc = $img.attr("data-src");
+
+    const realImage = new Image();
+    realImage.src = realSrc;
+
+    realImage.onload = function () {
+      $img.attr("src", realSrc);
+    };
+
+    realImage.onerror = function () {
+      $img.attr("src", PLACEHOLDER_IMAGE);
+    };
   });
 }
 // ========PRODUCT LOADER===========

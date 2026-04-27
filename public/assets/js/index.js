@@ -1286,7 +1286,7 @@ $(document).on("click", ".logoutBtn", function (e) {
   // document.cookie = "token=; Max-Age=0; path=/";
 
   // Force redirect to homepage
-  window.location.href = "/index.html";
+  window.location.href = "/";
 });
 // Footer year auto-update
 $("#currentYear").text(new Date().getFullYear());

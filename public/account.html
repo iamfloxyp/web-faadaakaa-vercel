@@ -13,7 +13,7 @@
   
 </head>
 
-<body data-active-tab="<%= activeTab %>">
+<body data-active-tab="<%= activeTab %>" class="min-h-screen flex flex-col">
 
 <!-- ===============================
      ACCOUNT PAGE LOADER
@@ -72,7 +72,7 @@
       <div class="flex flex-col md:flex-row md:items-center md:gap-[16px] gap-[4px]">
         <div class="flex items-center gap-[6px]">
           <i class="fa-solid fa-phone text-[#6c757d] text-[12px]"></i>
-          <span>(+234)9153888471, (+234)9153888470</span>
+          <span>(+234)9153888471, (+234)9153888472</span>
         </div>
         <div class="flex items-center gap-[6px]">
           <i class="fa-regular fa-envelope text-[#6c757d] text-[12px]"></i>
@@ -600,7 +600,8 @@
 </div>
 
 
-<!-- MAIN BODY -->
+<main class="flex-1">
+  <!-- MAIN BODY -->
 <div class="w-full bg-[#F9FAFB] py-[40px] lg:py-[64px] min-h-[calc(100vh-144px)]">
   <div class="max-w-[1440px] mx-auto px-[16px] lg:px-[50px]">
     <div id="accountMain"
@@ -2681,9 +2682,10 @@
 </div>
              </div>
         </div>
+</main>
 
 <!-- ========================== FOOTER ========================== -->
-  <footer class="w-full bg-[#141528] text-white font-inter rounded-t-[10px] mt-[32px]">
+  <footer class="w-full bg-[#141528] text-white font-inter rounded-t-[10px]">
 
     <!-- =============== UPPER FOOTER (blue gradient band) =============== -->
     <section class="w-full b">
@@ -2741,7 +2743,7 @@
     </section>
 
     <!-- =================== LOWER FOOTER =================== -->
-    <section class="w-full border-t border-[#352F8E]">
+    <section class="w-full border-t border-[#221F47]">
       <div class="mx-auto w-full max-w-[1440px] px-6 py-12 
                 flex flex-col md:flex-row items-center justify-between gap-10">
 

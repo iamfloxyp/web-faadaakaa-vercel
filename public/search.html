@@ -19,7 +19,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.js"></script>
 </head>
 
-<body>
+<body class="min-h-screen flex flex-col">
 
 <!-- SEARCH PAGE LOADER -->
 <div
@@ -587,56 +587,63 @@
   </div>
 
 </div>
-<!-- main body -->
- <!-- STATIC SEARCH BANNER -->
-<div class="max-w-[1400px] mx-auto mt-6 px-4">
-  <img
-    src="./assets/images/long_banner.jpg"
-    alt="Search Banner"
-    class="w-full rounded-[12px]"
-  />
-</div>
+<main class="flex-1 bg-[#F7F7F7]">
 
-<!-- NO RESULT STATE -->
-<div id="noResult"
-     class="hidden max-w-[1400px] mx-auto text-center mt-12 px-4">
-  <p class="text-[16px] text-[#475467]">
-    Ooops… no items found for your search. Please retry your action.
-  </p>
+  <!-- SEARCH RESULT TITLE -->
+  <section class="bg-[#F7F7F7] pt-6 pb-4 px-4 sm:px-6 md:px-8">
+    <div class="max-w-[1440px] mx-auto flex items-center">
+      <span
+        id="searchTitleLine"
+        class="inline-block w-[4px] h-[24px] rounded-sm mr-[12px] bg-[#000080]">
+      </span>
 
-  <a href="/"
-     class="inline-block mt-6 bg-[#004EEB] text-white px-6 py-2 rounded-[8px]">
-    Go to Home
-  </a>
-</div>
+      <h2 id="searchResultTitle"
+          class="text-xl sm:text-2xl font-semibold text-[#101828]">
+        Search Result
+      </h2>
+    </div>
+  </section>
 
-<!-- SEARCH RESULTS -->
-<div id="resultsWrapper" class="max-w-[1440px] mx-auto px-4 mt-8">
+  <!-- NO RESULT STATE -->
+  <div id="noResult"
+       class="hidden max-w-[1440px] mx-auto text-center mt-12 px-4">
+    <p class="text-[16px] text-[#475467]">
+      Ooops… no items found for your search. Please retry your action.
+    </p>
 
-  <div id="searchResults"
-       class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+    <a href="/"
+       class="inline-block mt-6 bg-[#004EEB] text-white px-6 py-2 rounded-[8px]">
+      Go to Home
+    </a>
   </div>
 
-  <!-- PAGINATION -->
-  <div id="pagination"
-       class="flex justify-center gap-4 mt-7 hidden">
-    <button id="prevPage"
-            class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 width-[120px]">
-      Previous
-    </button>
+  <!-- SEARCH RESULTS -->
+  <div id="resultsWrapper" class="max-w-[1440px] mx-auto px-4 mt-0">
 
-    <button id="nextPage"
-            class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 width-[120px]">
-      Next
-    </button>
+    <div id="searchResults"
+         class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-[8px] sm:gap-[10px] lg:gap-[12px]">
+    </div>
+
+    <div id="pagination"
+         class="flex justify-end gap-4 mt-7 mb-8 hidden">
+      <button id="prevPage"
+              class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 w-[120px]">
+        Previous
+      </button>
+
+      <button id="nextPage"
+              class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 w-[120px]">
+        Next
+      </button>
+    </div>
+
   </div>
-
-</div>
+</main>
 
 
 
 <!-- ========================== FOOTER ========================== -->
-  <footer class="w-full bg-[#141528] text-white font-inter rounded-t-[10px] mt-[32px]">
+  <footer class="w-full bg-[#141528] text-white font-inter rounded-t-[10px]">
 
     <!-- =============== UPPER FOOTER (blue gradient band) =============== -->
     <section class="w-full b">
@@ -694,7 +701,7 @@
     </section>
 
     <!-- =================== LOWER FOOTER =================== -->
-    <section class="w-full border-t border-[#352F8E]">
+    <section class="w-full border-t border-[#221F47]">
       <div class="mx-auto w-full max-w-[1440px] px-6 py-12 
                 flex flex-col md:flex-row items-center justify-between gap-10">
 
@@ -733,7 +740,7 @@
 <script src="assets/js/products_list.js"></script>
 <script>
     // ===============================
-// SEARCH LOADER (STABLE)
+// SEARCH LOADER
 // ===============================
 let searchLoaderStart = 0;
 
@@ -747,30 +754,40 @@ function hideSearchLoader() {
   const elapsed = Date.now() - searchLoaderStart;
   const remaining = MIN_TIME - elapsed;
 
-  if (remaining > 0) {
-    setTimeout(() => {
-      $("#searchLoader").addClass("hidden");
-    }, remaining);
-  } else {
+  setTimeout(() => {
     $("#searchLoader").addClass("hidden");
-  }
+  }, Math.max(remaining, 0));
 }
-    const IMAGE_BASE =
-  "https://fdk1.nyc3.digitaloceanspaces.com/fdk_bucket/";
+
+// ===============================
+// CONSTANTS
+// ===============================
+const IMAGE_BASE = "https://fdk1.nyc3.digitaloceanspaces.com/fdk_bucket/";
+const SEARCH_PLACEHOLDER_IMAGE = "https://placehold.net/400x400.png";
+
+const searchBrandIconColors = [
+  "#0f5e51",
+  "#e71897",
+  "#ba1313",
+  "#482cd3",
+  "#ff6a00"
+];
 
 const params = new URLSearchParams(window.location.search);
 const query = params.get("q");
+const searchWord = query ? decodeURIComponent(query) : "";
 
 let currentPage = 1;
 let hasNextPage = true;
 
-if (!query) {
-  $("#resultsWrapper").hide();
-  $("#noResult").removeClass("hidden");
-  $("#pagination").addClass("hidden");
-}
+// ===============================
+// TITLE
+// ===============================
+$("#searchResultTitle").text(`Search Result: ${searchWord}`);
 
-// ---------- PRICE HELPER ----------
+// ===============================
+// PRICE HELPER
+// ===============================
 function renderPrice(price) {
   const full = Number(price || 0);
   const monthly = Math.round(full / 12);
@@ -787,110 +804,27 @@ function renderPrice(price) {
     </div>
   `;
 }
-function disableButton($btn) {
-  $btn
-    .prop("disabled", true)
-    .removeClass("bg-[#004EEB] hover:bg-[#003bb3] cursor-pointer")
-    .addClass("bg-gray-300 cursor-not-allowed");
-}
 
-function enableButton($btn) {
-  $btn
-    .prop("disabled", false)
-    .removeClass("bg-gray-300 cursor-not-allowed")
-    .addClass("bg-[#004EEB] hover:bg-[#003bb3] cursor-pointer");
-}
-function loadSearch(page = 1, isPaginationClick = false) {
-  showSearchLoader();
-
-  fetch(`https://api.faadaakaa.com/api/loadproductbysearch/${page}/${query}`)
-    .then(res => res.json())
-    .then(result => {
-
-      // ❌ QUERY DOES NOT EXIST AT ALL
-      if (!result.status || !Array.isArray(result.data)) {
-        $("#resultsWrapper").hide();
-        $("#noResult").removeClass("hidden");
-        $("#pagination").addClass("hidden");
-
-        hasNextPage = false;
-        disableButton($("#nextPage"));
-        disableButton($("#prevPage"));
-        return;
-      }
-
-      // ❌ PAGE HAS NO ITEMS (do not show Oops)
-      if (result.data.length === 0) {
-        hasNextPage = false;
-        disableButton($("#nextPage"));
-
-        // Keep prev enabled if not on first page
-        if (page > 1) {
-          enableButton($("#prevPage"));
-        } else {
-          disableButton($("#prevPage"));
-        }
-        return;
-      }
-
-      // ✅ VALID RESULTS
-      $("#noResult").addClass("hidden");
-      $("#resultsWrapper").show();
-      $("#pagination").removeClass("hidden");
-
-      renderProducts(result.data);
-
-      // Pagination logic
-      hasNextPage = result.data.length === 24;
-
-      if (hasNextPage) {
-        enableButton($("#nextPage"));
-      } else {
-        disableButton($("#nextPage"));
-      }
-
-      if (page === 1) {
-        disableButton($("#prevPage"));
-      } else {
-        enableButton($("#prevPage"));
-      }
-
-      // Align pagination right
-      $("#pagination")
-        .removeClass("justify-center")
-        .addClass("justify-end");
-    })
-    .catch(() => {
-      if (!isPaginationClick) {
-        $("#resultsWrapper").hide();
-        $("#noResult").removeClass("hidden");
-        $("#pagination").addClass("hidden");
-
-        disableButton($("#nextPage"));
-        disableButton($("#prevPage"));
-      }
-    })
-    .finally(() => {
-      hideSearchLoader();
-    });
-}
-
-
-// ---------- RENDER PRODUCTS ----------
-const searchBrandIconColors = ["#0f5e51", "#e71897", "#ba1313", "#482cd3", "#ff6a00"];
-const SEARCH_PLACEHOLDER_IMAGE = "https://placehold.net/400x400.png";
-
+// ===============================
+// COLOR SHUFFLE
+// ===============================
 function shuffleSearchColors(colors) {
   const newColors = [...colors];
 
   for (let i = newColors.length - 1; i > 0; i--) {
     const randomIndex = Math.floor(Math.random() * (i + 1));
-    [newColors[i], newColors[randomIndex]] = [newColors[randomIndex], newColors[i]];
+    [newColors[i], newColors[randomIndex]] = [
+      newColors[randomIndex],
+      newColors[i]
+    ];
   }
 
   return newColors;
 }
 
+// ===============================
+// BRAND LOGO
+// ===============================
 function renderSearchBrandLogo(item, color) {
   const brand = item.brand_name || item.brand || "";
 
@@ -909,8 +843,102 @@ function renderSearchBrandLogo(item, color) {
   `;
 }
 
+// ===============================
+// BUTTON STATE
+// ===============================
+function disableButton($btn) {
+  $btn
+    .prop("disabled", true)
+    .removeClass("bg-[#004EEB] hover:bg-[#003bb3] cursor-pointer")
+    .addClass("bg-gray-300 cursor-not-allowed");
+}
 
+function enableButton($btn) {
+  $btn
+    .prop("disabled", false)
+    .removeClass("bg-gray-300 cursor-not-allowed")
+    .addClass("bg-[#004EEB] hover:bg-[#003bb3] cursor-pointer");
+}
 
+// ===============================
+// LOAD SEARCH
+// ===============================
+function loadSearch(page = 1, isPaginationClick = false) {
+  if (!query) {
+    $("#resultsWrapper").hide();
+    $("#noResult").removeClass("hidden");
+    $("#pagination").addClass("hidden");
+    return;
+  }
+
+  showSearchLoader();
+
+  fetch(`https://api.faadaakaa.com/api/loadproductbysearch/${page}/${query}`)
+    .then(res => res.json())
+    .then(result => {
+      if (!result.status || !Array.isArray(result.data)) {
+        $("#resultsWrapper").hide();
+        $("#noResult").removeClass("hidden");
+        $("#pagination").addClass("hidden");
+
+        hasNextPage = false;
+        disableButton($("#nextPage"));
+        disableButton($("#prevPage"));
+        return;
+      }
+
+      if (result.data.length === 0) {
+        if (page === 1) {
+          $("#resultsWrapper").hide();
+          $("#noResult").removeClass("hidden");
+          $("#pagination").addClass("hidden");
+        } else {
+          hasNextPage = false;
+          disableButton($("#nextPage"));
+          enableButton($("#prevPage"));
+        }
+
+        return;
+      }
+
+      $("#noResult").addClass("hidden");
+      $("#resultsWrapper").show();
+      $("#pagination").removeClass("hidden");
+
+      renderProducts(result.data);
+
+      hasNextPage = result.data.length === 24;
+
+      if (hasNextPage) {
+        enableButton($("#nextPage"));
+      } else {
+        disableButton($("#nextPage"));
+      }
+
+      if (page === 1) {
+        disableButton($("#prevPage"));
+      } else {
+        enableButton($("#prevPage"));
+      }
+    })
+    .catch(() => {
+      if (!isPaginationClick) {
+        $("#resultsWrapper").hide();
+        $("#noResult").removeClass("hidden");
+        $("#pagination").addClass("hidden");
+
+        disableButton($("#nextPage"));
+        disableButton($("#prevPage"));
+      }
+    })
+    .finally(() => {
+      hideSearchLoader();
+    });
+}
+
+// ===============================
+// RENDER PRODUCTS
+// ===============================
 function renderProducts(products) {
   const $grid = $("#searchResults");
   const productColors = shuffleSearchColors(searchBrandIconColors);
@@ -935,9 +963,9 @@ function renderProducts(products) {
 
     const maxLength = 72;
     const productName =
-      item.name.length > maxLength
+      item.name && item.name.length > maxLength
         ? item.name.substring(0, maxLength) + "..."
-        : item.name;
+        : item.name || "";
 
     const card = `
       <a href="/item/${item.slug}"
@@ -954,13 +982,12 @@ function renderProducts(products) {
           <img src="${SEARCH_PLACEHOLDER_IMAGE}"
                data-src="${image}"
                class="search-product-img w-[135px] h-[135px] object-contain"
-               alt="${item.name}">
+               alt="${item.name || "Product image"}">
         </div>
 
         <div class="w-full h-[1px] bg-[#EAECF0]"></div>
 
         <div class="flex flex-col p-[12px] flex-1">
-
           <h3 class="text-[13px] font-semibold text-[#101828] leading-[18px] line-clamp-2">
             ${productName}
           </h3>
@@ -968,7 +995,6 @@ function renderProducts(products) {
           <div class="w-[25%] h-[1px] bg-[#EAECF0] rounded-full mt-[16px] mb-[10px]"></div>
 
           ${renderPrice(item.selling_price || item.price)}
-
         </div>
       </a>
     `;
@@ -990,7 +1016,10 @@ function renderProducts(products) {
     };
   });
 }
-// ---------- PAGINATION ----------
+
+// ===============================
+// PAGINATION
+// ===============================
 $("#nextPage").on("click", function () {
   if (!hasNextPage) return;
 
@@ -1006,7 +1035,9 @@ $("#prevPage").on("click", function () {
   loadSearch(currentPage, true);
 });
 
-// ---------- INIT ----------
+// ===============================
+// INIT
+// ===============================
 $(document).ready(function () {
   loadSearch(currentPage);
 });

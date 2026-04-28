@@ -126,6 +126,8 @@ $track.removeClass("justify-center");
 const validImages = Array.isArray(product.images)
   ? product.images.filter(img => img.path)
   : [];
+  PRODUCT_MODAL_IMAGES = validImages.map(img => IMAGE_BASE + img.path);
+CURRENT_MODAL_INDEX = 0;
 
 // Center ONLY when 1, 2, or 3 images
 if (validImages.length > 0 && validImages.length <= 3) {
@@ -372,6 +374,69 @@ checkIfCurrentProductInCart();
 
 
 }
+
+// ==============================
+// IMAGES MODAL
+// ==============================
+let PRODUCT_MODAL_IMAGES = [];
+let CURRENT_MODAL_INDEX = 0;
+
+function openProductImageModal(index = 0) {
+  if (!PRODUCT_MODAL_IMAGES.length) return;
+
+  CURRENT_MODAL_INDEX = index;
+
+  $("#modalProductImage").attr("src", PRODUCT_MODAL_IMAGES[CURRENT_MODAL_INDEX]);
+  $("#productImageModal").removeClass("hidden").addClass("flex");
+}
+
+function closeProductImageModal() {
+  $("#productImageModal").addClass("hidden").removeClass("flex");
+}
+
+function showNextModalImage() {
+  if (!PRODUCT_MODAL_IMAGES.length) return;
+
+  CURRENT_MODAL_INDEX =
+    (CURRENT_MODAL_INDEX + 1) % PRODUCT_MODAL_IMAGES.length;
+
+  $("#modalProductImage").attr("src", PRODUCT_MODAL_IMAGES[CURRENT_MODAL_INDEX]);
+}
+
+function showPrevModalImage() {
+  if (!PRODUCT_MODAL_IMAGES.length) return;
+
+  CURRENT_MODAL_INDEX =
+    (CURRENT_MODAL_INDEX - 1 + PRODUCT_MODAL_IMAGES.length) % PRODUCT_MODAL_IMAGES.length;
+
+  $("#modalProductImage").attr("src", PRODUCT_MODAL_IMAGES[CURRENT_MODAL_INDEX]);
+}
+
+$(document).on("click", "#mainImageContainer", function () {
+  const currentMainImage = $("#mainProductImage").attr("src");
+
+  const index = PRODUCT_MODAL_IMAGES.indexOf(currentMainImage);
+
+  openProductImageModal(index >= 0 ? index : 0);
+});
+
+$(document).on("click", "#closeImageModal", function () {
+  closeProductImageModal();
+});
+
+$(document).on("click", "#modalNextImage", function () {
+  showNextModalImage();
+});
+
+$(document).on("click", "#modalPrevImage", function () {
+  showPrevModalImage();
+});
+
+$(document).on("click", "#productImageModal", function (e) {
+  if (e.target.id === "productImageModal") {
+    closeProductImageModal();
+  }
+});
 let CURRENT_PRODUCT = null;
 let CURRENT_CART_QTY = 0;
 

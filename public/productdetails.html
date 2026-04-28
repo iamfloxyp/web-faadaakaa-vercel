@@ -13,7 +13,7 @@
   
 </head>
 
-<body>
+<body class="min-h-screen flex flex-col">
 <!-- page loader  -->
 <div
   id="productLoader"
@@ -587,21 +587,29 @@
 <!-- ===========================
      MAIN PRODUCT DETAILS AREA
 =========================== -->
-<main class="w-full bg-[#F9FAFB] py-[24px]">
+<main class="w-full bg-[#F9FAFB] py-[24px] flex-1">
   <div 
     id="productDetailsContainer"
-    class="max-w-[1440px] mx-auto px-[16px] lg:px-[50px]
-           flex flex-col lg:flex-row gap-[150px] items-start">
+    class="max-w-[1440px] mx-auto px-[16px] lg:px-[50px]">
 
-    <!-- ==========================================
+<div class="grid grid-cols-1 lg:grid-cols-[minmax(0,760px)_minmax(380px,520px)]
+              gap-[32px] items-start justify-center">
+
+              <!-- TITLE (LEFT ONLY) -->
+    <h1 id="productName"
+        class="lg:col-span-1 col-span-1
+               text-[20px] sm:text-[22px] md:text-[26px]
+               font-semibold text-[#101828] mb-[8px]">
+    </h1>
+
+    <!-- EMPTY RIGHT SPACE (keeps alignment) -->
+    <div class="hidden lg:block"></div>
+              <!-- ==========================================
          LEFT PRODUCT PREVIEW SECTION
     ========================================== -->
-    <div id="productLeft" class="flex flex-col w-full max-w-[710px] gap-[24px]">
+    <div id="productLeft" class="flex flex-col w-full  gap-[24px]">
 
-      <h1 id="productName"
-    class="text-[20px] sm:text-[22px] md:text-[26px]
-           font-semibold text-[#101828] mb-[16px]">
-</h1>
+      
       <!-- MAIN IMAGE -->
       <div
         id="mainImageContainer"
@@ -671,7 +679,7 @@
      PRODUCT INFORMATION (Tabs + content)
 ========================================== -->
 <div id="productInfo"
-  class="w-full max-w-[710px] bg-white border border-[#EAECF0]
+  class="w-full  bg-white border border-[#EAECF0]
          rounded-[12px] pb-[40px] flex flex-col gap-[24px]">
 
   <!-- ========== TAB NAVIGATION ========== -->
@@ -830,8 +838,8 @@
  
 <!-- RIGHT SIDE WRAPPER -->
 <div id="rightSide"
-  class="w-full  lg:w-[474px] bg-white border border-[#E9EAEB]
-         rounded-[12px] flex flex-col gap-[16px] pb-[16px]">
+  class="w-full bg-white border border-[#E9EAEB]
+         rounded-[12px] flex flex-col gap-[16px] pb-[16px] ">
 
   <!-- TOP SECTION -->
   <div id="rightTop"
@@ -1065,12 +1073,15 @@
   </div>
 
 </div>
+</div>
+
+    
 
 </main>
 <!-- FREELY EXPANDING DROPDOWN - PLACE AT THE END OF BODY -->
 
 <!-- ========================== FOOTER ========================== -->
-  <footer class="w-full bg-[#141528] text-white font-inter rounded-t-[10px] mt-[32px]">
+  <footer class="w-full bg-[#141528] text-white font-inter rounded-t-[10px] ">
 
     <!-- =============== UPPER FOOTER (blue gradient band) =============== -->
     <section class="w-full b">
@@ -1128,7 +1139,7 @@
     </section>
 
     <!-- =================== LOWER FOOTER =================== -->
-    <section class="w-full border-t border-[#352F8E]">
+    <section class="w-full border-t border-[#221F47]">
       <div class="mx-auto w-full max-w-[1440px] px-6 py-12 
                 flex flex-col md:flex-row items-center justify-between gap-10">
 
@@ -1190,6 +1201,48 @@
 
   </div>
 </div>
+
+<!-- PRODUCT IMAGE MODAL -->
+<div id="productImageModal"
+     class="hidden fixed inset-0 bg-black/70 z-[9999] flex items-center justify-center px-4">
+
+  <!-- MODAL WRAPPER (IMPORTANT) -->
+  <div class="relative">
+
+    <!-- CLOSE BUTTON -->
+    <button id="closeImageModal"
+            class="absolute -top-[18px] -right-[18px]
+                   w-[40px] h-[40px] rounded-full bg-white
+                   flex items-center justify-center text-[22px] shadow-md z-[10000]">
+      &times;
+    </button>
+
+    <!-- PREV BUTTON -->
+    <button id="modalPrevImage"
+            class="absolute -left-[22px] top-1/2 -translate-y-1/2
+                   w-[44px] h-[44px] rounded-full bg-white
+                   flex items-center justify-center text-[24px] shadow-md z-[10000]">
+      ‹
+    </button>
+
+    <!-- MODAL BOX -->
+    <div class="bg-white rounded-[12px] max-w-[1100px] w-full h-[600px]
+                flex items-center justify-center overflow-hidden">
+      <img id="modalProductImage"
+           src=""
+           class="max-w-[95%] max-h-[95%] object-contain">
+    </div>
+
+    <!-- NEXT BUTTON -->
+    <button id="modalNextImage"
+            class="absolute -right-[22px] top-1/2 -translate-y-1/2
+                   w-[44px] h-[44px] rounded-full bg-white
+                   flex items-center justify-center text-[24px] shadow-md z-[10000]">
+      ›
+    </button>
+
+  </div>
+</div>
  
 <script src="/assets/js/index.js"></script>
  <script src="/assets/js/product-details.js"></script>
@@ -1197,7 +1250,7 @@
   (function () {
     function logout() {
       sessionStorage.removeItem("AUTH_TOKEN");
-      window.location.href = "/index.html";
+      window.location.href = "/";
     }
 
     document.querySelectorAll(".logoutBtn").forEach(btn => {

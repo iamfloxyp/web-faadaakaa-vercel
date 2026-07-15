@@ -102,10 +102,14 @@ app.get("/category/:category_slug/:page", async (req, res) => {
       `https://faadaakaa.com/category/${encodeURIComponent(
         categorySlug
       )}/${encodeURIComponent(pageNumber)}`;
+const protocol =
+  req.headers["x-forwarded-proto"] || req.protocol;
 
-    const logoUrl =
-      "https://faadaakaa.com/assets/images/logo.png";
+const siteOrigin =
+  `${protocol}://${req.get("host")}`;
 
+const logoUrl =
+  `${siteOrigin}/assets/images/sharelogo.png`;
     const safeTitle = escapeMetaContent(pageTitle);
     const safeDescription =
       escapeMetaContent(pageDescription);

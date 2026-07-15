@@ -3,14 +3,93 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Product-details - Faadaakaa</title>
+  <title>Product Details - Faadaakaa</title>
+
+<meta
+  name="description"
+  content="View product details and shop on Faadaakaa"
+/>
+
+<!-- Facebook, WhatsApp and LinkedIn -->
+<meta property="og:url" content="" />
+<meta property="og:type" content="product" />
+<meta property="og:title" content="" />
+<meta property="og:description" content="" />
+<meta property="og:image" content="" />
+<meta property="og:image:width" content="680" />
+<meta property="og:image:height" content="417" />
+<meta property="og:image:type" content="image/jpeg" />
+
+<!-- X -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:domain" content="faadaakaa.com" />
+<meta name="twitter:url" content="" />
+<meta name="twitter:title" content="" />
+<meta name="twitter:description" content="" />
+<meta name="twitter:image" content="" />
+
+<script
+  type="text/javascript"
+  src="https://platform-api.sharethis.com/js/sharethis.js#property=69269b3a4e77997b101899c8&product=sop"
+  async="async">
+</script>
   <link rel="stylesheet" href="assets/css/style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,500&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Montserrat:wght@500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.2/css/all.min.css">
    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
-  
+
+  <style>
+    /* Normal collapsed ShareThis buttons */
+.st-sticky-share-buttons .st-btn {
+  width: 48px !important;
+  height: 48px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 10px !important;
+  padding: 0 14px !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+  white-space: nowrap !important;
+  transition: width 0.25s ease !important;
+}
+
+/* Keep the icon in its normal position */
+.st-sticky-share-buttons .st-btn img {
+  position: static !important;
+  width: 20px !important;
+  height: 20px !important;
+  margin: 0 !important;
+  flex-shrink: 0 !important;
+}
+
+/* Hide the text while the button is collapsed */
+.st-sticky-share-buttons .st-btn .st-label {
+  position: static !important;
+  display: inline-block !important;
+  width: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  white-space: nowrap !important;
+  line-height: 20px !important;
+  transition: opacity 0.15s ease !important;
+}
+
+/* Expand only the particular button being hovered */
+.st-sticky-share-buttons .st-btn:hover {
+  width: 135px !important;
+}
+
+/* Reveal Share or Post only on hover */
+.st-sticky-share-buttons .st-btn:hover .st-label {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+  </style>
 </head>
 
 <body class="min-h-screen flex flex-col">
@@ -40,9 +119,9 @@
       </div>
 
       <div class="flex items-center gap-[10px]">
-        <a href="/terms.html" class="hover:text-[#0d6efd]">Terms</a>
+        <a href="terms.html" class="hover:text-[#0d6efd]">Terms</a>
         <span class="w-[1px] h-[14px] bg-[#D9E4F2] block"></span>
-        <a href="/privacy.html" class="hover:text-[#0d6efd]">Privacy</a>
+        <a href="privacy.html" class="hover:text-[#0d6efd]">Privacy</a>
       </div>
     </div>
 
@@ -53,7 +132,7 @@
       <div class="flex flex-col md:flex-row md:items-center md:gap-[16px] gap-[4px]">
         <div class="flex items-center gap-[6px]">
           <i class="fa-solid fa-phone text-[#6c757d] text-[12px]"></i>
-          <span>(+234)9153888471, (+234)9153888472</span>
+          <span>(+234)9153888471, (+234)9153888470</span>
         </div>
         <div class="flex items-center gap-[6px]">
           <i class="fa-regular fa-envelope text-[#6c757d] text-[12px]"></i>
@@ -64,12 +143,7 @@
       <!-- Divider (hidden on tablets) -->
       <div class="h-[1px] bg-[#E4E7EC] my-[6px] md:hidden"></div>
 
-      <!-- Policy Links -->
-      <div class="flex items-center justify-center md:justify-end gap-[10px] text-[13px] font-[500] md:mt-0">
-        <a href="/terms.html" class="hover:text-[#155EEF]">Terms</a>
-        <span class="w-[1px] h-[14px] bg-[#D9E4F2]"></span>
-        <a href="/privacy.html" class="hover:text-[#155EEF]">Privacy</a>
-      </div>
+      
     </div>
   </header>
 
@@ -1128,9 +1202,9 @@
 
               <!-- Terms & Privacy (with divider between them) -->
               <div class="flex items-center justify-end gap-[8px] text-[#D0D5DD] text-[14px] leading-[22px]">
-                <a href="/terms.html" class="hover:text-white transition-colors">Terms</a>
+                <a href="terms.html" class="hover:text-white transition-colors">Terms</a>
                 <span class="block w-px h-[14px] bg-[#667085]"></span>
-                <a href="/privacy.html" class="hover:text-white transition-colors">Privacy</a>
+                <a href="privacy.html" class="hover:text-white transition-colors">Privacy</a>
               </div>
             </div>
           </div>

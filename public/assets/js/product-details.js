@@ -166,13 +166,6 @@ function updateProductShareDetails(product, productImage) {
   );
   $('meta[name="twitter:image"]').attr("content", productImage);
 
-  // Refresh ShareThis with the current product
-  if (
-    window.__sharethis__ &&
-    typeof window.__sharethis__.initialize === "function"
-  ) {
-    window.__sharethis__.initialize();
-  }
 }
 // ==============================
 // LOAD PRODUCT

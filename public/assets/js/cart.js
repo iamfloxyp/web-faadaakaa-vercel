@@ -96,7 +96,7 @@ function loadCartPage() {
   const formData = new FormData();
   formData.append("token", token);
 
-  fetch("https://api.faadaakaa.com/api/loadprofile", {
+ return fetch("https://api.faadaakaa.com/api/loadprofile", {
     method: "POST",
     body: formData
   })
@@ -122,6 +122,7 @@ function loadCartPage() {
             };
           })
         : [];
+        CURRENT_CART_ITEMS = cartItems;
         //  DETERMINE CART PAYMENT TYPE 
 const hasInstallment = cartItems.some(
   item => Number(item.period || 0) > 0
@@ -140,6 +141,18 @@ cartPaymentState.paymentType = hasInstallment
         showEmptyCartState();
         return;
       }
+      const cartMain = document.getElementById("cartMain");
+const emptyCartState = document.getElementById(
+  "emptyCartState"
+);
+
+if (cartMain) {
+  cartMain.style.display = "";
+}
+
+if (emptyCartState) {
+  emptyCartState.classList.add("hidden");
+}
 
       const addresses = Array.isArray(CART_PROFILE.addresses?.data)
         ? CART_PROFILE.addresses.data
@@ -442,10 +455,11 @@ $(document).on("click", ".qty-btn", function (e) {
             return;
           }
 
-          setTimeout(() => {
-            loadCartPage();
-            hideCartLoader();
-          }, 3000);
+        loadCartPage().then(() => {
+  if (typeof window.refreshCartUI === "function") {
+    window.refreshCartUI();
+  }
+});
         })
         .catch(() => {
           toast("Network error", "error");
@@ -489,9 +503,21 @@ $(document).on("click", ".qty-btn", function (e) {
 });
 
 // =============== REMOVE CART ITEM =================
-function removeCartItem(cartItemId) {
+// =====================================================
+// REMOVE ITEM FROM MAIN CART PAGE
+// =====================================================
+async function removeCartItem(cartItemId) {
   const token = sessionStorage.getItem("AUTH_TOKEN");
-  if (!token || !cartItemId) return;
+
+  if (!token) {
+    toast("You are not logged in", "error");
+    return;
+  }
+
+  if (!cartItemId) {
+    toast("Cart item id missing", "error");
+    return;
+  }
 
   showCartLoader();
 
@@ -500,43 +526,111 @@ function removeCartItem(cartItemId) {
   formData.append("token", token);
   formData.append("access_token", token);
 
-  fetch("https://api.faadaakaa.com/api/deletecartitem", {
-    method: "POST",
-    body: formData
-  })
-    .then(res => res.json())
-    .then(result => {
-      if (!result.status) {
-        toast(result.message || "Failed to remove item", "error");
-        return;
+  try {
+    const response = await fetch(
+      "https://api.faadaakaa.com/api/deletecartitem",
+      {
+        method: "POST",
+        body: formData
       }
+    );
 
-      toast("Item removed from cart", "success");
+    const result = await response.json();
 
-      // SINGLE SOURCE OF TRUTH
-      return loadCartPage();
-    })
-    .finally(() => {
-      hideCartLoader();
-    })
-    .catch(() => {
-      toast("Network error removing item", "error");
-      hideCartLoader();
-    });
-}
+    if (!result.status) {
+      toast(result.message || "Failed to remove item", "error");
+      return;
+    }
+
+    toast("Item removed from cart", "success");
+
+    // Refresh the main cart page
+    await loadCartPage();
+
+    // Refresh the header cart dropdown
+    if (typeof window.refreshCartUI === "function") {
+      window.refreshCartUI();
+    }
+  } catch (error) {
+    console.error("Remove cart item error:", error);
+    toast("Network error removing item", "error");
+  } finally {
+    hideCartLoader();
+  }
+};
 
 // ==============DELETE ICON HANDLER================
-$(document).on("click", ".remove-cart-item", function (e) {
-  e.preventDefault();
+// =====================================================
+// DELETE ICON HANDLER FOR CART PAGE ROWS ONLY
+// =====================================================
+$(document).on(
+  "click",
+  "#cartRowsWrapper .remove-cart-item",
+  function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
 
-  const cartItemId = this.dataset.id;
-  if (!cartItemId) {
-    toast("Cart item id missing", "error");
+    const cartItemId = String(this.dataset.id || "");
+
+    if (!cartItemId) {
+      toast("Cart item id missing", "error");
+      return;
+    }
+
+    removeCartItem(cartItemId);
+  }
+);
+
+// =====================================================
+// SYNC CART PAGE AFTER HEADER DROPDOWN DELETION
+// =====================================================
+window.syncCartPageAfterDropdownDelete = function (cartItemId) {
+  const id = String(cartItemId || "");
+
+  if (!id) return;
+
+  const rowsWrapper = document.getElementById("cartRowsWrapper");
+
+  // This means the user is not currently on the cart page
+  if (!rowsWrapper) return;
+
+  // Find the matching cart-page row
+  const matchingRow = Array.from(
+    rowsWrapper.querySelectorAll(".cart-row")
+  ).find(row => String(row.dataset.cartId) === id);
+
+  // Remove the exact item immediately
+  if (matchingRow) {
+    matchingRow.remove();
+  }
+
+  const remainingRows = rowsWrapper.querySelectorAll(
+    ".cart-row"
+  ).length;
+
+  // If the deleted item was the final cart item
+  if (remainingRows === 0) {
+    rowsWrapper.innerHTML = "";
+
+    CURRENT_CART_ITEMS = [];
+
+    showEmptyCartState();
+
+    if (typeof window.refreshCartUI === "function") {
+      window.refreshCartUI();
+    }
+
     return;
   }
 
-  removeCartItem(cartItemId);
-});
+  // Other items still remain, reload everything from the API
+  loadCartPage();
+
+  if (typeof window.refreshCartUI === "function") {
+    window.refreshCartUI();
+  }
+};
 
 // ===============SHOW EMPTY CART STATE================
 function showEmptyCartState() {

@@ -11,6 +11,54 @@ if (!slug) {
   console.error("Product slug missing from URL");
 }
 
+// function updateProductShareData(product) {
+//   const shareElement = document.getElementById("productShareButtons");
+
+//   if (!shareElement || !product) return;
+
+//   const productName =
+//     product.name ||
+//     product.item_name ||
+//     "Faadaakaa Product";
+
+//   const productDescription =
+//     product.description ||
+//     product.short_description ||
+//     productName;
+
+//   const productSlug =
+//     product.slug ||
+//     "";
+
+//   const productUrl = productSlug
+//     ? `${window.location.origin}/item/${productSlug}`
+//     : window.location.href;
+
+//   let productImage = "/assets/images/logo.png";
+
+//   if (Array.isArray(product.images) && product.images.length > 0) {
+//     const imagePath =
+//       product.images.find(image => image.zone === "base_image")?.path ||
+//       product.images[0]?.path;
+
+//     if (imagePath) {
+//       productImage =
+//         `https://fdk1.nyc3.digitaloceanspaces.com/fdk_bucket/${imagePath}`;
+//     }
+//   }
+
+//   shareElement.setAttribute("data-url", productUrl);
+//   shareElement.setAttribute("data-title", productName);
+//   shareElement.setAttribute("data-description", productDescription);
+//   shareElement.setAttribute("data-image", productImage);
+
+//   if (
+//     window.__sharethis__ &&
+//     typeof window.__sharethis__.initialize === "function"
+//   ) {
+//     window.__sharethis__.initialize();
+//   }
+// }
 // ==============================
 // PRICE HELPERS
 // ==============================
@@ -72,7 +120,60 @@ function splitContent(text = "") {
     specification
   };
 }
+// ==============================
+// UPDATE PRODUCT SHARE DETAILS
+// ==============================
+function updateProductShareDetails(product, productImage) {
+  const productUrl = window.location.href;
 
+  const plainDescription = $("<div>")
+    .html(product.description || product.name || "")
+    .text()
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 200);
+
+  const shareTitle = product.name || "Faadaakaa Product";
+  const shareDescription =
+    plainDescription || `View ${shareTitle} on Faadaakaa`;
+
+  // Browser title
+  document.title = `${shareTitle} - Faadaakaa`;
+
+  // Normal description
+  $('meta[name="description"]').attr("content", shareDescription);
+
+  // Facebook and WhatsApp Open Graph data
+  $('meta[property="og:url"]').attr("content", productUrl);
+  $('meta[property="og:type"]').attr("content", "product");
+  $('meta[property="og:title"]').attr("content", shareTitle);
+  $('meta[property="og:description"]').attr(
+    "content",
+    shareDescription
+  );
+  $('meta[property="og:image"]').attr("content", productImage);
+
+  // X metadata
+  $('meta[name="twitter:card"]').attr(
+    "content",
+    "summary_large_image"
+  );
+  $('meta[name="twitter:url"]').attr("content", productUrl);
+  $('meta[name="twitter:title"]').attr("content", shareTitle);
+  $('meta[name="twitter:description"]').attr(
+    "content",
+    shareDescription
+  );
+  $('meta[name="twitter:image"]').attr("content", productImage);
+
+  // Refresh ShareThis with the current product
+  if (
+    window.__sharethis__ &&
+    typeof window.__sharethis__.initialize === "function"
+  ) {
+    window.__sharethis__.initialize();
+  }
+}
 // ==============================
 // LOAD PRODUCT
 // ==============================
@@ -115,6 +216,7 @@ $("#addToCartBtn").attr("data-product-id", product.id);
   }
 
   $("#mainProductImage").attr("src", mainImage);
+  updateProductShareDetails(product, mainImage);
 
   // ---------- THUMBNAILS ----------
 const $track = $("#thumbnailTrack");
@@ -150,7 +252,7 @@ validImages.forEach(img => {
     </div>
   `);
 });
-
+resetThumbnailSlider();
   // ---------- THUMBNAIL CLICK (SWAP) ----------
   $(document).off("click", ".thumbImage");
   $(document).on("click", ".thumbImage", function () {
@@ -439,7 +541,43 @@ $(document).on("click", "#productImageModal", function (e) {
 });
 let CURRENT_PRODUCT = null;
 let CURRENT_CART_QTY = 0;
+let thumbScrollX = 0;
 
+function resetThumbnailSlider() {
+  thumbScrollX = 0;
+  $("#thumbnailTrack").css("transform", "translateX(0px)");
+}
+
+function moveThumbnails(direction) {
+  const $wrapper = $("#thumbnailTrack").parent();
+  const $track = $("#thumbnailTrack");
+
+  const wrapperWidth = $wrapper.outerWidth();
+  const trackWidth = $track[0].scrollWidth;
+
+  const maxScroll = Math.max(trackWidth - wrapperWidth, 0);
+  const moveBy = 120;
+
+  if (direction === "next") {
+    thumbScrollX += moveBy;
+    if (thumbScrollX > maxScroll) thumbScrollX = maxScroll;
+  }
+
+  if (direction === "prev") {
+    thumbScrollX -= moveBy;
+    if (thumbScrollX < 0) thumbScrollX = 0;
+  }
+
+  $track.css("transform", `translateX(-${thumbScrollX}px)`);
+}
+
+$(document).on("click", "#thumbNext", function () {
+  moveThumbnails("next");
+});
+
+$(document).on("click", "#thumbPrev", function () {
+  moveThumbnails("prev");
+});
 // ------------------------------
 // UI TOGGLER
 // ------------------------------
@@ -996,3 +1134,5 @@ $(document).ready(function () {
   updateActionButtons();
   
 });
+
+

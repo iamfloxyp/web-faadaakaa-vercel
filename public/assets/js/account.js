@@ -248,6 +248,34 @@ function togglePassword(inputId, iconId) {
     icon.classList.add("fa-eye");
   }
 }
+
+// ===============================
+// PASSWORD TOGGLE
+// ===============================
+$(document).on(
+  "click",
+  '[data-account-section="password"] .fa-eye, [data-account-section="password"] .fa-eye-slash',
+  function () {
+    const $icon = $(this);
+
+    const $input = $icon
+      .closest(".relative")
+      .find('input[type="password"], input[type="text"]')
+      .first();
+
+    if (!$input.length) {
+      console.error("Password input not found for this icon.");
+      return;
+    }
+
+    const isPasswordHidden = $input.attr("type") === "password";
+
+    $input.attr("type", isPasswordHidden ? "text" : "password");
+
+    $icon.toggleClass("fa-eye", !isPasswordHidden);
+    $icon.toggleClass("fa-eye-slash", isPasswordHidden);
+  }
+);
 // ======================BUTTON SPINNER================
 function startButtonLoading($btn) {
   $btn.prop("disabled", true);
@@ -327,22 +355,65 @@ $("#profileForm").on("submit", function (e) {
     }
   });
 });
-// =============ACCOUNT PASSWORD UPDATE FIELDS===================
-// Bind eye icons (make sure these IDs match your HTML)
-$(document).on("click", "#currentPasswordIcon", function () {
-  togglePassword("currentPasswordInput", "currentPasswordIcon");
-});
 
-$(document).on("click", "#newPasswordIcon", function () {
-  togglePassword("newPasswordInput", "newPasswordIcon");
-});
+// =====================================================
+// ACCOUNT PASSWORD VISIBILITY TOGGLE
+// HTML DOES NOT NEED TO CHANGE
+// =====================================================
+document.addEventListener(
+  "click",
+  function (event) {
+    const icon = event.target.closest(
+      '[data-account-section="password"] i.fa-eye, ' +
+      '[data-account-section="password"] i.fa-eye-slash'
+    );
 
-$(document).on("click", "#confirmPasswordIcon", function () {
-  const input = document.getElementById("confirmPasswordInput");
-  if (input) input.removeAttribute("data-masked");
-  togglePassword("confirmPasswordInput", "confirmPasswordIcon");
-});
+    if (!icon) return;
 
+    event.preventDefault();
+    event.stopPropagation();
+
+    const wrapper = icon.closest(".relative");
+    const input = wrapper?.querySelector("input");
+
+    if (!input) {
+      console.error("Password input not found beside the clicked icon.");
+      return;
+    }
+
+    const isHidden = input.type === "password";
+
+    input.type = isHidden ? "text" : "password";
+
+    icon.classList.toggle("fa-eye", !isHidden);
+    icon.classList.toggle("fa-eye-slash", isHidden);
+  },
+  true
+);
+
+// Make sure the icons are above the inputs and can receive clicks
+function preparePasswordToggleIcons() {
+  const icons = document.querySelectorAll(
+    '[data-account-section="password"] i.fa-eye, ' +
+    '[data-account-section="password"] i.fa-eye-slash'
+  );
+
+  icons.forEach((icon) => {
+    icon.style.zIndex = "20";
+    icon.style.pointerEvents = "auto";
+    icon.style.cursor = "pointer";
+    icon.style.width = "28px";
+    icon.style.height = "28px";
+    icon.style.display = "flex";
+    icon.style.alignItems = "center";
+    icon.style.justifyContent = "center";
+  });
+}
+
+document.addEventListener("DOMContentLoaded", preparePasswordToggleIcons);
+
+// Run again in case the account section is displayed dynamically
+setTimeout(preparePasswordToggleIcons, 500);
 $("#passwordForm").on("submit", function (e) {
   e.preventDefault();
 

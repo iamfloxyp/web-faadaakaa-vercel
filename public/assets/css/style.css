@@ -3751,3 +3751,52 @@ body.account-loading #accountPageLoader {
 .heroslider{
   border-radius: 12px;
 }
+
+/* Facebook sticky share button, icon and Share text on one line */
+.st-sticky-share-buttons
+.st-btn[data-network="facebook"] {
+  width: 133px !important;
+  height: 48px !important;
+
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+
+  padding: 0 14px !important;
+  box-sizing: border-box !important;
+}
+
+/* Facebook icon */
+.st-sticky-share-buttons
+.st-btn[data-network="facebook"] img {
+  position: static !important;
+
+  width: 20px !important;
+  height: 20px !important;
+
+  margin: 0 12px 0 0 !important;
+  padding: 0 !important;
+
+  transform: none !important;
+}
+
+/* Share text */
+.st-sticky-share-buttons
+.st-btn[data-network="facebook"] .st-label {
+  display: inline-block !important;
+  position: static !important;
+
+  width: auto !important;
+  height: auto !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  line-height: 1 !important;
+  white-space: nowrap !important;
+  text-align: left !important;
+
+  font-size: 16px !important;
+  font-weight: 600 !important;
+}

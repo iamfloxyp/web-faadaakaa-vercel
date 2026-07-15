@@ -3,7 +3,7 @@ showIndexLoader();
   // LOAD CATEGORIES FROM API
     loadCategoriesFromAPI();
     // slider category
-    initCategorySlider();
+    
 
     loadCartFromProfile();
     
@@ -389,54 +389,86 @@ $("#cartItemsWrapper").on("click", ".cart-go", function () {
 });
 
 // REMOVE ITEM FROM CART
-$("#cartItemsWrapper").on("click", ".remove-cart-item", function (e) {
-  e.preventDefault();
-  e.stopPropagation();
+// =====================================================
+// REMOVE ITEM FROM HEADER CART DROPDOWN
+// =====================================================
+$("#cartItemsWrapper").on(
+  "click",
+  ".remove-cart-item",
+  async function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
 
-  console.log("clicked remove"); // you should see this now
+    const $button = $(this);
+    const cartItemId = String($button.data("id") || "");
+    const token = sessionStorage.getItem("AUTH_TOKEN");
 
-  const cartItemId = $(this).data("id");
-  const token = sessionStorage.getItem("AUTH_TOKEN");
+    if (!cartItemId) {
+      toast("Cart item id missing", "error");
+      return;
+    }
 
-  if (!cartItemId) return toast("Cart item id missing", "error");
-  if (!token) return toast("You are not logged in", "error");
+    if (!token) {
+      toast("You are not logged in", "error");
+      return;
+    }
 
-  const formData = new FormData();
-  formData.append("id", cartItemId);
-  formData.append("token", token);
-  formData.append("access_token", token);
+    if ($button.prop("disabled")) return;
 
-  fetch("https://api.faadaakaa.com/api/deletecartitem", {
-    method: "POST",
-    body: formData
-  })
-    .then(res => res.json())
-   .then(result => {
-  if (!result.status) {
-    toast(result.message || "Failed to remove item", "error");
-    return;
-  }
+    $button.prop("disabled", true).addClass("opacity-50");
 
-  toast("Item removed from cart", "success");
+    const formData = new FormData();
+    formData.append("id", cartItemId);
+    formData.append("token", token);
+    formData.append("access_token", token);
 
-  // Remove item visually
-  $(this).closest(".cart-item").remove();
+    try {
+      const response = await fetch(
+        "https://api.faadaakaa.com/api/deletecartitem",
+        {
+          method: "POST",
+          body: formData
+        }
+      );
 
-  // Refresh cart header and totals
-  if (typeof window.refreshCartUI === "function") {
-    window.refreshCartUI();
-  }
+      const result = await response.json();
 
-  // Refresh product page UI immediately
-  if (typeof window.checkIfCurrentProductInCart === "function") {
-    window.checkIfCurrentProductInCart();
-  }
-})
-    .catch(err => {
-      console.error(err);
+      if (!result.status) {
+        toast(result.message || "Failed to remove item", "error");
+        $button.prop("disabled", false).removeClass("opacity-50");
+        return;
+      }
+
+      toast("Item removed from cart", "success");
+
+      // Remove it from the dropdown immediately
+      $button.closest(".cart-item").remove();
+
+      // Refresh the dropdown count, subtotal and remaining items
+      loadCartFromProfile();
+
+      // Synchronize the full cart page when currently on that page
+      if (
+        typeof window.syncCartPageAfterDropdownDelete === "function"
+      ) {
+        window.syncCartPageAfterDropdownDelete(cartItemId);
+      }
+
+      // Synchronize product details page when available
+      if (
+        typeof window.checkIfCurrentProductInCart === "function"
+      ) {
+        window.checkIfCurrentProductInCart();
+      }
+    } catch (error) {
+      console.error("Remove cart item error:", error);
       toast("Network error removing item", "error");
-    });
-});
+
+      $button.prop("disabled", false).removeClass("opacity-50");
+    }
+  }
+);
 
 
 // EMPTY CART STATE
@@ -1113,14 +1145,18 @@ function loadSpotlightCategories() {
       );
 
       renderSpotlightCategories(spotlightCategories);
-      initCategorySlider(); 
+      
     })
     .catch(err => console.error("Spotlight error:", err));
 }
 
 function renderSpotlightCategories(categories) {
   const $track = $("#categoryTrack");
+
   $track.empty();
+  $track.css("transform", "translateX(0px)");
+
+  categoryCurrentIndex = 0;
 
   categories.forEach(cat => {
     const image =
@@ -1128,17 +1164,21 @@ function renderSpotlightCategories(categories) {
       "https://via.placeholder.com/56";
 
     const card = `
-      <div class="catItem flex flex-col items-center justify-center
-        w-[160px] sm:min-w-[180px] lg:min-w-[180px]
+      <div class="catItem flex-shrink-0 flex flex-col items-center justify-center
         h-[140px] sm:h-[150px] lg:h-[160px]
         rounded-[12px] p-[16px] cursor-pointer
         hover:bg-[#E8F1FF] transition"
         style="background-color:#F8F9FC"
         onclick="window.location='/category/${cat.slug}/1'">
 
-        <img src="${image}" class="w-[56px] h-[56px] object-contain" />
+        <img
+          src="${image}"
+          class="w-[56px] h-[56px] object-contain"
+          alt="${cat.name}"
+        />
 
-        <p class="text-[14px] font-[500] text-[#101828] mt-[8px] text-center">
+        <p class="text-[14px] font-[500] text-[#101828]
+                  mt-[8px] text-center">
           ${cat.name}
         </p>
       </div>
@@ -1146,33 +1186,15 @@ function renderSpotlightCategories(categories) {
 
     $track.append(card);
   });
+
+  requestAnimationFrame(function () {
+    initCategorySlider();
+  });
 }
 // LOAD SPOTLIGHT CATEGORIES
     loadSpotlightCategories();
 
-function initCategorySlider() {
-  let currentX = 0;
 
-  const itemWidth = $(".catItem").outerWidth(true);
-  const containerWidth = $("#categorySlider").width();
-  const visibleItems = Math.min(containerWidth / itemWidth);
-  const totalItems = $(".catItem").length;
-  const maxX = -(itemWidth * (totalItems - visibleItems));
-
-  $("#catNext").off().click(function () {
-    if (currentX > maxX) {
-      currentX -= itemWidth;
-      $("#categoryTrack").css("transform", `translateX(${currentX}px)`);
-    }
-  });
-
-  $("#catPrev").off().click(function () {
-    if (currentX < 0) {
-      currentX += itemWidth;
-      $("#categoryTrack").css("transform", `translateX(${currentX}px)`);
-    }
-  });
-}
 // =================== LOAD API DROPDOWN CATEGORIES=========================
 
 function loadCategoriesFromAPI() {
@@ -1223,35 +1245,161 @@ function loadCategoriesFromAPI() {
 //===================== CATEGORIES SLIDER==========================
 let categoryScrollAmount = 0;
 
-$(document).on("click", "#catNext", function () {
+// ======================================================
+// RESPONSIVE CATEGORY SLIDER
+// FEW ITEMS FILL THE WIDTH
+// EXTRA ITEMS CAN SCROLL
+// ======================================================
+
+let categoryCurrentIndex = 0;
+let categoryVisibleItems = 1;
+let categoryItemWidth = 0;
+
+const CATEGORY_GAP = 16;
+
+function getCategoryVisibleLimit() {
+  const screenWidth = window.innerWidth;
+
+  if (screenWidth < 640) return 2;
+  if (screenWidth < 768) return 3;
+  if (screenWidth < 1024) return 4;
+
+  return 6;
+}
+
+function initCategorySlider() {
   const slider = document.getElementById("categorySlider");
   const track = document.getElementById("categoryTrack");
+  const items = track
+    ? Array.from(track.querySelectorAll(".catItem"))
+    : [];
 
-  if (!slider || !track) return;
-
-  const maxScroll = track.scrollWidth - slider.clientWidth;
-
-  categoryScrollAmount += 220;
-
-  if (categoryScrollAmount > maxScroll) {
-    categoryScrollAmount = maxScroll;
+  if (!slider || !track || items.length === 0) {
+    return;
   }
 
-  track.style.transform = `translateX(-${categoryScrollAmount}px)`;
-});
+  const totalItems = items.length;
+  const visibleLimit = getCategoryVisibleLimit();
 
-$(document).on("click", "#catPrev", function () {
+  categoryVisibleItems = Math.min(totalItems, visibleLimit);
+
+  const sliderWidth = slider.clientWidth;
+  const totalGapWidth =
+    CATEGORY_GAP * Math.max(categoryVisibleItems - 1, 0);
+
+  categoryItemWidth =
+    (sliderWidth - totalGapWidth) / categoryVisibleItems;
+
+  items.forEach((item) => {
+    item.style.width = `${categoryItemWidth}px`;
+    item.style.minWidth = `${categoryItemWidth}px`;
+    item.style.maxWidth = `${categoryItemWidth}px`;
+    item.style.flexShrink = "0";
+  });
+
+  const maxIndex = Math.max(
+    totalItems - categoryVisibleItems,
+    0
+  );
+
+  if (categoryCurrentIndex > maxIndex) {
+    categoryCurrentIndex = maxIndex;
+  }
+
+  moveCategorySlider();
+  updateCategorySliderButtons();
+}
+
+function moveCategorySlider() {
   const track = document.getElementById("categoryTrack");
 
   if (!track) return;
 
-  categoryScrollAmount -= 220;
+  const moveDistance =
+    categoryCurrentIndex * (categoryItemWidth + CATEGORY_GAP);
 
-  if (categoryScrollAmount < 0) {
-    categoryScrollAmount = 0;
+  track.style.transform =
+    `translateX(-${moveDistance}px)`;
+}
+
+function updateCategorySliderButtons() {
+  const totalItems = document.querySelectorAll(
+    "#categoryTrack .catItem"
+  ).length;
+
+  const maxIndex = Math.max(
+    totalItems - categoryVisibleItems,
+    0
+  );
+
+  const prevButton = document.getElementById("catPrev");
+  const nextButton = document.getElementById("catNext");
+
+  if (prevButton) {
+    const shouldDisable = categoryCurrentIndex <= 0;
+
+    prevButton.disabled = shouldDisable;
+    prevButton.classList.toggle("opacity-40", shouldDisable);
+    prevButton.classList.toggle(
+      "cursor-not-allowed",
+      shouldDisable
+    );
   }
 
-  track.style.transform = `translateX(-${categoryScrollAmount}px)`;
+  if (nextButton) {
+    const shouldDisable =
+      totalItems <= categoryVisibleItems ||
+      categoryCurrentIndex >= maxIndex;
+
+    nextButton.disabled = shouldDisable;
+    nextButton.classList.toggle("opacity-40", shouldDisable);
+    nextButton.classList.toggle(
+      "cursor-not-allowed",
+      shouldDisable
+    );
+  }
+}
+
+$(document)
+  .off("click.categorySlider", "#catNext")
+  .on("click.categorySlider", "#catNext", function () {
+    const totalItems = document.querySelectorAll(
+      "#categoryTrack .catItem"
+    ).length;
+
+    const maxIndex = Math.max(
+      totalItems - categoryVisibleItems,
+      0
+    );
+
+    if (categoryCurrentIndex >= maxIndex) return;
+
+    categoryCurrentIndex += 1;
+
+    moveCategorySlider();
+    updateCategorySliderButtons();
+  });
+
+$(document)
+  .off("click.categorySlider", "#catPrev")
+  .on("click.categorySlider", "#catPrev", function () {
+    if (categoryCurrentIndex <= 0) return;
+
+    categoryCurrentIndex -= 1;
+
+    moveCategorySlider();
+    updateCategorySliderButtons();
+  });
+
+let categoryResizeTimer;
+
+window.addEventListener("resize", function () {
+  clearTimeout(categoryResizeTimer);
+
+  categoryResizeTimer = setTimeout(function () {
+    categoryCurrentIndex = 0;
+    initCategorySlider();
+  }, 150);
 });
 
 });

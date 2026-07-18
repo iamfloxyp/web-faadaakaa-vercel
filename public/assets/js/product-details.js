@@ -11,54 +11,7 @@ if (!slug) {
   console.error("Product slug missing from URL");
 }
 
-// function updateProductShareData(product) {
-//   const shareElement = document.getElementById("productShareButtons");
 
-//   if (!shareElement || !product) return;
-
-//   const productName =
-//     product.name ||
-//     product.item_name ||
-//     "Faadaakaa Product";
-
-//   const productDescription =
-//     product.description ||
-//     product.short_description ||
-//     productName;
-
-//   const productSlug =
-//     product.slug ||
-//     "";
-
-//   const productUrl = productSlug
-//     ? `${window.location.origin}/item/${productSlug}`
-//     : window.location.href;
-
-//   let productImage = "/assets/images/logo.png";
-
-//   if (Array.isArray(product.images) && product.images.length > 0) {
-//     const imagePath =
-//       product.images.find(image => image.zone === "base_image")?.path ||
-//       product.images[0]?.path;
-
-//     if (imagePath) {
-//       productImage =
-//         `https://fdk1.nyc3.digitaloceanspaces.com/fdk_bucket/${imagePath}`;
-//     }
-//   }
-
-//   shareElement.setAttribute("data-url", productUrl);
-//   shareElement.setAttribute("data-title", productName);
-//   shareElement.setAttribute("data-description", productDescription);
-//   shareElement.setAttribute("data-image", productImage);
-
-//   if (
-//     window.__sharethis__ &&
-//     typeof window.__sharethis__.initialize === "function"
-//   ) {
-//     window.__sharethis__.initialize();
-//   }
-// }
 // ==============================
 // PRICE HELPERS
 // ==============================
@@ -166,13 +119,7 @@ function updateProductShareDetails(product, productImage) {
   );
   $('meta[name="twitter:image"]').attr("content", productImage);
 
-  // Refresh ShareThis with the current product
-  if (
-    window.__sharethis__ &&
-    typeof window.__sharethis__.initialize === "function"
-  ) {
-    window.__sharethis__.initialize();
-  }
+  
 }
 // ==============================
 // LOAD PRODUCT
@@ -425,21 +372,39 @@ $("#payOutright").html(`
 );
 }
 
-// OPEN DROPDOWN
-$(document).on("click", "#paymentClickArea", function (e) {
-  e.stopPropagation();
-  $("#paymentDropdown").toggleClass("hidden");
-});
+// ==============================
+// PAYMENT DROPDOWN
+// ==============================
+$(document)
+  .off("click.paymentPlan", "#paymentClickArea")
+  .on("click.paymentPlan", "#paymentClickArea", function (e) {
+    e.preventDefault();
+    e.stopPropagation();
 
-// CLOSE WHEN CLICKING OUTSIDE
-$(document).on("click", function () {
-  $("#paymentDropdown").addClass("hidden");
-});
+    const $dropdown = $("#paymentDropdown");
 
-// PREVENT CLOSE WHEN CLICKING INSIDE
-$(document).on("click", "#paymentDropdown", function (e) {
-  e.stopPropagation();
-});
+    console.log("Dropdown before:", $dropdown.attr("class"));
+
+    $dropdown.toggleClass("hidden");
+
+    console.log("Dropdown after:", $dropdown.attr("class"));
+  });
+
+$(document)
+  .off("click.paymentPlan", "#paymentDropdown")
+  .on("click.paymentPlan", "#paymentDropdown", function (e) {
+    e.stopPropagation();
+  });
+
+$(document)
+  .off("click.paymentPlanClose")
+  .on("click.paymentPlanClose", function (e) {
+    if (
+      !$(e.target).closest("#paymentClickArea, #paymentDropdown").length
+    ) {
+      $("#paymentDropdown").addClass("hidden");
+    }
+  });
 
 
 $(document).on("click", "#installmentOptions .dropdown-item", function () {

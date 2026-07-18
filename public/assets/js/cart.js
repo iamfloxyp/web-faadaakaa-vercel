@@ -12,9 +12,30 @@ const cartPaymentState = {
 };
 
 // ================ HELPER: FORMAT MONEY ==================
-function formatMoney(amount = 0) {
-  return `₦${Number(amount).toLocaleString()}`;
+function parseBackendAmount(value) {
+  if (value === null || value === undefined || value === "") {
+    return 0;
+  }
+
+  const cleanedValue = String(value)
+    .replace(/₦/g, "")
+    .replace(/,/g, "")
+    .trim();
+
+  const amount = Number(cleanedValue);
+
+  return Number.isFinite(amount) ? amount : 0;
 }
+
+function formatMoney(amount = 0) {
+  const safeAmount = parseBackendAmount(amount);
+
+  return `₦${safeAmount.toLocaleString("en-NG", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  })}`;
+}
+
 // ===============SHOW / HIDE CART LOADER================
 function showCartLoader() {
   const loader = document.getElementById("cartLoader");
@@ -123,6 +144,7 @@ function loadCartPage() {
           })
         : [];
         CURRENT_CART_ITEMS = cartItems;
+        console.log("FULL CART ITEMS:", cartItems);
         //  DETERMINE CART PAYMENT TYPE 
 const hasInstallment = cartItems.some(
   item => Number(item.period || 0) > 0
@@ -894,7 +916,7 @@ function renderDeliveryAddresses(addresses = []) {
   $.each(addresses, function (_, addr) {
     $wrapper.append(`
       <label
-        class="min-w-[320px] sm:w-full
+        class="w-full
          grid grid-cols-[20px_1fr_1fr_2fr_1fr]
          items-center gap-[12px]
          border border-[#EAECF0] rounded-[12px]
@@ -943,50 +965,91 @@ function renderOrderAndDueNow(cartItems, walletData, financialData) {
   const orderValueEl = document.getElementById("orderValueAmount");
   const shippingEl = document.getElementById("shippingAmount");
 
-  if (!totalDueEl || !orderValueEl || !shippingEl) return;
+  if (!totalDueEl || !orderValueEl || !shippingEl) {
+    return;
+  }
 
-  const fullOrderValue = cartItems.reduce(
-    (sum, item) => sum + Number(item.total_item_cost || 0),
+  const items = Array.isArray(cartItems) ? cartItems : [];
+
+  /*
+   * Use backend financial values first.
+   * Only calculate from cart items when the backend value is absent.
+   */
+  const calculatedCartValue = items.reduce(
+    (sum, item) =>
+      sum + parseBackendAmount(item.total_item_cost),
     0
   );
 
-  const shippingCost = Number.isFinite(Number(financialData?.shipping_cost))
-  ? Number(financialData.shipping_cost)
-  : 0;
+  const backendOrderValue = parseBackendAmount(
+    financialData?.total_item_amount
+  );
 
-  // 🔑 Check if all items are outright
-  const hasInstallment = cartItems.some(
+  const fullOrderValue =
+    backendOrderValue || calculatedCartValue;
+
+  const shippingCost = parseBackendAmount(
+    financialData?.shipping_cost
+  );
+
+  const backendTotalDue = parseBackendAmount(
+    financialData?.total_checkout_payment_unformatted ??
+    financialData?.total_checkout_payment
+  );
+
+  const backendInitialPayment = parseBackendAmount(
+    financialData?.total_initial_payment
+  );
+
+  const hasInstallment = items.some(
     item => Number(item.period || 0) > 0
   );
 
-  let totalDueNow;
-  let orderValueText;
+  let totalDueNow = backendTotalDue;
+  let displayedOrderValue = fullOrderValue;
 
   if (!hasInstallment) {
-    // ✅ FULL OUTRIGHT
-    totalDueNow = fullOrderValue + shippingCost;
-    orderValueText = `100% of ${formatMoney(fullOrderValue)}`;
+    /*
+     * For outright payment, the backend total already includes
+     * the product value and shipping.
+     */
+    if (!totalDueNow) {
+      totalDueNow = fullOrderValue + shippingCost;
+    }
 
-    totalDueEl.textContent = `${formatMoney(totalDueNow)} (Full payment + shipping)`;
-    orderValueEl.textContent = `${formatMoney(fullOrderValue)} (${orderValueText})`;
+    totalDueEl.textContent =
+      `${formatMoney(totalDueNow)} (Full payment + shipping)`;
+
+    orderValueEl.textContent =
+      `${formatMoney(fullOrderValue)} (100% of ${formatMoney(fullOrderValue)})`;
   } else {
-    // ✅ INSTALLMENT LOGIC (unchanged)
     const downPaymentRatio =
-      Number(walletData?.downpayment_ratio || 40) / 100;
+      parseBackendAmount(walletData?.downpayment_ratio) || 40;
 
-    const downPaymentAmount = fullOrderValue * downPaymentRatio;
-    totalDueNow = downPaymentAmount + shippingCost;
+    displayedOrderValue =
+      backendInitialPayment ||
+      fullOrderValue * (downPaymentRatio / 100);
 
-    totalDueEl.textContent = `${formatMoney(totalDueNow)} (${Math.round(
-      downPaymentRatio * 100
-    )}% of ${formatMoney(fullOrderValue)} + shipping)`;
+    if (!totalDueNow) {
+      totalDueNow =
+        displayedOrderValue + shippingCost;
+    }
 
-    orderValueEl.textContent = `${formatMoney(downPaymentAmount)} (${Math.round(
-      downPaymentRatio * 100
-    )}% of ${formatMoney(fullOrderValue)})`;
+    totalDueEl.textContent =
+      `${formatMoney(totalDueNow)} (${downPaymentRatio}% initial payment + shipping)`;
+
+    orderValueEl.textContent =
+      `${formatMoney(displayedOrderValue)} (${downPaymentRatio}% of ${formatMoney(fullOrderValue)})`;
   }
 
   shippingEl.textContent = formatMoney(shippingCost);
+
+  console.log("BACKEND ORDER FINANCIALS:", {
+    fullOrderValue,
+    shippingCost,
+    totalDueNow,
+    backendFinancialData: financialData
+  });
 }
 
 // ============== RENDER WALLET & CREDIT STATUS ==================
@@ -1133,37 +1196,119 @@ function setDefaultPaymentMethod() {
 // ============== ADDRESS SELECTION (CORRECT & FINAL) ============
 function refreshShippingForAddress(addressId) {
   const token = sessionStorage.getItem("AUTH_TOKEN");
-  if (!token || !addressId) return;
+
+  if (!token || !addressId) return Promise.resolve();
 
   showCartLoader();
 
-  const fd = new FormData();
-  fd.append("token", token);
-  fd.append("address_id", addressId);
+  const addressFd = new FormData();
+  addressFd.append("token", token);
+  addressFd.append("address_id", addressId);
 
-  fetch("https://api.faadaakaa.com/api/update-primary-address", {
-    method: "POST",
-    body: fd
-  })
-    .then(res => res.json())
-    .then(res => {
-      if (!res.status) {
-        toast("Unable to update shipping cost", "error");
-        return;
+  return fetch(
+    "https://api.faadaakaa.com/api/update-primary-address",
+    {
+      method: "POST",
+      body: addressFd
+    }
+  )
+    .then(response => response.json())
+    .then(updateResult => {
+      console.log("ADDRESS UPDATE RESPONSE:", updateResult);
+
+      if (!updateResult?.status) {
+        throw new Error(
+          updateResult?.message ||
+          "Unable to update delivery address"
+        );
       }
 
-      const shippingCost = Number(res.data.shipping_cost || 0);
+      // The address endpoint does not return shipping cost.
+      // Reload the profile to get the newly calculated cost.
+      const profileFd = new FormData();
+      profileFd.append("token", token);
 
-      // update only what matters
-      CART_PROFILE.financials = CART_PROFILE.financials || {};
-      CART_PROFILE.financials.data = [{
-        shipping_cost: shippingCost
-      }];
+      return fetch(
+        "https://api.faadaakaa.com/api/loadprofile",
+        {
+          method: "POST",
+          body: profileFd
+        }
+      );
+    })
+    .then(response => response.json())
+    .then(profileResult => {
+      console.log(
+        "PROFILE AFTER ADDRESS CHANGE:",
+        profileResult
+      );
+
+      if (!profileResult?.status || !profileResult?.data) {
+        throw new Error(
+          profileResult?.message ||
+          "Unable to reload shipping information"
+        );
+      }
+
+      CART_PROFILE = profileResult.data;
+
+      const refreshedCartItems = Array.isArray(
+        CART_PROFILE.cart?.data
+      )
+        ? CART_PROFILE.cart.data.map(item => {
+            const normalizedPeriod =
+              Number(item.period) === 1
+                ? 0
+                : Number(item.period || 0);
+
+            return {
+              ...item,
+              period: normalizedPeriod,
+              payment_type:
+                normalizedPeriod === 0
+                  ? "outright"
+                  : "installment"
+            };
+          })
+        : [];
+
+      CURRENT_CART_ITEMS = refreshedCartItems;
+
+      const financialData =
+        CART_PROFILE.financials?.data?.[0] || {};
+
+      const shippingCost = Number(
+        financialData.shipping_cost || 0
+      );
+
+      console.log(
+        "REFRESHED SHIPPING COST:",
+        shippingCost
+      );
 
       renderOrderAndDueNow(
         CURRENT_CART_ITEMS,
         CART_PROFILE.wallet?.data,
-        { shipping_cost: shippingCost }
+        financialData
+      );
+
+      renderHeaderCartFromProfile({
+        ...CART_PROFILE,
+        cart: {
+          data: CURRENT_CART_ITEMS
+        }
+      });
+    })
+    .catch(error => {
+      console.error(
+        "SHIPPING REFRESH ERROR:",
+        error
+      );
+
+      toast(
+        error.message ||
+        "Unable to update shipping cost",
+        "error"
       );
     })
     .finally(() => {
@@ -1492,10 +1637,10 @@ $(document).on("click", "#confirmCheckoutBtn", function (e) {
   }
 
   //  EMAIL VERIFICATION CHECK
-  if (!isEmailVerified(CART_PROFILE)) {
-    openEmailModal();
-    return;
-  }
+  // if (!isEmailVerified(CART_PROFILE)) {
+  //   openEmailModal();
+  //   return;
+  // }
 
   //  PAYMENT METHOD CHECK
   if (!cartPaymentState.selectedMethod) {
@@ -1571,6 +1716,8 @@ function toReadableMessage(maybeMsg) {
 const BASE_URL = "https://api.faadaakaa.com/api";
 
 function createOrderAjax(payload, onSuccess, onError) {
+  console.log("CREATE ORDER PAYLOAD:", payload);
+console.log("SELECTED ADDRESS ID:", cartPaymentState.addressId);
   const token = sessionStorage.getItem("AUTH_TOKEN");
   if (!token) {
     onError?.("Session expired.");
@@ -1600,16 +1747,29 @@ function createOrderAjax(payload, onSuccess, onError) {
       }
       onSuccess?.(res);
     },
-
     error: function (xhr) {
-      const msg =
-        xhr.responseJSON?.message ||
-        xhr.responseJSON?.error ||
-        xhr.responseText ||
-        "Bad request. Please check order payload.";
+  console.error("CREATE ORDER STATUS:", xhr.status);
+  console.error("CREATE ORDER RESPONSE:", xhr.responseJSON);
+  console.error("CREATE ORDER TEXT:", xhr.responseText);
 
-      onError?.(toReadableMessage(msg));
-    }
+  const msg =
+    xhr.responseJSON?.message ||
+    xhr.responseJSON?.error ||
+    xhr.responseText ||
+    "Bad request. Please check order payload.";
+
+  onError?.(toReadableMessage(msg));
+}
+
+    // error: function (xhr) {
+    //   const msg =
+    //     xhr.responseJSON?.message ||
+    //     xhr.responseJSON?.error ||
+    //     xhr.responseText ||
+    //     "Bad request. Please check order payload.";
+
+    //   onError?.(toReadableMessage(msg));
+    // }
   });
 }
 

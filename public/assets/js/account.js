@@ -309,11 +309,15 @@ $("#profileForm").on("submit", function (e) {
 
   const formData = new FormData();
   formData.append("token", token);        
-  formData.append("address", address);
+  formData.append("address1", address);
   formData.append("state", state);
 
   //START BUTTON LOADER
   startButtonLoading($btn);
+  console.log("PROFILE UPDATE DATA:", {
+  address1: address,
+  state: state
+});
 
   $.ajax({
     url: "https://api.faadaakaa.com/api/updateprofile",
@@ -894,10 +898,13 @@ $(document).on("click", "#phonePasswordIcon", function () {
 // --------------------
 async function fetchCurrentUser() {
   const token = getToken();
+
+  // No token -> go to login
   if (!token) {
-    window.location.replace = "index.html";
+    window.location.href = "/login.html";
     return;
   }
+
   const fd = new FormData();
   fd.append("token", token);
 
@@ -909,18 +916,44 @@ async function fetchCurrentUser() {
 
     const json = await res.json();
 
+    // Only redirect if the backend says the session is invalid
+    const message = String(json?.message || "").toLowerCase();
+
+    const invalidSession =
+      res.status === 401 ||
+      res.status === 403 ||
+      message.includes("invalid token") ||
+      message.includes("session expired") ||
+      message.includes("unauthorized");
+
+    if (invalidSession) {
+      sessionStorage.removeItem("AUTH_TOKEN");
+      window.location.href = "/login.html";
+      return;
+    }
+
+    // Any other error should NOT redirect
     if (!json || !json.status || !json.data) {
-  window.location.href = "login.html";
-  return;
-}
+      console.error("PROFILE LOAD FAILED:", json);
+      showErrorToast(
+        json?.message || "Unable to load profile. Please try again."
+      );
+      return;
+    }
 
     API_USER = json.data;
     mapApiUserToUI(API_USER);
+
   } catch (err) {
-  console.error("PROFILE ERROR", err);
-  window.location.href = "login.html";
-}
-hideAccountLoader();
+    console.error("PROFILE ERROR:", err);
+
+    // Don't send the user to login because of a network error
+    showErrorToast(
+      "Unable to connect to the server. Please try again."
+    );
+  } finally {
+    hideAccountLoader();
+  }
 }
 
 

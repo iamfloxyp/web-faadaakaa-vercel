@@ -4,6 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Phones & Tablets - Faadaakaa</title>
+  <script
+  type="text/javascript"
+  src="https://platform-api.sharethis.com/js/sharethis.js#property=69269b3a4e77997b101899c8&product=sop"
+  async="async">
+</script>
   
   <!-- MAIN CSS -->
   <link rel="stylesheet" href="assets/css/style.css" />
@@ -18,6 +23,56 @@
   <!-- TAILWIND + JQUERY -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.js"></script>
+    <style>
+    /* Normal collapsed ShareThis buttons */
+.st-sticky-share-buttons .st-btn {
+  width: 48px !important;
+  height: 48px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 10px !important;
+  padding: 0 14px !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+  white-space: nowrap !important;
+  transition: width 0.25s ease !important;
+}
+
+/* Keep the icon in its normal position */
+.st-sticky-share-buttons .st-btn img {
+  position: static !important;
+  width: 20px !important;
+  height: 20px !important;
+  margin: 0 !important;
+  flex-shrink: 0 !important;
+}
+
+/* Hide the text while the button is collapsed */
+.st-sticky-share-buttons .st-btn .st-label {
+  position: static !important;
+  display: inline-block !important;
+  width: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  white-space: nowrap !important;
+  line-height: 20px !important;
+  transition: opacity 0.15s ease !important;
+}
+
+/* Expand only the particular button being hovered */
+.st-sticky-share-buttons .st-btn:hover {
+  width: 135px !important;
+}
+
+/* Reveal Share or Post only on hover */
+.st-sticky-share-buttons .st-btn:hover .st-label {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+  </style>
 </head>
 
 <body class="min-h-screen flex flex-col">

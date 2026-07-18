@@ -1438,55 +1438,55 @@ function hideIndexLoader() {
   }
 }
 // ---------- PAYMENT DROPDOWN FOR PRODUCT PAGE----------
-const $clickArea = $("#paymentClickArea");
-const $dropdown  = $("#paymentDropdown");
-const $input     = $("#paymentInput");
+// const $clickArea = $("#paymentClickArea");
+// const $dropdown  = $("#paymentDropdown");
+// const $input     = $("#paymentInput");
 
 // Open dropdown and position correctly
-$clickArea.on("click", function (e) {
-  e.stopPropagation();
+// $clickArea.on("click", function (e) {
+//   e.stopPropagation();
 
-  const isMobile = window.innerWidth < 1024; //
+//   const isMobile = window.innerWidth < 1024; //
 
-  if (!isMobile) {
-    // DESKTOP / LARGE SCREENS → position with JS
-    const rect = this.getBoundingClientRect();
+//   if (!isMobile) {
+//     // DESKTOP / LARGE SCREENS → position with JS
+//     const rect = this.getBoundingClientRect();
 
-    $dropdown.css({
-      position: "absolute",
-      top: rect.bottom + window.scrollY + "px",
-      left: rect.left + 20 + "px"                    
-    });
-  } else {
-    // MOBILE → let your Tailwind/HTML control the position
-    $dropdown.css({
-      position: "",   
-      top: "320px",
-      left: "50px",
-      width: ""       
-    });
-  }
+//     $dropdown.css({
+//       position: "absolute",
+//       top: rect.bottom + window.scrollY + "px",
+//       left: rect.left + 20 + "px"                    
+//     });
+//   } else {
+//     // MOBILE → let your Tailwind/HTML control the position
+//     $dropdown.css({
+//       position: "",   
+//       top: "320px",
+//       left: "50px",
+//       width: ""       
+//     });
+//   }
 
-  $dropdown.toggleClass("hidden");
-});
+//   $dropdown.toggleClass("hidden");
+// });
 
 // CLICK ITEM → PUT INTO INPUT
-$(".dropdown-item").on("click", function () {
-  $input.val($(this).text());
-  $dropdown.addClass("hidden");
-});
+// $(".dropdown-item").on("click", function () {
+//   $input.val($(this).text());
+//   $dropdown.addClass("hidden");
+// });
 
 // CLICK OUTSIDE → CLOSE
-$(document).on("click", function (event) {
-  if (
-    !$dropdown.is(event.target) &&
-    $dropdown.has(event.target).length === 0 &&
-    !$clickArea.is(event.target) &&
-    $clickArea.has(event.target).length === 0
-  ) {
-    $dropdown.addClass("hidden");
-  }
-});
+// $(document).on("click", function (event) {
+//   if (
+//     !$dropdown.is(event.target) &&
+//     $dropdown.has(event.target).length === 0 &&
+//     !$clickArea.is(event.target) &&
+//     $clickArea.has(event.target).length === 0
+//   ) {
+//     $dropdown.addClass("hidden");
+//   }
+// });
 
 // ============================================
 // HOME HEADER: SHOW USER DATA WHEN LOGGED IN
@@ -1528,3 +1528,88 @@ $(document).on("click", ".logoutBtn", function (e) {
 });
 // Footer year auto-update
 $("#currentYear").text(new Date().getFullYear());
+
+// ==========================================
+// FIX SHARETHIS STICKY BUTTON WIDTHS
+// ==========================================
+function fixShareThisButtons() {
+  const buttons = document.querySelectorAll(
+    ".st-sticky-share-buttons .st-btn"
+  );
+
+  if (!buttons.length) return false;
+
+  buttons.forEach(button => {
+    // Normal collapsed size
+    button.style.setProperty("width", "48px", "important");
+    button.style.setProperty("min-width", "48px", "important");
+    button.style.setProperty("max-width", "48px", "important");
+    button.style.setProperty("height", "48px", "important");
+    button.style.setProperty("overflow", "hidden", "important");
+    button.style.setProperty("display", "flex", "important");
+    button.style.setProperty("align-items", "center", "important");
+    button.style.setProperty("gap", "10px", "important");
+    button.style.setProperty("padding", "0 14px", "important");
+    button.style.setProperty(
+      "transition",
+      "width 0.25s ease, max-width 0.25s ease",
+      "important"
+    );
+
+    const icon = button.querySelector("img");
+    const label = button.querySelector(".st-label");
+
+    if (icon) {
+      icon.style.setProperty("position", "static", "important");
+      icon.style.setProperty("width", "20px", "important");
+      icon.style.setProperty("height", "20px", "important");
+      icon.style.setProperty("margin", "0", "important");
+      icon.style.setProperty("flex-shrink", "0", "important");
+    }
+
+    if (label) {
+      label.style.setProperty("position", "static", "important");
+      label.style.setProperty("opacity", "0", "important");
+      label.style.setProperty("visibility", "hidden", "important");
+      label.style.setProperty("white-space", "nowrap", "important");
+    }
+
+    button.onmouseenter = function () {
+      this.style.setProperty("width", "135px", "important");
+      this.style.setProperty("max-width", "135px", "important");
+
+      const currentLabel = this.querySelector(".st-label");
+
+      if (currentLabel) {
+        currentLabel.style.setProperty("opacity", "1", "important");
+        currentLabel.style.setProperty("visibility", "visible", "important");
+      }
+    };
+
+    button.onmouseleave = function () {
+      this.style.setProperty("width", "48px", "important");
+      this.style.setProperty("max-width", "48px", "important");
+
+      const currentLabel = this.querySelector(".st-label");
+
+      if (currentLabel) {
+        currentLabel.style.setProperty("opacity", "0", "important");
+        currentLabel.style.setProperty("visibility", "hidden", "important");
+      }
+    };
+  });
+
+  return true;
+}
+
+// ShareThis creates its buttons after the page has loaded
+const shareThisFixTimer = setInterval(function () {
+  if (fixShareThisButtons()) {
+    clearInterval(shareThisFixTimer);
+  }
+}, 300);
+
+// Stop checking after 10 seconds
+setTimeout(function () {
+  clearInterval(shareThisFixTimer);
+}, 10000);

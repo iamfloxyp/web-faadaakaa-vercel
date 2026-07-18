@@ -243,27 +243,27 @@
 
       <!-- THUMBNAILS -->
       <div class="thumbContainer flex-none w-[112px] h-[111px] rounded-[12px] border border-[#EAECF0] p-[16px] flex items-center justify-center">
-        <img src="./assets/images/lap1.png" class="thumbImage w-[92px] h-[91px] rounded-[2px] object-cover cursor-pointer" />
+        <img src="/assets/images/lap1.png" class="thumbImage w-[92px] h-[91px] rounded-[2px] object-cover cursor-pointer" />
       </div>
 
       <div class="thumbContainer flex-none w-[112px] h-[111px] rounded-[12px] border border-[#EAECF0] p-[16px] flex items-center justify-center">
-        <img src="./assets/images/lap2.png" class="thumbImage w-[92px] h-[91px] rounded-[2px] object-cover cursor-pointer" />
+        <img src="/assets/images/lap2.png" class="thumbImage w-[92px] h-[91px] rounded-[2px] object-cover cursor-pointer" />
       </div>
 
       <div class="thumbContainer flex-none w-[112px] h-[111px] rounded-[12px] border border-[#EAECF0] p-[16px] flex items-center justify-center">
-        <img src="./assets/images/lap3.png" class="thumbImage w-[92px] h-[91px] rounded-[2px] object-cover cursor-pointer" />
+        <img src="/assets/images/lap3.png" class="thumbImage w-[92px] h-[91px] rounded-[2px] object-cover cursor-pointer" />
       </div>
 
       <div class="thumbContainer flex-none w-[112px] h-[111px] rounded-[12px] border border-[#EAECF0] p-[16px] flex items-center justify-center">
-        <img src="./assets/images/lap4.png" class="thumbImage w-[92px] h-[91px] rounded-[2px] object-cover cursor-pointer" />
+        <img src="/assets/images/lap4.png" class="thumbImage w-[92px] h-[91px] rounded-[2px] object-cover cursor-pointer" />
       </div>
 
       <div class="thumbContainer flex-none w-[112px] h-[111px] rounded-[12px] border border-[#EAECF0] p-[16px] flex items-center justify-center">
-        <img src="./assets/images/lap5.png" class="thumbImage w-[92px] h-[91px] rounded-[2px] object-cover cursor-pointer" />
+        <img src="/assets/images/lap5.png" class="thumbImage w-[92px] h-[91px] rounded-[2px] object-cover cursor-pointer" />
       </div>
 
       <div class="thumbContainer flex-none w-[112px] h-[111px] rounded-[12px] border border-[#EAECF0] p-[16px] flex items-center justify-center">
-        <img src="./assets/images/lap6.png" class="thumbImage w-[92px] h-[91px] rounded-[2px] object-cover cursor-pointer" />
+        <img src="/assets/images/lap6.png" class="thumbImage w-[92px] h-[91px] rounded-[2px] object-cover cursor-pointer" />
       </div>
 
     </div>
